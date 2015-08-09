@@ -1,11 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
-//  Sprite3d EXAMPLE
+//  Selba Ward - Sprite3d EXAMPLE
 //
 //  by Hapax (https://github.com/Hapaxia)
 //
 //
-//    Key controls:
+//    Keys:
 //
 //  Escape          Quit
 //  Space           Pause/unpause

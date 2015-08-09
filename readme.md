@@ -1,10 +1,11 @@
 # Selba Ward
-A collection of SFML drawables
+A collection of SFML drawables  
 by Hapax (http://github.com/Hapaxia)
 
 ## Contents
 - Line
 - Sprite 3D
+- Spinning Card
 
 ## Coming Soon
 - Bitmap Text and Bitmap Font

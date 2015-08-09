@@ -7,10 +7,10 @@
 //
 //    Controls:
 //
-//  Escape Key              Quit
-//  Left Mouse Button       Move start position of both lines (thick and thin) to current mouse position
-//  Right Mouse Button      Move end position of both lines (thick and thin) to current mouse position
-//  Scroll Mouse Wheel      Change thickness of thick line
+//  Escape key              Quit
+//  Left mouse button       Move start position of both lines (thick and thin) to current mouse position
+//  Right mouse button      Move end position of both lines (thick and thin) to current mouse position
+//  Scroll mouse wheel      Change thickness of thick line
 //
 //  Please note that this example makes use of C++11 features
 //

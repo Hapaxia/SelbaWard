@@ -38,58 +38,58 @@ namespace selbaward
 {
 
 Sprite3d::Sprite3d() :
-	m_depthToShallownessConversionNumerator(10000.f),
-	m_pitch(0.f),
-	m_yaw(0.f),
-	m_depth(10.f),
-	m_shallowness(m_depthToShallownessConversionNumerator / m_depth),
-	m_meshDensity(0u),
-	m_flipBack(false),
-	m_pTexture(nullptr),
-	m_pBackTexture(nullptr),
-	m_textureOffset(),
-	m_backTextureOffset(),
-	m_size(),
-	m_useDynamicSubdivision(false),
-	m_minSubdivision(1u),
-	m_maxSubdivision(4u),
-	m_subdivision(0u),
-	m_subdividedMeshDensity(0u),
-	m_points(4),
-	m_transformedPoints(4),
-	m_origin(),
-	m_vertices(4),
-	m_isBackFacing(false),
-	m_compactTransformMatrix(5, 0.f),
-	m_topLeft(),
-	m_topRight(),
-	m_bottomLeft(),
-	m_bottomRight()
+m_depthToShallownessConversionNumerator(10000.f),
+m_pitch(0.f),
+m_yaw(0.f),
+m_depth(10.f),
+m_shallowness(m_depthToShallownessConversionNumerator / m_depth),
+m_meshDensity(0u),
+m_flipBack(false),
+m_pTexture(nullptr),
+m_pBackTexture(nullptr),
+m_textureOffset(),
+m_backTextureOffset(),
+m_size(),
+m_useDynamicSubdivision(false),
+m_minSubdivision(1u),
+m_maxSubdivision(4u),
+m_subdivision(0u),
+m_subdividedMeshDensity(0u),
+m_points(4),
+m_transformedPoints(4),
+m_origin(),
+m_vertices(4),
+m_isBackFacing(false),
+m_compactTransformMatrix(5, 0.f),
+m_topLeft(),
+m_topRight(),
+m_bottomLeft(),
+m_bottomRight()
 {
 }
 
 Sprite3d::Sprite3d(const sf::Texture& texture) :
-	Sprite3d()
+Sprite3d()
 {
 	setTexture(texture);
 }
 
 Sprite3d::Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect) :
-	Sprite3d()
+Sprite3d()
 {
 	setTexture(texture);
 	setTextureRect(textureRect);
 }
 
 Sprite3d::Sprite3d(const sf::Texture& texture, const sf::Texture& backTexture) :
-	Sprite3d()
+Sprite3d()
 {
 	setTexture(texture);
 	setBackTexture(backTexture);
 }
 
 Sprite3d::Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect, const sf::Texture& backTexture, sf::Vector2i backTextureOffset) :
-	Sprite3d()
+Sprite3d()
 {
 	setTexture(texture);
 	setTextureRect(textureRect);
@@ -98,7 +98,7 @@ Sprite3d::Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect, c
 }
 
 Sprite3d::Sprite3d(const sf::Sprite& sprite) :
-	Sprite3d()
+Sprite3d()
 {
 	setTexture(*sprite.getTexture());
 	setTextureRect(sprite.getTextureRect());
