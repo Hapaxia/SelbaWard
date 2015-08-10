@@ -2,15 +2,17 @@
 A collection of SFML drawables  
 by Hapax (http://github.com/Hapaxia)
 
-## Contents
+For information, view the [Wiki].
+
 - Line
 - Sprite 3D
 - Spinning Card
 
-## Coming Soon
+**Still to come:**
 - Bitmap Text and Bitmap Font
 - Spline (Bezier)
-
-## Future Additions
 - Console Screen
 - Flexible Layered Object
+- + more!
+
+[Wiki]: https://github.com/Hapaxia/SelbaWard/wiki
