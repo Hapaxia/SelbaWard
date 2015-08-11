@@ -98,11 +98,14 @@ sf::FloatRect Line::getLocalBounds() const
 
 sf::FloatRect Line::getGlobalBounds() const
 {
+	const sf::Vector2f transformedStartPosition{ getTransform().transformPoint(m_vertices[0].position) };
+	const sf::Vector2f transformedEndPosition{ getTransform().transformPoint(m_vertices[1].position) };
+
 	sf::FloatRect box;
-	box.left = std::min(m_vertices[0].position.x, m_vertices[1].position.x);
-	box.top = std::min(m_vertices[0].position.y, m_vertices[1].position.y);
-	box.width = std::max(m_vertices[0].position.x, m_vertices[1].position.x) - box.left;
-	box.height = std::max(m_vertices[0].position.y, m_vertices[1].position.y) - box.top;
+	box.left = std::min(transformedStartPosition.x, transformedEndPosition.x);
+	box.top = std::min(transformedStartPosition.y, transformedEndPosition.y);
+	box.width = std::max(transformedStartPosition.x, transformedEndPosition.x) - box.left;
+	box.height = std::max(transformedStartPosition.y, transformedEndPosition.y) - box.top;
 	return box;
 }
 
