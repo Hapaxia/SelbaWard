@@ -27,33 +27,23 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef SELBAWARD_EXCEPTION_HPP
-#define SELBAWARD_EXCEPTION_HPP
+#ifndef SELBAWARD_COMMON_HPP
+#define SELBAWARD_COMMON_HPP
 
-#include <exception>
+#include "Exception.hpp"
+
+#ifndef SELBAWARD_NO_NAMESPACE_SHORTCUT
+namespace sw = selbaward; // create shortcut namespace
+#endif // SELBAWARD_NO_NAMESPACE_SHORTCUT
+
+#include <vector>
 #include <string>
 
-namespace selbaward
-{
+#include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/Transformable.hpp>
+#include <SFML/Graphics/Vertex.hpp>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/RenderStates.hpp>
 
-class Exception : public std::exception
-{
-public:
-	Exception(const std::string& errorMessage = "Unknown error.") :
-		m_errorMessage("[Selba Ward] " + errorMessage)
-	{
-	}
-	virtual const char* what() const
-	{
-		return m_errorMessage.c_str();
-	}
-
-private:
-	std::string m_errorMessage;
-};
-
-} // namespace selbaward
-
-#include "Common.hpp"
-
-#endif // SELBAWARD_EXCEPTION_HPP
+#endif // SELBAWARD_COMMON_HPP

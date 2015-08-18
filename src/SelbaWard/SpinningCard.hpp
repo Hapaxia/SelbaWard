@@ -45,7 +45,7 @@
 #ifndef SELBAWARD_SPINNINGCARD_HPP
 #define SELBAWARD_SPINNINGCARD_HPP
 
-#include "common.hpp"
+#include "Common.hpp"
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 
