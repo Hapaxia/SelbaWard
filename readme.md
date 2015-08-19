@@ -2,7 +2,7 @@
 A collection of SFML drawables  
 by Hapax (http://github.com/Hapaxia)
 
-Current contents: Line, Sprite 3D, Spinning Card, Bitmap Font  
+Current contents: Line, Sprite 3D, Spinning Card, Bitmap Text (and Bitmap Font)  
 More to come...
 
 For information, view the [Wiki].
