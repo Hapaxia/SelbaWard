@@ -112,7 +112,6 @@ private:
 	sf::Vector2u m_tileSize;
 	sf::IntRect m_defaultTextureRect;
 	std::vector<Glyph> m_glyphs;
-	unsigned int m_spacing;
 
 	const bool isGlyphIndexValid(unsigned int glyphIndex) const;
 	const Glyph getGlyphWithDefaultTextureRect(unsigned int glyphIndex = 0) const;

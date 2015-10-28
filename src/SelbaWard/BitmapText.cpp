@@ -36,7 +36,6 @@ namespace selbaward
 {
 
 BitmapText::BitmapText() :
-m_throwExceptions(true),
 m_pBitmapFont(nullptr),
 m_vertices(sf::Quads),
 m_string(),

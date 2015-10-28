@@ -37,16 +37,12 @@
 #include "BitmapFont.hpp"
 #include <SFML/Graphics/VertexArray.hpp>
 
-//#include <iostream>
-
 namespace selbaward
 {
 
 class BitmapText : public sf::Drawable, public sf::Transformable
 {
 public:
-	const std::string exceptionPrefix = "Bitmap Text: ";
-
 	BitmapText();
 	//void update();
 	void setBitmapFont(const BitmapFont& bitmapFont);
@@ -61,7 +57,6 @@ public:
 	void setScale(sf::Vector2u scale);
 
 private:
-	bool m_throwExceptions;
 	const BitmapFont* m_pBitmapFont;
 	sf::VertexArray m_vertices;
 	std::string m_string;
