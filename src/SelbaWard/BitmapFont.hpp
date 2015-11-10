@@ -30,9 +30,6 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-// TO-DO
-// add ability to add kerning (customised spacing between specified pairs of glyphs)
-
 #ifndef SELBAWARD_BITMAPFONT_HPP
 #define SELBAWARD_BITMAPFONT_HPP
 
