@@ -43,6 +43,7 @@ m_mExternalTexture(nullptr),
 m_numberOfTilesPerRow(1),
 m_tileSize({ 0, 0 }),
 m_defaultTextureRect(),
+m_kernings(),
 m_glyphs(256) // create 256 glyphs to cover the base ascii set
 {
 	setAllGlyphsToDefault();
@@ -110,7 +111,7 @@ void BitmapFont::setTextureRect(const sf::IntRect& textureRect, unsigned int gly
 	m_glyphs[glyphIndex].useDefaultTextureRect = false;;
 	m_glyphs[glyphIndex].textureRect = textureRect;
 	m_glyphs[glyphIndex].width = textureRect.width;
-	m_glyphs[glyphIndex].baseline = textureRect.height;
+	m_glyphs[glyphIndex].baseline = textureRect.height - 1;
 	m_glyphs[glyphIndex].startX = 0;
 }
 
@@ -276,6 +277,18 @@ void BitmapFont::setStartX(int startX, const std::string& glyphs)
 		setStartX(startX, glyph);
 }
 
+void BitmapFont::setKerning(int kerning, const std::string& glyphs)
+{
+	if (glyphs.size() != 2)
+	{
+		if (m_throwExceptions)
+			throw Exception(exceptionPrefix + "cannot set kerning - glyph pair not valid.");
+		return;
+	}
+
+	m_kernings[glyphs] = kerning;
+}
+
 const sf::Texture* BitmapFont::getTexture() const
 {
 	if (m_useExternalTexture)
@@ -303,6 +316,25 @@ const unsigned int BitmapFont::getNumberOfGlyphs() const
 {
 	return m_glyphs.size();
 }
+
+const int BitmapFont::getKerning(const std::string& glyphs) const
+{
+	if (glyphs.size() != 2)
+	{
+		if (m_throwExceptions)
+			throw Exception(exceptionPrefix + "cannot get kerning - glyph pair not valid.");
+		return 0;
+	}
+
+	std::map<std::string, int>::iterator it;
+	it = m_kernings.find(glyphs);
+	if (it == m_kernings.end())
+		return 0;
+	
+	return m_kernings[glyphs];
+}
+
+
 
 
 

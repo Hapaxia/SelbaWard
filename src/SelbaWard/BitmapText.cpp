@@ -107,7 +107,6 @@ void BitmapText::setScale(unsigned int scaleX, unsigned int scaleY)
 
 
 
-
 // PRIVATE
 
 void BitmapText::draw(sf::RenderTarget& target, sf::RenderStates states) const
@@ -126,6 +125,8 @@ void BitmapText::updateVertices()
 	for (unsigned int character{ 0 }; character < m_string.length(); ++character)
 	{
 		const unsigned int glyphNumber{ (m_string[character] >= 0) ? static_cast<unsigned int>(m_string[character]) : static_cast<unsigned int>(m_string[character] + 256) }; // after 125, 126, 127 is -128, -127, -126. this moves them to 128, 129, 130
+
+		const int kerning{ (character < m_string.length() - 1) ? m_pBitmapFont->getKerning(m_string.substr(character, 2)) : 0 };
 
 		BitmapFont::Glyph glyph{ m_pBitmapFont->getGlyph(glyphNumber) };
 
@@ -150,7 +151,7 @@ void BitmapText::updateVertices()
 			static_cast<float>(glyph.textureRect.left),
 			static_cast<float>(glyph.textureRect.top + glyph.textureRect.height));
 
-		penPosition += sf::Vector2f((glyph.width > 0) ? (0.f + m_tracking + glyph.width) : (0.f + m_tracking + glyph.width + glyph.textureRect.width - glyph.startX), 0);
+		penPosition += sf::Vector2f((glyph.width > 0) ? (0.f + m_tracking + kerning + glyph.width) : (0.f + m_tracking + kerning + glyph.width + glyph.textureRect.width - glyph.startX), 0);
 	}
 
 	for (unsigned int v{ 0 }; v < m_vertices.getVertexCount(); ++v)

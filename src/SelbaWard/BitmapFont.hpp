@@ -39,6 +39,7 @@
 #include "Common.hpp"
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <map> // for kerning
 
 namespace selbaward
 {
@@ -64,6 +65,7 @@ public:
 	const sf::Texture* getTexture() const;
 	const Glyph getGlyph(unsigned int glyphIndex = 0) const;
 	const unsigned int getNumberOfGlyphs() const;
+	const int getKerning(const std::string& glyphs) const;
 
 	// texture setup
 	void setExternalTexture(const sf::Texture& externalTexture);
@@ -98,6 +100,9 @@ public:
 	void setWidth(int width, const std::string& glyphs);
 	void setStartX(int startX, const std::string& glyphs);
 
+	// kerning pairs setup
+	void setKerning(int kerning, const std::string& glyphs); // string must have length of 2
+
 	// general setup
 	void setThrowExceptions(bool throwExceptions = true);
 	const bool getThrowExceptions() const;
@@ -111,6 +116,7 @@ private:
 	unsigned int m_numberOfTilesPerRow;
 	sf::Vector2u m_tileSize;
 	sf::IntRect m_defaultTextureRect;
+	mutable std::map<std::string, int> m_kernings;
 	std::vector<Glyph> m_glyphs;
 
 	const bool isGlyphIndexValid(unsigned int glyphIndex) const;
