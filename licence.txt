@@ -1,4 +1,4 @@
-Selba Ward
+Selba Ward (https://github.com/Hapaxia/SelbaWard)
 
 Copyright (c) 2014-2015 M. J. Silk
 
