@@ -32,12 +32,40 @@
 
 #include "Spline.hpp"
 
+#include <cmath>
+
 namespace
 {
 
-sf::Vector2f linearInterpolation(const sf::Vector2f& start, const sf::Vector2f& end, const float& alpha)
+inline sf::Vector2f linearInterpolation(const sf::Vector2f& start, const sf::Vector2f& end, const float& alpha)
 {
 	return (end * alpha + start * (1 - alpha));
+}
+
+inline sf::Vector2f bezierInterpolation(const sf::Vector2f& start, const sf::Vector2f& end, const sf::Vector2f& startHandle, const sf::Vector2f& endHandle, const float& alpha)
+{
+	const sf::Vector2f startControl{ start + startHandle };
+	const sf::Vector2f endControl{ end + endHandle };
+	const float alpha2{ 1.f - alpha };
+	const float alphaSquared{ alpha * alpha };
+	const float alpha2Squared{ alpha2 * alpha2 };
+
+	sf::Vector2f p;
+
+	p.x = start.x * alpha2Squared * alpha2 + startControl.x * 3 * alpha2Squared * alpha + endControl.x * 3 * alpha2 * alphaSquared + end.x * alpha * alphaSquared;
+	p.y = start.y * alpha2Squared * alpha2 + startControl.y * 3 * alpha2Squared * alpha + endControl.y * 3 * alpha2 * alphaSquared + end.y * alpha * alphaSquared;
+
+	return p;
+}
+
+inline float vectorLength(const sf::Vector2f& vector)
+{
+	return std::sqrt(vector.x * vector.x + vector.y * vector.y);
+}
+
+inline void copyAngle(const sf::Vector2f& source, sf::Vector2f& destination)
+{
+	destination = -(source / vectorLength(source)) * vectorLength(destination);
 }
 
 } // namespace
@@ -53,6 +81,11 @@ Spline::Spline()
 	, m_sfmlVertices()
 	, m_primitiveType(sf::PrimitiveType::LinesStrip)
 	, m_interpolationSteps(0u)
+	, m_handlesVertices()
+	, m_showHandles(false)
+	, m_useBezier(false)
+	, m_lockHandleMirror(true)
+	, m_lockHandleAngle(true)
 {
 }
 
@@ -67,14 +100,29 @@ void Spline::update()
 	const unsigned int pointsPerVertex{ m_interpolationSteps + 1u };
 	m_sfmlVertices.resize(((m_vertices.size() - 1) * pointsPerVertex) + 1);
 
+	m_handlesVertices.resize((m_vertices.size()) * 4);
+	std::vector<sf::Vertex>::iterator itHandle = m_handlesVertices.begin();
+
 	for (std::vector<Vertex>::iterator begin = m_vertices.begin(), end = m_vertices.end(), it = begin; it != end; ++it)
 	{
+		itHandle->color = sf::Color(255, 255, 128, 32);
+		itHandle++->position = it->position;
+		itHandle->color = sf::Color(0, 255, 0, 128);
+		itHandle++->position = it->position + it->backHandle;
+		itHandle->color = sf::Color(255, 255, 128, 32);
+		itHandle++->position = it->position;
+		itHandle->color = sf::Color(0, 255, 0, 128);
+		itHandle++->position = it->position + it->frontHandle;
+
 		std::vector<sf::Vertex>::iterator itSfml = m_sfmlVertices.begin() + (it - begin) * pointsPerVertex;
 		if (it != end - 1)
 		{
 			for (unsigned int i{ 0u }; i < pointsPerVertex; ++i)
 			{
-				itSfml->position = linearInterpolation(it->position, (it + 1)->position, static_cast<float>(i) / pointsPerVertex);
+				if (m_useBezier)
+					itSfml->position = bezierInterpolation(it->position, (it + 1)->position, it->frontHandle, (it + 1)->backHandle, static_cast<float>(i) / pointsPerVertex);
+				else
+					itSfml->position = linearInterpolation(it->position, (it + 1)->position, static_cast<float>(i) / pointsPerVertex);
 				itSfml->color = m_color;
 				++itSfml;
 			}
@@ -87,10 +135,14 @@ void Spline::update()
 	}
 }
 
-void Spline::reserveVertices(unsigned int numberOfVertices)
+void Spline::reserveVertices(const unsigned int numberOfVertices)
 {
+	if (numberOfVertices == 0)
+		return;
+
 	m_vertices.reserve(numberOfVertices);
-	m_sfmlVertices.reserve(numberOfVertices);
+	m_sfmlVertices.reserve((numberOfVertices - 1) * m_interpolationSteps + 1);
+	m_handlesVertices.reserve(numberOfVertices * 4);
 }
 
 void Spline::addVertices(const std::vector<sf::Vector2f>& positions)
@@ -152,6 +204,15 @@ void Spline::removeVertices(const unsigned int index, const unsigned int numberO
 void Spline::reverseVertices()
 {
 	std::reverse(m_vertices.begin(), m_vertices.end());
+
+	// swap all handles
+	sf::Vector2f tempHandle;
+	for (auto& vertex : m_vertices)
+	{
+		tempHandle = vertex.frontHandle;
+		vertex.frontHandle = vertex.backHandle;
+		vertex.backHandle = tempHandle;
+	}
 }
 
 void Spline::setPosition(const unsigned int index, const sf::Vector2f position)
@@ -195,6 +256,66 @@ const sf::Vector2f Spline::getPosition(const unsigned int index) const
 	return m_vertices[index].position;
 }
 
+void Spline::setFrontHandle(const unsigned int index, const sf::Vector2f offset)
+{
+	if (!priv_testVertexIndex(index, "Cannot set vertex front handle."))
+		return;
+
+	m_vertices[index].frontHandle = offset;
+	if (m_lockHandleMirror)
+		m_vertices[index].backHandle = -offset;
+	else if (m_lockHandleAngle)
+		copyAngle(m_vertices[index].frontHandle, m_vertices[index].backHandle);
+}
+
+const sf::Vector2f Spline::getFrontHandle(const unsigned int index) const
+{
+	if (!priv_testVertexIndex(index, "Cannot get vertex front handle."))
+		return{ 0.f, 0.f };
+
+	return m_vertices[index].frontHandle;
+}
+
+void Spline::setBackHandle(const unsigned int index, const sf::Vector2f offset)
+{
+	if (!priv_testVertexIndex(index, "Cannot set vertex back handle."))
+		return;
+
+	m_vertices[index].backHandle = offset;
+	if (m_lockHandleMirror)
+		m_vertices[index].frontHandle = -offset;
+	else if (m_lockHandleAngle)
+		copyAngle(m_vertices[index].backHandle, m_vertices[index].frontHandle);
+}
+
+const sf::Vector2f Spline::getBackHandle(const unsigned int index) const
+{
+	if (!priv_testVertexIndex(index, "Cannot get vertex back handle."))
+		return{ 0.f, 0.f };
+
+	return m_vertices[index].backHandle;
+}
+
+void Spline::resetHandles(const unsigned int index, unsigned int numberOfVertices)
+{
+	if (!priv_testVertexIndex(index, "Cannot reset vertices' handles") || (numberOfVertices > 1 && !priv_testVertexIndex(index + numberOfVertices - 1, "Cannot reset vertices' handles")))
+		return;
+
+	if (numberOfVertices == 0)
+		numberOfVertices = m_vertices.size() - index;
+
+	for (unsigned int v{ 0u }; v < numberOfVertices; ++v)
+	{
+		m_vertices[index + v].frontHandle = { 0.f, 0.f };
+		m_vertices[index + v].backHandle = { 0.f, 0.f };
+	}
+}
+
+void Spline::setHandlesVisible(const bool handlesVisible)
+{
+	m_showHandles = handlesVisible;
+}
+
 void Spline::setColor(const sf::Color color)
 {
 	m_color = color;
@@ -205,12 +326,24 @@ void Spline::setInterpolationSteps(const unsigned int interpolationSteps)
 	m_interpolationSteps = interpolationSteps;
 }
 
-void Spline::dev_flipPrimitiveType()
+void Spline::setHandleAngleLockEnabled(const bool enableHandleAngleLock)
 {
-	if (m_primitiveType == sf::PrimitiveType::LinesStrip)
-		m_primitiveType = sf::PrimitiveType::Points;
-	else
-		m_primitiveType = sf::PrimitiveType::LinesStrip;
+	m_lockHandleAngle = enableHandleAngleLock;
+}
+
+void Spline::setHandleMirrorLockEnabled(const bool enableHandleMirrorLock)
+{
+	m_lockHandleMirror = enableHandleMirrorLock;
+}
+
+void Spline::setBezierInterpolationEnabled(const bool enableBezierInterpolation)
+{
+	m_useBezier = enableBezierInterpolation;
+}
+
+void Spline::setPrimitiveType(const sf::PrimitiveType primitiveType)
+{
+	m_primitiveType = primitiveType;
 }
 
 
@@ -222,6 +355,8 @@ void Spline::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	states.texture = NULL;
 	if (m_sfmlVertices.size() > 0)
 		target.draw(&m_sfmlVertices.front(), m_sfmlVertices.size(), m_primitiveType, states);
+	if (m_showHandles && m_handlesVertices.size() > 1)
+		target.draw(&m_handlesVertices.front(), m_handlesVertices.size(), sf::PrimitiveType::Lines, states);
 }
 
 inline const bool Spline::priv_isValidVertexIndex(const unsigned int vertexIndex) const

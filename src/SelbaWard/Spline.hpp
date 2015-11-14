@@ -44,6 +44,8 @@ public:
 	struct Vertex
 	{
 		sf::Vector2f position;
+		sf::Vector2f frontHandle; // offset from position
+		sf::Vector2f backHandle; // offset from position
 		Vertex() {}
 		Vertex(sf::Vector2f newPosition) : position(newPosition) {}
 	};
@@ -71,13 +73,31 @@ public:
 	void setPositions(const std::vector<sf::Vector2f>& vertices, unsigned int index = 0u);
 	const sf::Vector2f getPosition(unsigned int index) const;
 
+	void setFrontHandle(unsigned int index, sf::Vector2f offset);
+	const sf::Vector2f getFrontHandle(unsigned int index) const;
+
+	void setBackHandle(unsigned int index, sf::Vector2f offset);
+	const sf::Vector2f getBackHandle(unsigned int index) const;
+
+	void resetHandles(unsigned int index = 0u, unsigned int numberOfVertices = 0u); // if numberOfvertices is zero (the default), reset handles for all vertices from specified index until the end. if no index is specified, all handles are reset
+
+	void setHandlesVisible(bool handlesVisible = true);
+	const bool getHandlesVisible() const;
+
 	void setColor(sf::Color color);
 	const sf::Color getColor() const;
 
 	void setInterpolationSteps(unsigned int interpolationSteps);
 	const unsigned int getInterpolationSteps() const;
 
-	void dev_flipPrimitiveType(); // temporary (for development) method that alternates primitive types: lines strip and points
+	void setHandleMirrorLockEnabled(bool enableHandleMirrorLock = true);
+	void setHandleAngleLockEnabled(bool enableHandleAngleLock = true);
+
+	void setBezierInterpolationEnabled(bool enableBezierInterpolation = true);
+	const bool getBezierInterpolationEnabled() const;
+
+	void setPrimitiveType(sf::PrimitiveType primitiveType);
+	const sf::PrimitiveType getPrimitiveType() const;
 
 private:
 	const std::string m_exceptionPrefix;
@@ -90,6 +110,12 @@ private:
 	std::vector<sf::Vertex> m_sfmlVertices;
 	sf::PrimitiveType m_primitiveType;
 	unsigned int m_interpolationSteps;
+	bool m_useBezier;
+
+	std::vector<sf::Vertex> m_handlesVertices;
+	bool m_showHandles;
+	bool m_lockHandleMirror;
+	bool m_lockHandleAngle;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 	const bool priv_isValidVertexIndex(unsigned int vertexIndex) const;
@@ -106,6 +132,11 @@ inline const unsigned int Spline::getLastVertexIndex() const
 	return m_vertices.size() - 1u;
 }
 
+inline const bool Spline::getHandlesVisible() const
+{
+	return m_showHandles;
+}
+
 inline const sf::Color Spline::getColor() const
 {
 	return m_color;
@@ -114,6 +145,16 @@ inline const sf::Color Spline::getColor() const
 inline const unsigned int Spline::getInterpolationSteps() const
 {
 	return m_interpolationSteps;
+}
+
+inline const sf::PrimitiveType Spline::getPrimitiveType() const
+{
+	return m_primitiveType;
+}
+
+inline const bool Spline::getBezierInterpolationEnabled() const
+{
+	return m_useBezier;
 }
 
 } // namespace selbaward
