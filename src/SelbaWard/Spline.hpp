@@ -70,7 +70,7 @@ public:
 	
 	void setPosition(unsigned int index, sf::Vector2f position = { 0.f, 0.f });
 	void setPositions(unsigned int index, unsigned int numberOfVertices = 0u, sf::Vector2f position = { 0.f, 0.f }); // if numberOfvertices is zero (the default), sets positions of all vertices from specified index until the end
-	void setPositions(const std::vector<sf::Vector2f>& vertices, unsigned int index = 0u);
+	void setPositions(const std::vector<sf::Vector2f>& positions, unsigned int index = 0u);
 	const sf::Vector2f getPosition(unsigned int index) const;
 
 	void setFrontHandle(unsigned int index, sf::Vector2f offset);
@@ -80,6 +80,8 @@ public:
 	const sf::Vector2f getBackHandle(unsigned int index) const;
 
 	void resetHandles(unsigned int index = 0u, unsigned int numberOfVertices = 0u); // if numberOfvertices is zero (the default), reset handles for all vertices from specified index until the end. if no index is specified, all handles are reset
+
+	void smoothHandles();
 
 	void setHandlesVisible(bool handlesVisible = true);
 	const bool getHandlesVisible() const;

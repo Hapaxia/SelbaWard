@@ -94,6 +94,7 @@ void Spline::update()
 	if (m_vertices.size() == 0)
 	{
 		m_sfmlVertices.clear();
+		m_handlesVertices.clear();
 		return;
 	}
 
@@ -309,6 +310,43 @@ void Spline::resetHandles(const unsigned int index, unsigned int numberOfVertice
 		m_vertices[index + v].frontHandle = { 0.f, 0.f };
 		m_vertices[index + v].backHandle = { 0.f, 0.f };
 	}
+}
+
+void Spline::smoothHandles()
+{
+	for (unsigned int v{ 0 }; v < m_vertices.size() - 1; ++v)
+	{
+		sf::Vector2f p1{ m_vertices[v].position };
+		sf::Vector2f p2{ m_vertices[v + 1].position };
+		sf::Vector2f p0{ p1 };
+		sf::Vector2f p3{ p2 };
+		if (v > 0)
+			p0 = m_vertices[v - 1].position;
+		if (v < m_vertices.size() - 2)
+			p3 = m_vertices[v + 2].position;
+
+		sf::Vector2f m0{ linearInterpolation(p0, p1, 0.5f) };
+		sf::Vector2f m1{ linearInterpolation(p1, p2, 0.5f) };
+		sf::Vector2f m2{ linearInterpolation(p2, p3, 0.5f) };
+
+		float p01{ vectorLength(p1 - p0) };
+		float p12{ vectorLength(p2 - p1) };
+		float p23{ vectorLength(p3 - p2) };
+		float proportion0{ 0.f };
+		float proportion1{ 0.f };
+		if (p01 + p12 != 0.f)
+			proportion0 = p01 / (p01 + p12);
+		if (p12 + p23 != 0.f)
+			proportion1 = p12 / (p12 + p23);
+
+		sf::Vector2f q0{ linearInterpolation(m0, m1, proportion0) };
+		sf::Vector2f q1{ linearInterpolation(m1, m2, proportion1) };
+
+		m_vertices[v].frontHandle = m1 - q0;
+		m_vertices[v + 1].backHandle = m1 - q1;
+	}
+	m_vertices.front().backHandle = { 0.f, 0.f };
+	m_vertices.back().frontHandle = { 0.f, 0.f };
 }
 
 void Spline::setHandlesVisible(const bool handlesVisible)
