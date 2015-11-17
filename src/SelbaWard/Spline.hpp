@@ -53,6 +53,8 @@ public:
 	Spline();
 	void update();
 
+	Vertex& operator[] (unsigned int index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
+
 	const unsigned int getVertexCount() const;
 	const unsigned int getLastVertexIndex() const;
 
@@ -123,6 +125,11 @@ private:
 	const bool priv_isValidVertexIndex(unsigned int vertexIndex) const;
 	const bool priv_testVertexIndex(unsigned int vertexIndex, const std::string& exceptionMessage) const;
 };
+
+inline Spline::Vertex& Spline::operator[] (const unsigned int index)
+{
+	return m_vertices[index];
+}
 
 inline const unsigned int Spline::getVertexCount() const
 {
