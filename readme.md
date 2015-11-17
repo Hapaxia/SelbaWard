@@ -2,7 +2,7 @@
 A collection of SFML drawables  
 by [Hapax](http://github.com/Hapaxia)
 
-Contents: **Line**, **Spline**, **Sprite 3D**, **Spinning Card**, **Bitmap Text**
+Contents: **Line**, **Spline**, **Sprite 3D**, **Bitmap Text**, **Progress Bar**, **Spinning Card**
 
 For information, view the [Wiki].
 
