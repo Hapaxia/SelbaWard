@@ -89,6 +89,28 @@ Spline::Spline()
 {
 }
 
+const float Spline::getLength() const
+{
+	if (m_vertices.size() < 2)
+		return 0.f;
+
+	float total{ 0.f };
+	for (unsigned int v{ 0 }; v < getLastVertexIndex(); ++v)
+		total += vectorLength(m_vertices[v + 1].position - m_vertices[v].position);
+	return total;
+}
+
+const float Spline::getInterpolatedLength() const
+{
+	if (m_sfmlVertices.size() < 2)
+		return 0.f;
+
+	float total{ 0.f };
+	for (unsigned int v{ 0 }; v < m_sfmlVertices.size() - 1; ++v)
+		total += vectorLength(m_sfmlVertices[v + 1].position - m_sfmlVertices[v].position);
+	return total;
+}
+
 void Spline::update()
 {
 	if (m_vertices.size() == 0)

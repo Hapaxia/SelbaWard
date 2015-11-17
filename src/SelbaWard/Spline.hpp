@@ -57,6 +57,8 @@ public:
 
 	const unsigned int getVertexCount() const;
 	const unsigned int getLastVertexIndex() const;
+	const float getLength() const; // returns the length of (linear) spline - the sum of the lengths of all of the lines between consecutive vertices
+	const float getInterpolatedLength() const; // returns the actual length of the spline - the sum of the lengths of all of the line segments drawn
 
 	void reserveVertices(unsigned int numberOfVertices);
 
