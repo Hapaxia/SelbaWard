@@ -62,6 +62,9 @@ int main()
 		font.setStartX(1, "%&@");
 		font.setStartX(3, "'()/<>[]`\\");
 		font.setStartX(4, "!,.:;|");
+
+		// used kerning
+		font.setKerning(-1, "Iv");
 	}
 	catch (sw::Exception& e)
 	{
@@ -76,7 +79,7 @@ int main()
 	text.setPosition(20, 50);
 	text.setScale(4); // scale so we can see the pixels (only accepts unsigned integers - single unsigned int, two unsigned ints, sf::Vector2u)
 	//text.Transformable::setScale(3.5f, 9.75f); // it's still possible to scale by fractional amounts by explicitly calling the Transformable method
-	//text.setTracking(2); // spacing between characters. default is 1
+	//text.setTracking(2); // base spacing between characters. default is 1
 
 	sf::RenderWindow window(sf::VideoMode(600, 100), "Bitmap Text example", sf::Style::Default);
 	window.setFramerateLimit(20);
