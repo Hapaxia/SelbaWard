@@ -50,7 +50,7 @@ public:
 		Vertex(sf::Vector2f newPosition) : position(newPosition) {}
 	};
 
-	Spline();
+	Spline(unsigned int vertexCount = 0, sf::Vector2f initialPosition = { 0.f, 0.f });
 	void update();
 
 	Vertex& operator[] (unsigned int index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
@@ -106,8 +106,6 @@ public:
 	const sf::PrimitiveType getPrimitiveType() const;
 
 private:
-	const std::string m_exceptionPrefix;
-
 	bool m_throwExceptions;
 
 	std::vector<Vertex> m_vertices;

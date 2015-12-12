@@ -37,6 +37,8 @@
 namespace
 {
 
+const std::string exceptionPrefix = "Spline: ";
+
 inline sf::Vector2f linearInterpolation(const sf::Vector2f& start, const sf::Vector2f& end, const float& alpha)
 {
 	return (end * alpha + start * (1 - alpha));
@@ -73,10 +75,9 @@ inline void copyAngle(const sf::Vector2f& source, sf::Vector2f& destination)
 namespace selbaward
 {
 
-Spline::Spline()
-	: m_exceptionPrefix("Spline: ")
-	, m_throwExceptions(true)
-	, m_vertices()
+Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPosition)
+	: m_throwExceptions(true)
+	, m_vertices(vertexCount, Vertex(initialPosition))
 	, m_color(sf::Color::White)
 	, m_sfmlVertices()
 	, m_primitiveType(sf::PrimitiveType::LinesStrip)
@@ -429,7 +430,7 @@ const bool Spline::priv_testVertexIndex(const unsigned int vertexIndex, const st
 	if (!priv_isValidVertexIndex(vertexIndex))
 	{
 		if (m_throwExceptions)
-			throw Exception(exceptionMessage + " Vertex index (" + std::to_string(vertexIndex) + ") out of range");
+			throw Exception(exceptionPrefix + exceptionMessage + " Vertex index (" + std::to_string(vertexIndex) + ") out of range");
 		return false;
 	}
 	return true;
