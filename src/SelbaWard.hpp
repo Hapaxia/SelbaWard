@@ -33,7 +33,8 @@
 #include "SelbaWard/Line.hpp"
 #include "SelbaWard/Spline.hpp"
 #include "SelbaWard/Sprite3d.hpp"
-#include "SelbaWard/SpinningCard.hpp"
 #include "SelbaWard/BitmapText.hpp"
+#include "SelbaWard/ProgressBar.hpp"
+#include "SelbaWard/SpinningCard.hpp"
 
 #endif // SELBAWARD_HPP
