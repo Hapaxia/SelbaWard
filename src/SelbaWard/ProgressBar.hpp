@@ -46,13 +46,13 @@ public:
 	// creation and size
 	ProgressBar(sf::Vector2f size = { 64.f, 8.f });
 	void setSize(sf::Vector2f size);
-	const sf::Vector2f getSize() const;
+	sf::Vector2f getSize() const;
 	
 	// progress
 	void setRatio(float ratio);
-	const float getRatio() const;
+	float getRatio() const;
 	void setPercentage(float percentage);
-	const float getPercentage() const;
+	float getPercentage() const;
 	template <class T>
 	void setFromValueInRange(const T& value, const T& minimum, const T& maximum);
 	template <class T>
@@ -63,19 +63,27 @@ public:
 	void setFrameColor(sf::Color frameColor);
 	void setBackgroundColor(sf::Color backgroundColor);
 	void setColor(sf::Color color);
+	void setBarEnabled(bool barEnabled = true);
 	void setBackgroundAndFrameEnabled(bool backgroundAndFrameEnabled = true);
-	const float getFrameThickness() const;
-	const sf::Color getFrameColor() const;
-	const sf::Color getBackgroundColor() const;
-	const sf::Color getColor() const;
-	const bool getBackgroundAndFrameEnabled() const;
+	float getFrameThickness() const;
+	sf::Color getFrameColor() const;
+	sf::Color getBackgroundColor() const;
+	sf::Color getColor() const;
+	bool getBarEnabled() const;
+	bool getBackgroundAndFrameEnabled() const;
 
 	// bounds
-	const sf::FloatRect getLocalBounds() const;
-	const sf::FloatRect getGlobalBounds() const;
+	sf::FloatRect getLocalBounds() const;
+	sf::FloatRect getGlobalBounds() const;
+
+	// anchor points
+	sf::Vector2f getAnchorProgressTop() const;
+	sf::Vector2f getAnchorProgressCenter() const;
+	sf::Vector2f getAnchorProgressBottom() const;
 
 private:
 	float m_amount;
+	bool m_isBarEnabled;
 	bool m_isBackgroundEnabled;
 	sf::Vector2f m_size;
 	sf::RectangleShape m_bar;
@@ -85,17 +93,17 @@ private:
 	void priv_updateGraphics();
 };
 
-inline const sf::Vector2f ProgressBar::getSize() const
+inline sf::Vector2f ProgressBar::getSize() const
 {
 	return m_size;
 }
 
-inline const float ProgressBar::getRatio() const
+inline float ProgressBar::getRatio() const
 {
 	return m_amount;
 }
 
-inline const float ProgressBar::getPercentage() const
+inline float ProgressBar::getPercentage() const
 {
 	return m_amount * 100.f;
 }
@@ -112,27 +120,27 @@ void ProgressBar::setFromValueInRange(const T& value, const T& range)
 	setRatio(static_cast<float>(value) / static_cast<float>(range));
 }
 
-inline const float ProgressBar::getFrameThickness() const
+inline float ProgressBar::getFrameThickness() const
 {
 	return m_backgroundAndFrame.getOutlineThickness();
 }
 
-inline const sf::Color ProgressBar::getFrameColor() const
+inline sf::Color ProgressBar::getFrameColor() const
 {
 	return m_backgroundAndFrame.getOutlineColor();
 }
 
-inline const sf::Color ProgressBar::getBackgroundColor() const
+inline sf::Color ProgressBar::getBackgroundColor() const
 {
 	return m_backgroundAndFrame.getFillColor();
 }
 
-inline const sf::Color ProgressBar::getColor() const
+inline sf::Color ProgressBar::getColor() const
 {
 	return m_bar.getFillColor();
 }
 
-inline const bool ProgressBar::getBackgroundAndFrameEnabled() const
+inline bool ProgressBar::getBackgroundAndFrameEnabled() const
 {
 	return m_isBackgroundEnabled;
 }

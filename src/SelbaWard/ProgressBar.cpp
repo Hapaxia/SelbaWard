@@ -38,6 +38,7 @@ namespace selbaward
 ProgressBar::ProgressBar(sf::Vector2f size)
 	: m_amount(0.f)
 	, m_size(size)
+	, m_isBarEnabled(true)
 	, m_isBackgroundEnabled(false)
 	, m_bar({ 0.f, size.y })
 	, m_backgroundAndFrame(size)
@@ -89,12 +90,17 @@ void ProgressBar::setColor(sf::Color color)
 	m_bar.setFillColor(color);
 }
 
+void ProgressBar::setBarEnabled(bool barEnabled)
+{
+	m_isBarEnabled = barEnabled;
+}
+
 void ProgressBar::setBackgroundAndFrameEnabled(bool backgroundAndFrameEnabled)
 {
 	m_isBackgroundEnabled = backgroundAndFrameEnabled;
 }
 
-const sf::FloatRect ProgressBar::getLocalBounds() const
+sf::FloatRect ProgressBar::getLocalBounds() const
 {
 	if (m_isBackgroundEnabled && m_backgroundAndFrame.getOutlineThickness() > 0.f)
 	{
@@ -105,9 +111,24 @@ const sf::FloatRect ProgressBar::getLocalBounds() const
 		return{ { 0.f, 0.f }, m_size };
 }
 
-const sf::FloatRect ProgressBar::getGlobalBounds() const
+sf::FloatRect ProgressBar::getGlobalBounds() const
 {
 	return getTransform().transformRect(getLocalBounds());
+}
+
+sf::Vector2f ProgressBar::getAnchorProgressTop() const
+{
+	return getTransform().transformPoint({ m_bar.getLocalBounds().width, 0.f });
+}
+
+sf::Vector2f ProgressBar::getAnchorProgressCenter() const
+{
+	return getTransform().transformPoint({ m_bar.getLocalBounds().width, m_bar.getLocalBounds().height / 2.f });
+}
+
+sf::Vector2f ProgressBar::getAnchorProgressBottom() const
+{
+	return getTransform().transformPoint({ m_bar.getLocalBounds().width, m_bar.getLocalBounds().height });
 }
 
 
@@ -119,7 +140,8 @@ void ProgressBar::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	states.transform = getTransform();
 	if (m_isBackgroundEnabled)
 		target.draw(m_backgroundAndFrame, states);
-	target.draw(m_bar, states);
+	if (m_isBarEnabled)
+		target.draw(m_bar, states);
 }
 
 void ProgressBar::priv_updateGraphics()
