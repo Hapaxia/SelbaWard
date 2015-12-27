@@ -94,6 +94,45 @@ void PieChart::update()
 	}
 }
 
+sf::FloatRect PieChart::getLocalBounds() const
+{
+	sf::Vector2f topLeft{ m_vertices[0].position };
+	sf::Vector2f bottomRight{ topLeft };
+	for (auto& vertex : m_vertices)
+	{
+		if (vertex.position.x < topLeft.x)
+			topLeft.x = vertex.position.x;
+		else if (vertex.position.x > bottomRight.x)
+			bottomRight.x = vertex.position.x;
+		if (vertex.position.y < topLeft.y)
+			topLeft.y = vertex.position.y;
+		else if (vertex.position.y > bottomRight.y)
+			bottomRight.y = vertex.position.y;
+	}
+	return{ topLeft, bottomRight - topLeft };
+}
+
+sf::FloatRect PieChart::getGlobalBounds() const
+{
+	const sf::Transform transform{ getTransform() };
+	sf::Vector2f topLeft{ m_vertices[0].position };
+	sf::Vector2f bottomRight{ topLeft };
+	sf::Vector2f current;
+	for (auto& vertex : m_vertices)
+	{
+		current = transform.transformPoint(vertex.position);
+		if (current.x < topLeft.x)
+			topLeft.x = current.x;
+		else if (current.x > bottomRight.x)
+			bottomRight.x = current.x;
+		if (current.y < topLeft.y)
+			topLeft.y = current.y;
+		else if (current.y > bottomRight.y)
+			bottomRight.y = current.y;
+	}
+	return{ topLeft, bottomRight - topLeft };
+}
+
 
 
 // PRIVATE

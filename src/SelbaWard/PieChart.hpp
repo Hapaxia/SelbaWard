@@ -58,6 +58,9 @@ public:
 	void setRadius(float radius);
 	void setDiameter(float diameter);
 
+	sf::FloatRect getLocalBounds() const;
+	sf::FloatRect getGlobalBounds() const;
+
 private:
 	sf::PrimitiveType m_primitive;
 	std::vector<sf::Vertex> m_vertices;
