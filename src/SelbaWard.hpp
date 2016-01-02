@@ -38,5 +38,6 @@
 #include "SelbaWard/BitmapText.hpp"
 #include "SelbaWard/ProgressBar.hpp"
 #include "SelbaWard/SpinningCard.hpp"
+#include "SelbaWard/ConsoleScreen.hpp"
 
 #endif // SELBAWARD_HPP
