@@ -31,6 +31,7 @@
 #define SELBAWARD_HPP
 
 #include "SelbaWard/Line.hpp"
+#include "SelbaWard/Ring.hpp"
 #include "SelbaWard/Spline.hpp"
 #include "SelbaWard/Sprite3d.hpp"
 #include "SelbaWard/PieChart.hpp"
