@@ -115,7 +115,7 @@ sf::FloatRect PieChart::getLocalBounds() const
 sf::FloatRect PieChart::getGlobalBounds() const
 {
 	const sf::Transform transform{ getTransform() };
-	sf::Vector2f topLeft{ m_vertices[0].position };
+	sf::Vector2f topLeft{ transform.transformPoint(m_vertices[0].position) };
 	sf::Vector2f bottomRight{ topLeft };
 	sf::Vector2f current;
 	for (auto& vertex : m_vertices)
