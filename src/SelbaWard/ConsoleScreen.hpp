@@ -51,16 +51,18 @@ public:
 	void setTexture(nullptr_t nullPointer);
 	void setTextureTileSize(sf::Vector2u tileSize = { 8u, 8u });
 	void setNumberOfTextureTilesPerRow(unsigned int numberOfTextureTilesPerRow = 1u);
+	sf::Vector2u getNumberOfCells() const;
+	unsigned int getTotalNumberOfCells() const;
+	sf::Vector2u getNumberOfTilesInTexture() const;
+	unsigned int getTotalNumberOfTilesInTexture() const;
+
+	// switches
 	void setExceptionsEnabled(bool exceptionsEnabled = true);
 	void setAutomaticUpdateEnabled(bool automaticUpdateEnabled = true);
 	void setShowCursorEnabled(bool showCursorEnabled = true);
 	void setShowBackgroundEnabled(bool showBackgroundEnabled = true);
 	void setScrollEnabled(bool scrollEnabled = true);
 	void setWrapOnManualScrollEnabled(bool wrapOnManualScrollEnabled = true);
-	sf::Vector2u getNumberOfCells() const;
-	unsigned int getTotalNumberOfCells() const;
-	sf::Vector2u getNumberOfTilesInTexture() const;
-	unsigned int getTotalNumberOfTilesInTexture() const;
 	bool getExceptionsEnabled() const;
 	bool getAutomaticUpdateEnabled() const;
 	bool getShowCursorEnabled() const;
