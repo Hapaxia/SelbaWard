@@ -33,6 +33,12 @@
 #include <exception>
 #include <string>
 
+#ifdef _MSC_VER
+#define NOEXCEPT
+#else
+#define NOEXCEPT noexcept
+#endif
+
 namespace selbaward
 {
 
@@ -43,7 +49,7 @@ public:
 		m_errorMessage("[Selba Ward] " + errorMessage)
 	{
 	}
-	virtual const char* what() const
+	virtual const char* what() const NOEXCEPT override
 	{
 		return m_errorMessage.c_str();
 	}
