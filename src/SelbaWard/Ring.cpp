@@ -47,6 +47,8 @@ namespace selbaward
 Ring::Ring(const float radius, const float hole, const unsigned int numberOfSides)
 	: m_radius(radius)
 	, m_hole(hole)
+	, m_sectorSize(1.f)
+	, m_sectorOffset(0.f)
 	, m_numberOfSides(numberOfSides)
 	, m_color(sf::Color::White)
 	, m_primitiveType(sf::PrimitiveType::TrianglesStrip)
@@ -120,6 +122,79 @@ void Ring::setTextureRect(const sf::IntRect& textureRect)
 	priv_updateVertices();
 }
 
+sf::FloatRect Ring::getLocalBounds() const
+{
+	if (m_vertices.size() == 0)
+		return{ { 0.f, 0.f }, { 0.f, 0.f } };
+
+	sf::Vector2f topLeft{ m_vertices[0].position };
+	sf::Vector2f bottomRight{ topLeft };
+	for (auto& vertex : m_vertices)
+	{
+		if (vertex.position.x < topLeft.x)
+			topLeft.x = vertex.position.x;
+		else if (vertex.position.x > bottomRight.x)
+			bottomRight.x = vertex.position.x;
+		if (vertex.position.y < topLeft.y)
+			topLeft.y = vertex.position.y;
+		else if (vertex.position.y > bottomRight.y)
+			bottomRight.y = vertex.position.y;
+	}
+	return{ topLeft, bottomRight - topLeft };
+}
+
+sf::FloatRect Ring::getGlobalBounds() const
+{
+	if (m_vertices.size() == 0)
+		return{ { 0.f, 0.f }, { 0.f, 0.f } };
+
+	const sf::Transform transform{ getTransform() };
+	sf::Vector2f topLeft{ transform.transformPoint(m_vertices[0].position) };
+	sf::Vector2f bottomRight{ topLeft };
+	sf::Vector2f current;
+	for (auto& vertex : m_vertices)
+	{
+		current = transform.transformPoint(vertex.position);
+		if (current.x < topLeft.x)
+			topLeft.x = current.x;
+		else if (current.x > bottomRight.x)
+			bottomRight.x = current.x;
+		if (current.y < topLeft.y)
+			topLeft.y = current.y;
+		else if (current.y > bottomRight.y)
+			bottomRight.y = current.y;
+	}
+	return{ topLeft, bottomRight - topLeft };
+}
+
+float Ring::getArea() const
+{
+	const float holeRadius{ m_radius * m_hole };
+	return (m_radius * m_radius - holeRadius * holeRadius) * pi;
+}
+
+void Ring::setSectorSize(const float sectorSize)
+{
+	m_sectorSize = sectorSize;
+	priv_updateVertices();
+}
+
+float Ring::getSectorSize() const
+{
+	return m_sectorSize;
+}
+
+void Ring::setSectorOffset(const float sectorOffset)
+{
+	m_sectorOffset = sectorOffset;
+	priv_updateVertices();
+}
+
+float Ring::getSectorOffset() const
+{
+	return m_sectorOffset;
+}
+
 
 
 // PRIVATE
@@ -135,13 +210,14 @@ void Ring::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 void Ring::priv_updateVertices()
 {
-	const float fullCircle{ 2.f * pi };
+	const float sectorOffset{ 2.f * pi * m_sectorOffset };
+	const float sectorSize{ 2.f * pi * m_sectorSize };
 	m_vertices.resize((m_numberOfSides + 1) * 2);
 	for (std::vector<sf::Vertex>::iterator begin{ m_vertices.begin() }, end{ m_vertices.end() }, it{ begin }; it != end; ++it)
 	{
 		const unsigned int index{ static_cast<unsigned int>(it - begin) };
 		const unsigned int point{ index / 2u };
-		const float angle{ fullCircle * point / m_numberOfSides };
+		const float angle{ sectorOffset + sectorSize * point / m_numberOfSides };
 		const bool isInnerPoint{ (index % 2 != 0) };
 		it->position = { m_radius + std::sin(angle) * m_radius * (isInnerPoint ? m_hole : 1.f), m_radius - std::cos(angle) * m_radius * (isInnerPoint ? m_hole : 1.f), };
 		it->color = m_color;

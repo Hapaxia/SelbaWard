@@ -38,14 +38,14 @@
 namespace selbaward
 {
 
-// SW Ring v1.0.0
+// SW Ring v1.1.0
 class Ring : public sf::Drawable, public sf::Transformable
 {
 public:
-	Ring(float radius = 0.f, const float hole = 0.5f, const unsigned int numberOfSides = 36u);
+	Ring(float radius = 0.f, float hole = 0.5f, unsigned int numberOfSides = 36u);
 	void setRadius(float radius);
 	float getRadius() const;
-	void setHole(float innerScale);
+	void setHole(float hole);
 	float getHole() const;
 	void setNumberOfSides(unsigned int numberOfSides);
 	unsigned int getNumberOfSides() const;
@@ -54,10 +54,19 @@ public:
 	void setTexture(const sf::Texture& texture, bool resetRect = false);
 	void setTexture(const nullptr_t nullPointer);
 	void setTextureRect(const sf::IntRect& textureRect);
+	sf::FloatRect getLocalBounds() const;
+	sf::FloatRect getGlobalBounds() const;
+	float getArea() const;
+	void setSectorSize(float sectorSize);
+	float getSectorSize() const;
+	void setSectorOffset(float sectorOffset);
+	float getSectorOffset() const;
 
 private:
 	float m_radius;
 	float m_hole;
+	float m_sectorSize;
+	float m_sectorOffset;
 	unsigned int m_numberOfSides;
 	sf::Color m_color;
 	sf::PrimitiveType m_primitiveType;
