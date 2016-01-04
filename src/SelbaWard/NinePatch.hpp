@@ -39,6 +39,7 @@
 namespace selbaward
 {
 
+// SW Nine Patch v1.0.0
 class NinePatch : public sf::Drawable
 {
 public:

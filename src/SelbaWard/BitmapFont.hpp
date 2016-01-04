@@ -41,6 +41,7 @@
 namespace selbaward
 {
 
+// SW Bitmap Font v1.0.0
 class BitmapFont
 {
 public:
