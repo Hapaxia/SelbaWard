@@ -35,6 +35,7 @@
 #include "SelbaWard/Spline.hpp"
 #include "SelbaWard/Sprite3d.hpp"
 #include "SelbaWard/PieChart.hpp"
+#include "SelbaWard/Crosshair.hpp"
 #include "SelbaWard/NinePatch.hpp"
 #include "SelbaWard/BitmapText.hpp"
 #include "SelbaWard/ProgressBar.hpp"
