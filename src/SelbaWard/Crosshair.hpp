@@ -35,12 +35,13 @@
 
 #include "Common.hpp"
 
-#include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
 
 namespace selbaward
 {
 
+// SW Crosshair v1.0.0
 class Crosshair : public sf::Drawable
 {
 public:
