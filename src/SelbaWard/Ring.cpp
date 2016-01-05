@@ -170,7 +170,7 @@ sf::FloatRect Ring::getGlobalBounds() const
 float Ring::getArea() const
 {
 	const float holeRadius{ m_radius * m_hole };
-	return (m_radius * m_radius - holeRadius * holeRadius) * pi;
+	return (m_radius * m_radius - holeRadius * holeRadius) * m_sectorSize * pi;
 }
 
 void Ring::setSectorSize(const float sectorSize)
