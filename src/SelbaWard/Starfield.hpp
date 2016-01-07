@@ -1,8 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // Selba Ward (https://github.com/Hapaxia/SelbaWard)
+// --
 //
-// Copyright(c) 2015-2016 M.J.Silk
+// Starfield
+//
+// Copyright(c) 2016 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -27,20 +30,37 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef SELBAWARD_HPP
-#define SELBAWARD_HPP
+#ifndef SELBAWARD_STARFIELD_HPP
+#define SELBAWARD_STARFIELD_HPP
 
-#include "SelbaWard/Line.hpp"
-#include "SelbaWard/Ring.hpp"
-#include "SelbaWard/Spline.hpp"
-#include "SelbaWard/Sprite3d.hpp"
-#include "SelbaWard/PieChart.hpp"
-#include "SelbaWard/Starfield.hpp"
-#include "SelbaWard/Crosshair.hpp"
-#include "SelbaWard/NinePatch.hpp"
-#include "SelbaWard/BitmapText.hpp"
-#include "SelbaWard/ProgressBar.hpp"
-#include "SelbaWard/SpinningCard.hpp"
-#include "SelbaWard/ConsoleScreen.hpp"
+#include "Common.hpp"
 
-#endif // SELBAWARD_HPP
+namespace selbaward
+{
+
+class Starfield : public sf::Drawable, sf::Transformable
+{
+public:
+	Starfield(sf::Vector2f size = { 0.f, 0.f }, unsigned int numberOfStars = 100u, sf::Color color = sf::Color(160, 160, 160));
+	void regenerate();
+	void regenerate(sf::Vector2f size);
+	void regenerate(sf::Vector2f size, unsigned int numberOfStars);
+	void regenerate(sf::Vector2f size, unsigned int numberOfStars, sf::Color color);
+	void regenerate(unsigned int numberOfStars);
+	void regenerate(unsigned int numberOfStars, sf::Color color);
+	void regenerate(sf::Color color);
+
+	void move(sf::Vector2f movement);
+
+private:
+	sf::PrimitiveType m_primitiveType;
+	std::vector<sf::Vertex> m_vertices;
+	sf::Vector2f m_size;
+	sf::Color m_color;
+
+	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	void priv_updateBrightnesses();
+};
+
+} // namespace selbaward
+#endif // SELBAWARD_STARFIELD_HPP
