@@ -38,7 +38,8 @@
 namespace selbaward
 {
 
-class Starfield : public sf::Drawable, sf::Transformable
+// SW Starfield v1.0.1
+class Starfield : public sf::Drawable, public sf::Transformable
 {
 public:
 	Starfield(sf::Vector2f size = { 0.f, 0.f }, unsigned int numberOfStars = 100u, sf::Color color = sf::Color(160, 160, 160));
@@ -59,7 +60,6 @@ private:
 	sf::Color m_color;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-	void priv_updateBrightnesses();
 };
 
 } // namespace selbaward
