@@ -44,7 +44,7 @@
 namespace selbaward
 {
 
-// Sprite3d version 1.0.0
+// Sprite3d version 1.1.0
 class Sprite3d : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -94,14 +94,19 @@ public:
 	float getYaw() const;
 	float getRoll() const;
 	sf::Vector3f getRotation3d() const;
+	sf::Vector3f getOrigin3d() const;
 	float getMostExtremeAngle() const; // most extreme angle of pitch and yaw. ranges from 0 to 90
 
 	void setPitch(float pitch); // rotation around the x axis
 	void setYaw(float yaw);     // rotation around the y axis
 	void setRoll(float roll);   // rotation around the z axis (this is the usual 2D rotation)
 	void setRotation(float rotation); // supplied as the 3d rotation method overrides the sf::Transformable rotation method
-	void setRotation(sf::Vector3f rotation); // set pitch, yaw, and roll at once.
-	void setRotation3d(sf::Vector3f rotation); // set pitch, yaw, and roll at once.
+	void setRotation(sf::Vector3f rotation); // set pitch, yaw, and roll at once
+	void setRotation3d(sf::Vector3f rotation); // set pitch, yaw, and roll at once
+	void setOriginZ(float originZ); // sets the origin's z position, which is taken into account when rotating
+	void setOrigin(sf::Vector2f origin); // supplied as the 3d origin method overrides the sf::Transformable origin method: sets the 2D origin position. also resets origin's z position to zero
+	void setOrigin(sf::Vector3f origin); // sets the 3D origin position
+	void setOrigin3d(sf::Vector3f origin); // sets the 3D origin position
 
 
 

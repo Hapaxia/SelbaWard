@@ -60,7 +60,7 @@ m_transformedPoints(4),
 m_origin(),
 m_vertices(4),
 m_isBackFacing(false),
-m_compactTransformMatrix(5, 0.f),
+m_compactTransformMatrix(8, 0.f), // was 5. is now 8 to take into account z (for origin's z)
 m_topLeft(),
 m_topRight(),
 m_bottomLeft(),
@@ -221,7 +221,13 @@ float Sprite3d::getRoll() const
 
 sf::Vector3f Sprite3d::getRotation3d() const
 {
-	return{ m_pitch, m_yaw, this->getRotation() };
+	return{ m_pitch, m_yaw, this->Transformable::getRotation() };
+}
+
+sf::Vector3f Sprite3d::getOrigin3d() const
+{
+	const sf::Vector2f origin2d{ this->Transformable::getOrigin() };
+	return{ origin2d.x, origin2d.y, m_origin.z };
 }
 
 void Sprite3d::setPitch(float pitch)
@@ -264,6 +270,28 @@ void Sprite3d::setRotation3d(sf::Vector3f rotation)
 	setRoll(rotation.z);
 }
 
+void Sprite3d::setOriginZ(float originZ)
+{
+	m_origin.z = originZ;
+}
+
+void Sprite3d::setOrigin(sf::Vector2f origin)
+{
+	this->Transformable::setOrigin(origin);
+	m_origin.z = 0.f; // reset origin's z back to zero when setting a 2D origin
+}
+
+void Sprite3d::setOrigin(sf::Vector3f origin)
+{
+	setOrigin3d(origin);
+}
+
+void Sprite3d::setOrigin3d(sf::Vector3f origin)
+{
+	setOrigin(sf::Vector2f(origin.x, origin.y));
+	setOriginZ(origin.z);
+}
+
 float Sprite3d::getMostExtremeAngle() const
 {
 	float pitch = std::abs(m_pitch);
@@ -274,7 +302,6 @@ float Sprite3d::getMostExtremeAngle() const
 		yaw = 180.f - yaw;
 	return std::max(pitch, yaw);
 }
-
 
 void Sprite3d::setMeshDensity(const unsigned int meshDensity)
 {
@@ -299,7 +326,6 @@ void Sprite3d::reserveMeshDensity(const unsigned int meshDensity)
 	m_points.reserve(numberOfPointsPerDimension * numberOfPointsPerDimension);
 	m_transformedPoints.reserve(m_points.size());
 
-	//const unsigned int currentMeshDensity = m_meshDensity;
 	const unsigned int currentSubdividedMeshDensity = m_subdividedMeshDensity;
 	m_subdividedMeshDensity = meshDensity;
 	m_vertices.reserve(getNumberOfVerticesNeededForCurrentSubdividedMeshDensity());
@@ -423,7 +449,7 @@ void Sprite3d::updateTransformedPoints() const
 	if (m_useDynamicSubdivision)
 		setSubdivision(static_cast<unsigned int>((m_maxSubdivision - m_minSubdivision) * getMostExtremeAngle() / 90.f + m_minSubdivision));
 
-	m_origin = { this->getOrigin().x, this->getOrigin().y, 0.f };
+	m_origin = { this->getOrigin().x, this->getOrigin().y, m_origin.z };
 	const float radiansFromDegreesMultiplier = 0.0174532925f; // pi / 180;
 	const float pitchInRadians = m_pitch * radiansFromDegreesMultiplier;
 	const float yawInRadians = m_yaw * radiansFromDegreesMultiplier;
@@ -442,7 +468,8 @@ void Sprite3d::updateTransformedPoints() const
 	*  0,       0,                  0,                 1   *
 	*******************************************************/
 
-	m_compactTransformMatrix = { cosYaw, sinYaw, sinPitch * sinYaw, cosPitch, -sinPitch * cosYaw }; // only the five used elements
+	//m_compactTransformMatrix = { cosYaw, sinYaw, sinPitch * sinYaw, cosPitch, -sinPitch * cosYaw }; // only the five used elements
+	m_compactTransformMatrix = { cosYaw, sinYaw, sinPitch * sinYaw, cosPitch, -sinPitch * cosYaw, -cosPitch * sinYaw, sinPitch, cosPitch * cosYaw }; // all eight used elements
 
 	for (unsigned int v = 0; v < m_points.size(); ++v)
 	{
@@ -451,9 +478,14 @@ void Sprite3d::updateTransformedPoints() const
 		point -= m_origin;
 		point =
 		{
+			/*
 			m_compactTransformMatrix[0] * point.x + m_compactTransformMatrix[2] * point.y,
-			m_compactTransformMatrix[3] * point.y,
+			                                        m_compactTransformMatrix[3] * point.y,
 			m_compactTransformMatrix[1] * point.x + m_compactTransformMatrix[4] * point.y
+			*/
+			m_compactTransformMatrix[0] * point.x + m_compactTransformMatrix[2] * point.y + m_compactTransformMatrix[5] * point.z,
+			                                        m_compactTransformMatrix[3] * point.y + m_compactTransformMatrix[6] * point.z,
+			m_compactTransformMatrix[1] * point.x + m_compactTransformMatrix[4] * point.y + m_compactTransformMatrix[7] * point.z
 		}; // apply rotations
 		point *= m_shallowness / (m_shallowness + point.z); // apply depth
 		point += m_origin;
