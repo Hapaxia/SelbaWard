@@ -2,7 +2,7 @@
 A collection of SFML drawables  
 by [Hapax](http://github.com/Hapaxia)
 
-Contents: **Line**, **Ring**, **Spline**, **Sprite 3D**, **Pie Chart**, **Starfield**, **Crosshair**, **Nine Patch**, **Bitmap Text**, **Progress Bar**, **Spinning Card**, **Console Screen**
+Contents: **Bitmap Text**, **Console Screen**, **Crosshair**, **Line**, **Nine Patch**, **Pie Chart**, **Progress Bar**, **Ring**, **Spinning Card**, **Spline**, **Sprite 3D**, **Starfield**
 
 For information, view the [Wiki].
 
