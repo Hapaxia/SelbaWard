@@ -69,35 +69,37 @@ namespace selbaward
 {
 
 Crosshair::Crosshair(const sf::RenderWindow& window)
-	: Crosshair(&window)
+	: Crosshair()
 {
+	m_window = &window;
 }
 
-Crosshair::Crosshair(const sf::RenderWindow* pWindow)
-	: Crosshair(sf::Color::White, pWindow)
+Crosshair::Crosshair()
+	: Crosshair(sf::Color::White)
 {
 }
 
 Crosshair::Crosshair(const sf::Color& color, const sf::RenderWindow& window)
-	: Crosshair(color, &window)
+	: Crosshair(color, color, window)
 {
 }
 
-Crosshair::Crosshair(const sf::Color& color, const sf::RenderWindow* pWindow)
-	: Crosshair(color, color, pWindow)
+Crosshair::Crosshair(const sf::Color& color)
+	: Crosshair(color, color)
 {
 }
 
 Crosshair::Crosshair(const sf::Color& horizontalColor, const sf::Color& verticalColor, const sf::RenderWindow& window)
-	: Crosshair(horizontalColor, verticalColor, &window)
+	: Crosshair(horizontalColor, verticalColor)
 {
+	m_window = &window;
 }
 
-Crosshair::Crosshair(const sf::Color& horizontalColor, const sf::Color& verticalColor, const sf::RenderWindow* pWindow)
+Crosshair::Crosshair(const sf::Color& horizontalColor, const sf::Color& verticalColor)
 	: m_vertices(sf::PrimitiveType::Lines, 4)
 	, m_horizontalColor(horizontalColor)
 	, m_verticalColor(verticalColor)
-	, m_window(pWindow)
+	, m_window(nullptr)
 {
 }
 
@@ -106,7 +108,7 @@ void Crosshair::setWindow(const sf::RenderWindow& window)
 	m_window = &window;
 }
 
-void Crosshair::setWindow(const nullptr_t nullPointer)
+void Crosshair::setWindow()
 {
 	m_window = nullptr;
 }

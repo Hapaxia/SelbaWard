@@ -111,7 +111,7 @@ void Ring::setTexture(const sf::Texture& texture, const bool resetRect)
 		setTextureRect({ { 0, 0 }, sf::Vector2i(texture.getSize()) });
 }
 
-void Ring::setTexture(const nullptr_t nullPointer)
+void Ring::setTexture()
 {
 	m_texture = nullptr;
 }

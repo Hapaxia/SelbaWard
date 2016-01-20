@@ -46,13 +46,13 @@ class Crosshair : public sf::Drawable
 {
 public:
 	Crosshair(const sf::RenderWindow& window);
-	Crosshair(const sf::RenderWindow* pWindow = nullptr);
+	Crosshair();
 	Crosshair(const sf::Color& color, const sf::RenderWindow& window);
-	Crosshair(const sf::Color& color, const sf::RenderWindow* pWindow = nullptr);
+	Crosshair(const sf::Color& color);
 	Crosshair(const sf::Color& horizontalColor, const sf::Color& verticalColor, const sf::RenderWindow& window);
-	Crosshair(const sf::Color& horizontalColor, const sf::Color& verticalColor, const sf::RenderWindow* pWindow = nullptr);
+	Crosshair(const sf::Color& horizontalColor, const sf::Color& verticalColor);
 	void setWindow(const sf::RenderWindow& window);
-	void setWindow(const nullptr_t nullPointer = nullptr);
+	void setWindow();
 	void setColor(const sf::Color& color = sf::Color::White);
 	void setHorizontalColor(const sf::Color& horizontalColor = sf::Color::White);
 	void setVerticalColor(const sf::Color& verticalColor = sf::Color::White);

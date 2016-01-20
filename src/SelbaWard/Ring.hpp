@@ -52,7 +52,7 @@ public:
 	void setColor(sf::Color color);
 	sf::Color getColor() const;
 	void setTexture(const sf::Texture& texture, bool resetRect = false);
-	void setTexture(const nullptr_t nullPointer);
+	void setTexture();
 	void setTextureRect(const sf::IntRect& textureRect);
 	sf::FloatRect getLocalBounds() const;
 	sf::FloatRect getGlobalBounds() const;
