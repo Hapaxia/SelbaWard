@@ -35,12 +35,13 @@
 
 #include "Common.hpp"
 
-#include <SFML/Graphics/RectangleShape.hpp> // simple box drawing
+#include <SFML/Graphics/RectangleShape.hpp> // simple box drawing (for background and outline)
+#include <SFML/Graphics/Texture.hpp>
 
 namespace selbaward
 {
 
-// SW Progress Bar 1.0.0
+// SW Progress Bar 1.1.0
 class ProgressBar : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -64,14 +65,24 @@ public:
 	void setFrameColor(sf::Color frameColor);
 	void setBackgroundColor(sf::Color backgroundColor);
 	void setColor(sf::Color color);
-	void setBarEnabled(bool barEnabled = true);
-	void setBackgroundAndFrameEnabled(bool backgroundAndFrameEnabled = true);
+	void setShowBar(bool showBar);
+	void setShowBackgroundAndFrame(bool showBackgroundAndFrame);
 	float getFrameThickness() const;
 	sf::Color getFrameColor() const;
 	sf::Color getBackgroundColor() const;
 	sf::Color getColor() const;
-	bool getBarEnabled() const;
-	bool getBackgroundAndFrameEnabled() const;
+	bool getShowBar() const;
+	bool getShowBackgroundAndFrame() const;
+
+	// texturing
+	void setTexture(const sf::Texture& texture, bool resetRect = false);
+	void setTexture(); // clear/nullify texture
+	void setTextureRect(const sf::IntRect& textureRectangle);
+	const sf::Texture& getTexture() const;
+	void setBackgroundTexture(const sf::Texture& backgroundTexture, bool resetRect = false);
+	void setBackgroundTexture(); // clear/nullify background texture
+	void setBackgroundTextureRect(const sf::IntRect& backgroundTextureRectangle);
+	const sf::Texture& getBackgroundTexture() const;
 
 	// bounds
 	sf::FloatRect getLocalBounds() const;
@@ -84,11 +95,16 @@ public:
 
 private:
 	float m_amount;
-	bool m_isBarEnabled;
-	bool m_isBackgroundEnabled;
+	bool m_showBar;
+	bool m_showBackground;
 	sf::Vector2f m_size;
-	sf::RectangleShape m_bar;
+	sf::Color m_color;
+	std::vector<sf::Vertex> m_bar;
 	sf::RectangleShape m_backgroundAndFrame;
+	const sf::Texture* m_texture;
+	const sf::Texture* m_backgroundTexture;
+	sf::IntRect m_textureRectangle;
+	sf::IntRect m_backgroundTextureRectangle;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 	void priv_updateGraphics();
@@ -138,12 +154,17 @@ inline sf::Color ProgressBar::getBackgroundColor() const
 
 inline sf::Color ProgressBar::getColor() const
 {
-	return m_bar.getFillColor();
+	return m_color;
 }
 
-inline bool ProgressBar::getBackgroundAndFrameEnabled() const
+inline bool ProgressBar::getShowBar() const
 {
-	return m_isBackgroundEnabled;
+	return m_showBar;
+}
+
+inline bool ProgressBar::getShowBackgroundAndFrame() const
+{
+	return m_showBackground;
 }
 
 } // namespace selbaward

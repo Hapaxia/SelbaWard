@@ -35,32 +35,36 @@
 namespace selbaward
 {
 
-ProgressBar::ProgressBar(sf::Vector2f size)
+ProgressBar::ProgressBar(const sf::Vector2f size)
 	: m_amount(0.f)
 	, m_size(size)
-	, m_isBarEnabled(true)
-	, m_isBackgroundEnabled(false)
-	, m_bar({ 0.f, size.y })
+	, m_showBar(true)
+	, m_showBackground(false)
+	, m_color(sf::Color::White)
+	, m_bar(4)
 	, m_backgroundAndFrame(size)
+	, m_texture(nullptr)
+	, m_textureRectangle()
+	, m_backgroundTexture(nullptr)
+	, m_backgroundTextureRectangle()
 {
 	m_backgroundAndFrame.setFillColor(sf::Color::Black);
 	m_backgroundAndFrame.setOutlineColor(sf::Color::White);
-	m_bar.setFillColor(sf::Color::White);
 	m_backgroundAndFrame.setOutlineThickness(1.f);
 }
 
-void ProgressBar::setSize(sf::Vector2f size)
+void ProgressBar::setSize(const sf::Vector2f size)
 {
 	m_size = size;
 	priv_updateGraphics();
 }
 
-void ProgressBar::setPercentage(float percentage)
+void ProgressBar::setPercentage(const float percentage)
 {
 	setRatio(percentage / 100.f);
 }
 
-void ProgressBar::setRatio(float ratio)
+void ProgressBar::setRatio(const float ratio)
 {
 	m_amount = ratio;
 	if (m_amount < 0.f)
@@ -70,39 +74,96 @@ void ProgressBar::setRatio(float ratio)
 	priv_updateGraphics();
 }
 
-void ProgressBar::setFrameThickness(float frameThickness)
+void ProgressBar::setFrameThickness(const float frameThickness)
 {
 	m_backgroundAndFrame.setOutlineThickness(frameThickness);
 }
 
-void ProgressBar::setFrameColor(sf::Color frameColor)
+void ProgressBar::setFrameColor(const sf::Color frameColor)
 {
 	m_backgroundAndFrame.setOutlineColor(frameColor);
 }
 
-void ProgressBar::setBackgroundColor(sf::Color backgroundColor)
+void ProgressBar::setBackgroundColor(const sf::Color backgroundColor)
 {
 	m_backgroundAndFrame.setFillColor(backgroundColor);
 }
 
-void ProgressBar::setColor(sf::Color color)
+void ProgressBar::setColor(const sf::Color color)
 {
-	m_bar.setFillColor(color);
+	m_color = color;
+	priv_updateGraphics();
 }
 
-void ProgressBar::setBarEnabled(bool barEnabled)
+void ProgressBar::setShowBar(const bool showBar)
 {
-	m_isBarEnabled = barEnabled;
+	m_showBar = showBar;
 }
 
-void ProgressBar::setBackgroundAndFrameEnabled(bool backgroundAndFrameEnabled)
+void ProgressBar::setShowBackgroundAndFrame(const bool showBackgroundAndFrame)
 {
-	m_isBackgroundEnabled = backgroundAndFrameEnabled;
+	m_showBackground = showBackgroundAndFrame;
+}
+
+void ProgressBar::setTexture(const sf::Texture& texture, const bool resetRect)
+{
+	m_texture = &texture;
+	if (resetRect)
+	{
+		m_textureRectangle.width = m_texture->getSize().x;
+		m_textureRectangle.height = m_texture->getSize().y;
+	}
+	priv_updateGraphics();
+}
+
+void ProgressBar::setTexture()
+{
+	m_texture = nullptr;
+	priv_updateGraphics();
+}
+
+void ProgressBar::setTextureRect(const sf::IntRect& textureRectangle)
+{
+	m_textureRectangle = textureRectangle;
+	priv_updateGraphics();
+}
+
+void ProgressBar::setBackgroundTexture(const sf::Texture& backgroundTexture, const bool resetRect)
+{
+	m_backgroundTexture = &backgroundTexture;
+	if (resetRect)
+	{
+		m_backgroundTextureRectangle.width = m_backgroundTexture->getSize().x;
+		m_backgroundTextureRectangle.height = m_backgroundTexture->getSize().y;
+	}
+	priv_updateGraphics();
+}
+
+void ProgressBar::setBackgroundTexture()
+{
+	m_backgroundTexture = nullptr;
+	priv_updateGraphics();
+}
+
+void ProgressBar::setBackgroundTextureRect(const sf::IntRect& backgroundTextureRectangle)
+{
+	m_backgroundTextureRectangle = backgroundTextureRectangle;
+	priv_updateGraphics();
+}
+
+const sf::Texture& ProgressBar::getTexture() const
+{
+	return *m_texture;
+}
+
+const sf::Texture& ProgressBar::getBackgroundTexture() const
+{
+	return *m_backgroundTexture;
 }
 
 sf::FloatRect ProgressBar::getLocalBounds() const
 {
-	if (m_isBackgroundEnabled && m_backgroundAndFrame.getOutlineThickness() > 0.f)
+	if (m_showBackground && m_backgroundAndFrame.getOutlineThickness() > 0.f)
 	{
 		const float outlineThickness{ m_backgroundAndFrame.getOutlineThickness() };
 		return{ { 0.f - outlineThickness, 0.f - outlineThickness }, { m_size.x + outlineThickness * 2, m_size.y + outlineThickness * 2 } };
@@ -118,17 +179,17 @@ sf::FloatRect ProgressBar::getGlobalBounds() const
 
 sf::Vector2f ProgressBar::getAnchorProgressTop() const
 {
-	return getTransform().transformPoint({ m_bar.getLocalBounds().width, 0.f });
+	return getTransform().transformPoint({ m_size.x * m_amount, 0.f });
 }
 
 sf::Vector2f ProgressBar::getAnchorProgressCenter() const
 {
-	return getTransform().transformPoint({ m_bar.getLocalBounds().width, m_bar.getLocalBounds().height / 2.f });
+	return getTransform().transformPoint({ m_size.x * m_amount, m_size.y / 2.f });
 }
 
 sf::Vector2f ProgressBar::getAnchorProgressBottom() const
 {
-	return getTransform().transformPoint({ m_bar.getLocalBounds().width, m_bar.getLocalBounds().height });
+	return getTransform().transformPoint({ m_size.x * m_amount, m_size.y });
 }
 
 
@@ -136,18 +197,35 @@ sf::Vector2f ProgressBar::getAnchorProgressBottom() const
 // PRIVATE
 void ProgressBar::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	states.texture = NULL;
 	states.transform = getTransform();
-	if (m_isBackgroundEnabled)
+	if (m_showBackground)
 		target.draw(m_backgroundAndFrame, states);
-	if (m_isBarEnabled)
-		target.draw(m_bar, states);
+	if (m_showBar)
+	{
+		states.texture = m_texture;
+		target.draw(&m_bar.front(), 4, sf::PrimitiveType::Quads, states);
+	}
 }
 
 void ProgressBar::priv_updateGraphics()
 {
 	m_backgroundAndFrame.setSize(m_size);
-	m_bar.setSize({ m_size.x * m_amount, m_size.y });
+	m_backgroundAndFrame.setTexture(m_backgroundTexture);
+	m_backgroundAndFrame.setTextureRect(m_backgroundTextureRectangle);
+
+	const float width{ m_size.x * m_amount };
+	m_bar[0].position = { 0.f, 0.f };
+	m_bar[1].position = { width, 0.f };
+	m_bar[2].position = { width, m_size.y };
+	m_bar[3].position = { 0.f, m_size.y };
+	sf::FloatRect textureRect{ m_textureRectangle };
+	textureRect.width = textureRect.width * m_amount;
+	m_bar[0].texCoords = { textureRect.left, textureRect.top };
+	m_bar[1].texCoords = { textureRect.left + textureRect.width, textureRect.top };
+	m_bar[2].texCoords = { textureRect.left + textureRect.width, textureRect.top + textureRect.height };
+	m_bar[3].texCoords = { textureRect.left, textureRect.top + textureRect.height };
+	for (auto& vertex : m_bar)
+		vertex.color = m_color;
 }
 
 } // namespace selbward
