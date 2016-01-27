@@ -1,3 +1,19 @@
+//////////////////////////////////////////////////////////////////////////////////////////////
+//
+//  Selba Ward - Bitmap Text *EXAMPLE*
+//
+//  by Hapax (https://github.com/Hapaxia)
+//
+//
+//    Keys:
+//
+//  Escape          Quit
+//  Space           Swap text string
+//
+//  Please note that this example makes use of C++11 features
+//
+//////////////////////////////////////////////////////////////////////////////////////////////
+
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <string>
@@ -65,6 +81,7 @@ int main()
 
 		// used kerning
 		font.setKerning(-1, "Iv");
+		font.setKerning(-1, "fo");
 	}
 	catch (sw::Exception& e)
 	{
@@ -73,15 +90,16 @@ int main()
 	}
 
 	text.setBitmapFont(font);
+	const std::string prefixString = "This is a bitmap font. ";
 	const std::string defaultString = "012 Str;:zingy! qu,ic(k)jumps 57";
 	const std::string xxxyyyString = "xxxyyyiijiizzJJIIvvvwwyyxxzzz";
-	text.setString(defaultString);
+	text.setString(prefixString + defaultString);
 	text.setPosition(20, 50);
-	text.setScale(4); // scale so we can see the pixels (only accepts unsigned integers - single unsigned int, two unsigned ints, sf::Vector2u)
+	text.setScale(2); // scale so we can see the pixels (only accepts unsigned integers - single unsigned int, two unsigned ints, sf::Vector2u)
 	//text.Transformable::setScale(3.5f, 9.75f); // it's still possible to scale by fractional amounts by explicitly calling the Transformable method
 	//text.setTracking(2); // base spacing between characters. default is 1
 
-	sf::RenderWindow window(sf::VideoMode(600, 100), "Bitmap Text example", sf::Style::Default);
+	sf::RenderWindow window(sf::VideoMode(550, 100), "Bitmap Text example", sf::Style::Default);
 	window.setFramerateLimit(20);
 	while (window.isOpen())
 	{
@@ -94,10 +112,10 @@ int main()
 			{
 				if (event.key.code == sf::Keyboard::Space)
 				{
-					if (text.getString() != xxxyyyString)
-						text.setString(xxxyyyString);
+					if (text.getString() != prefixString + xxxyyyString)
+						text.setString(prefixString + xxxyyyString);
 					else
-						text.setString(defaultString);
+						text.setString(prefixString + defaultString);
 				}
 			}
 		}

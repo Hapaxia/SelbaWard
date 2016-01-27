@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
-//  Selba Ward - Sprite3d EXAMPLE (Card Fan Animation)
+//  Selba Ward - Sprite 3D *EXAMPLE* (Card Fan Animation)
 //
 //  by Hapax (https://github.com/Hapaxia)
 //

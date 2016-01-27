@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 //
-//  Selba Ward - Sprite3d EXAMPLE (similar to SpinningCard example)
+//  Selba Ward - Sprite 3D *EXAMPLE* (similar to Spinning Card example)
 //
 //  by Hapax (https://github.com/Hapaxia)
 //
