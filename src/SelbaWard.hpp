@@ -30,17 +30,18 @@
 #ifndef SELBAWARD_HPP
 #define SELBAWARD_HPP
 
+#include "SelbaWard/BitmapText.hpp"
+#include "SelbaWard/ConsoleScreen.hpp"
+#include "SelbaWard/Crosshair.hpp"
 #include "SelbaWard/Line.hpp"
+#include "SelbaWard/NinePatch.hpp"
+#include "SelbaWard/PieChart.hpp"
+#include "SelbaWard/ProgressBar.hpp"
 #include "SelbaWard/Ring.hpp"
+#include "SelbaWard/SpinningCard.hpp"
 #include "SelbaWard/Spline.hpp"
 #include "SelbaWard/Sprite3d.hpp"
-#include "SelbaWard/PieChart.hpp"
 #include "SelbaWard/Starfield.hpp"
-#include "SelbaWard/Crosshair.hpp"
-#include "SelbaWard/NinePatch.hpp"
-#include "SelbaWard/BitmapText.hpp"
-#include "SelbaWard/ProgressBar.hpp"
-#include "SelbaWard/SpinningCard.hpp"
-#include "SelbaWard/ConsoleScreen.hpp"
+#include "SelbaWard/TileMap.hpp"
 
 #endif // SELBAWARD_HPP
