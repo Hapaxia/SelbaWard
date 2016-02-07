@@ -36,8 +36,6 @@
 #include <functional>
 #include <SFML/Graphics/Texture.hpp>
 
-#include <iostream>
-
 namespace
 {
 
@@ -146,7 +144,7 @@ void addPalette16ColorGreenscale(std::vector<sf::Color>& palette)
 		addColorToPalette(palette, sf::Color(0, i * 17, 0));
 }
 
-void addPalette16ColorGreyscale(std::vector<sf::Color>& palette)
+void addPalette16ColorGrayscale(std::vector<sf::Color>& palette)
 {
 	for (unsigned int i{ 0 }; i < 16; ++i)
 		addColorToPalette(palette, sf::Color(i * 17, i * 17, i * 17));
@@ -262,7 +260,7 @@ void addPalette256ColorGreenscale(std::vector<sf::Color>& palette)
 		addColorToPalette(palette, sf::Color(0, i, 0));
 }
 
-void addPalette256ColorGreyscale(std::vector<sf::Color>& palette)
+void addPalette256ColorGrayscale(std::vector<sf::Color>& palette)
 {
 	for (unsigned int i{ 0 }; i < 256; ++i)
 		addColorToPalette(palette, sf::Color(i, i, i));
@@ -283,7 +281,7 @@ namespace selbaward
 ConsoleScreen::ConsoleScreen(const sf::Vector2u mode)
 	: m_cells()
 	, m_mode(mode)
-	, m_screenBuffers()
+	, m_buffers()
 	, m_do()
 	, m_primitiveType(sf::PrimitiveType::Quads)
 	, m_display()
@@ -310,7 +308,7 @@ void ConsoleScreen::setMode(sf::Vector2u mode)
 	m_cells.resize(m_mode.x * m_mode.y, defaultCell);
 	m_display.resize(m_cells.size() * 4);
 	m_backgroundDisplay = m_display;
-	m_screenBuffers.clear();
+	m_buffers.clear();
 
 	clear();
 }
@@ -346,7 +344,7 @@ void ConsoleScreen::setNumberOfTextureTilesPerRow(const unsigned int numberOfTex
 	if (numberOfTextureTilesPerRow < 1)
 	{
 		if (m_do.throwExceptions)
-			throw Exception("Cannot set number of texture tiles per row to zero.");
+			throw Exception(exceptionPrefix + "Cannot set number of texture tiles per row to zero.");
 		return;
 	}
 
@@ -399,7 +397,7 @@ void ConsoleScreen::update()
 	if (m_display.size() < 4)
 	{
 		if (m_do.throwExceptions)
-			throw Exception(exceptionPrefix + "Cannot update display. No cells available.");
+			throw Exception(exceptionPrefix + "Cannot update display.\nNo cells available.");
 		return;
 	}
 
@@ -843,6 +841,37 @@ void ConsoleScreen::printAt(const sf::Vector2u location, const char character, c
 	printAt(location, character, priv_colorFromColorIdAtIndex(currentIndex, colorId), priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId));
 }
 
+void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int length, const sf::Color color, const sf::Color backgroundColor)
+{
+	for (unsigned int i{ 0 }; i < length; ++i)
+	{
+		unsigned int index{ priv_getPrintIndex({ location.x + i, location.y }) };
+		m_cells[index].color = color;
+		m_cells[index].backgroundColor = backgroundColor;
+
+		if (m_do.updateAutomatically)
+			priv_updateCell(index);
+	}
+}
+
+void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int length, const sf::Color color, const int backgroundColorId)
+{
+	const unsigned int currentIndex{ priv_getPrintIndex(location) };
+	paintAt(location, length, color, priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId));
+}
+
+void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int length, const int colorId, const sf::Color backgroundColor)
+{
+	const unsigned int currentIndex{ priv_getPrintIndex(location) };
+	paintAt(location, length, priv_colorFromColorIdAtIndex(currentIndex, colorId), backgroundColor);
+}
+
+void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int length, const int colorId, const int backgroundColorId)
+{
+	const unsigned int currentIndex{ priv_getPrintIndex(location) };
+	paintAt(location, length, priv_colorFromColorIdAtIndex(currentIndex, colorId), priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId));
+}
+
 void ConsoleScreen::setValueAt(const sf::Vector2u location, const unsigned int value)
 {
 	if (!priv_isCellLocationInRange(location))
@@ -955,6 +984,54 @@ void ConsoleScreen::setBackgroundColorAt(const sf::Vector2u location, const int 
 
 	if (m_do.updateAutomatically)
 		priv_updateCell(index);
+}
+
+ConsoleScreen::Cell ConsoleScreen::getCellAt(const sf::Vector2u location) const
+{
+	if (!priv_isCellLocationInRange(location))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot get cell.\nLocation (" + std::to_string(location.x) + ", " + std::to_string(location.y) + ") out of range.");
+		return Cell();
+	}
+
+	return m_cells[priv_cellIndex(location)];
+}
+
+unsigned int ConsoleScreen::getValueAt(const sf::Vector2u location) const
+{
+	if (!priv_isCellLocationInRange(location))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot get cell value.\nLocation (" + std::to_string(location.x) + ", " + std::to_string(location.y) + ") out of range.");
+		return 0u;
+	}
+
+	return m_cells[priv_cellIndex(location)].value;
+}
+
+sf::Color ConsoleScreen::getColorAt(const sf::Vector2u location) const
+{
+	if (!priv_isCellLocationInRange(location))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot get cell color.\nLocation (" + std::to_string(location.x) + ", " + std::to_string(location.y) + ") out of range.");
+		return sf::Color::Transparent;
+	}
+
+	return m_cells[priv_cellIndex(location)].color;
+}
+
+sf::Color ConsoleScreen::getBackgroundColorAt(const sf::Vector2u location) const
+{
+	if (!priv_isCellLocationInRange(location))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot get cell background color.\nLocation (" + std::to_string(location.x) + ", " + std::to_string(location.y) + ") out of range.");
+		return sf::Color::Transparent;
+	}
+
+	return m_cells[priv_cellIndex(location)].backgroundColor;
 }
 
 void ConsoleScreen::scrollUp(const unsigned int amount)
@@ -1137,8 +1214,7 @@ void ConsoleScreen::loadPalette(const Palette palette)
 		addPalette16ColorGreenscale(m_palette);
 		break;
 	case Palette::Colors16Grayscale:
-	case Palette::Colors16Greyscale:
-		addPalette16ColorGreyscale(m_palette);
+		addPalette16ColorGrayscale(m_palette);
 		break;
 	case Palette::Colors16Sepia:
 		addPalette16ColorSepia(m_palette);
@@ -1159,8 +1235,7 @@ void ConsoleScreen::loadPalette(const Palette palette)
 		addPalette256ColorGreenscale(m_palette);
 		break;
 	case Palette::Colors256Grayscale:
-	case Palette::Colors256Greyscale:
-		addPalette256ColorGreyscale(m_palette);
+		addPalette256ColorGrayscale(m_palette);
 		break;
 	case Palette::Colors256Sepia:
 		addPalette256ColorSepia(m_palette);
@@ -1181,7 +1256,7 @@ void ConsoleScreen::setPaletteColor(const int colorId, const sf::Color color)
 	if (!priv_isColorIdInPaletteRange(colorId))
 	{
 		if (m_do.throwExceptions)
-			throw Exception("Cannot set palette color. Color ID (" + std::to_string(colorId) + ") out of range.");
+			throw Exception(exceptionPrefix + "Cannot set palette color.\nColor ID (" + std::to_string(colorId) + ") out of range.");
 		return;
 	}
 
@@ -1193,7 +1268,7 @@ sf::Color ConsoleScreen::getPaletteColor(const int colorId) const
 	if (!priv_isColorIdInPaletteRange(colorId))
 	{
 		if (m_do.throwExceptions)
-			throw Exception("Cannot get palette color. Color ID (" + std::to_string(colorId) + ") out of range.");
+			throw Exception(exceptionPrefix + "Cannot get palette color.\nColor ID (" + std::to_string(colorId) + ") out of range.");
 		return defaultNewPaletteColor;
 	}
 
@@ -1205,7 +1280,7 @@ void ConsoleScreen::setPaletteSize(const unsigned int size)
 	if (size < 1)
 	{
 		if (m_do.throwExceptions)
-			throw Exception("Cannot set palette size to zero.");
+			throw Exception(exceptionPrefix + "Cannot set palette size to zero.");
 		return;
 	}
 
@@ -1222,17 +1297,115 @@ void ConsoleScreen::removePaletteColor(const int colorId)
 	if (!priv_isColorIdInPaletteRange(colorId))
 	{
 		if (m_do.throwExceptions)
-			throw Exception("Cannot remove palette color. Color ID (" + std::to_string(colorId) + ") out of range.");
+			throw Exception(exceptionPrefix + "Cannot remove palette color.\nColor ID (" + std::to_string(colorId) + ") out of range.");
 		return;
 	}
 	if (m_palette.size() < 2)
 	{
 		if (m_do.throwExceptions)
-			throw Exception("Cannot remove final palette color.");
+			throw Exception(exceptionPrefix + "Cannot remove final palette color.");
 		return;
 	}
 
 	m_palette.erase(m_palette.begin() + colorId);
+}
+
+unsigned int ConsoleScreen::copy()
+{
+	m_buffers.push_back({ m_mode.x, m_cells });
+	return m_buffers.size() - 1;
+}
+
+void ConsoleScreen::copy(const unsigned int index)
+{
+	if (!priv_isScreenBufferIndexInRange(index))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot replace buffer with copy.\nBuffer index (" + std::to_string(index) + ") does not exist.");
+		return;
+	}
+
+	m_buffers[index] = { m_mode.x, m_cells };
+
+	if (m_do.updateAutomatically)
+		update();
+}
+
+unsigned int ConsoleScreen::copy(const sf::IntRect selectionRectangle)
+{
+	m_buffers.emplace_back();
+	priv_copyToBufferFromSelectionRectangle(m_buffers.back(), selectionRectangle);
+	return m_buffers.size() - 1;
+}
+
+void ConsoleScreen::copy(const unsigned int index, const sf::IntRect selectionRectangle)
+{
+	if (!priv_isScreenBufferIndexInRange(index))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot replace buffer with copy.\nBuffer index (" + std::to_string(index) + ") does not exist.");
+		return;
+	}
+
+	priv_copyToBufferFromSelectionRectangle(m_buffers[index], selectionRectangle);
+}
+
+void ConsoleScreen::paste(const sf::Vector2i offset)
+{
+	if (m_buffers.size() == 0)
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot paste buffer.\nNo buffer exists.");
+		return;
+	}
+
+	priv_pasteOffsettedBuffer(m_buffers.back(), offset);
+}
+
+void ConsoleScreen::paste(const unsigned int index, const sf::Vector2i offset)
+{
+	if (!priv_isScreenBufferIndexInRange(index))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot paste buffer.\nBuffer index (" + std::to_string(index) + ") out of range.");
+		return;
+	}
+
+	priv_pasteOffsettedBuffer(m_buffers[index], offset);
+}
+
+void ConsoleScreen::removeBuffer()
+{
+	if (m_buffers.size() == 0)
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot remove buffer.\nNo buffer exists.");
+		return;
+	}
+
+	m_buffers.pop_back();
+}
+
+void ConsoleScreen::removeBuffer(const unsigned int index)
+{
+	if (!priv_isScreenBufferIndexInRange(index))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot remove buffer.\nBuffer index (" + std::to_string(index) + ") out of range.");
+		return;
+	}
+
+	m_buffers.erase(m_buffers.begin() + index);
+}
+
+void ConsoleScreen::removeAllBuffers()
+{
+	m_buffers.clear();
+}
+
+unsigned int ConsoleScreen::getNumberOfBuffers() const
+{
+	return m_buffers.size();
 }
 
 void ConsoleScreen::poke(const unsigned int index, const Cell& cell)
@@ -1428,6 +1601,11 @@ inline bool ConsoleScreen::priv_isCellLocationInRange(const sf::Vector2u locatio
 	return (location.x < m_mode.x && location.y < m_mode.y);
 }
 
+inline bool ConsoleScreen::priv_isScreenBufferIndexInRange(const unsigned int index) const
+{
+	return index < m_buffers.size();
+}
+
 inline bool ConsoleScreen::priv_isCursorInRange() const
 {
 	return priv_isCellIndexInRange(m_cursor.index);
@@ -1536,6 +1714,56 @@ void ConsoleScreen::priv_scroll()
 		}
 	}
 	priv_moveCursorUp();
+}
+
+void ConsoleScreen::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const sf::IntRect& selectionRectangle)
+{
+	if (selectionRectangle.left >= static_cast<int>(m_mode.x) ||
+		selectionRectangle.top >= static_cast<int>(m_mode.y) ||
+		selectionRectangle.width <= 0 ||
+		selectionRectangle.height <= 0 ||
+		(selectionRectangle.left + selectionRectangle.width) < 0 ||
+		(selectionRectangle.top + selectionRectangle.height) < 0)
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot copy selection.\nSelection does not contain any cells.");
+		return;
+	}
+
+	buffer.width = selectionRectangle.width;
+	buffer.cells.clear();
+
+	for (int y{ 0 }; y < selectionRectangle.height; ++y)
+	{
+		for (int x{ 0 }; x < selectionRectangle.width; ++x)
+		{
+			const sf::Vector2i location{ x + selectionRectangle.left, y + selectionRectangle.top };
+			if (location.x < 0 || location.y < 0)
+				continue;
+			const sf::Vector2u cellLocation{ static_cast<unsigned int>(location.x), static_cast<unsigned int>(location.y) };
+			if (priv_isCellLocationInRange(cellLocation))
+				buffer.cells.push_back(m_cells[priv_cellIndex(cellLocation)]);
+		}
+	}
+
+	if (buffer.width > buffer.cells.size())
+		buffer.width = buffer.cells.size();
+}
+
+void ConsoleScreen::priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i& offset)
+{
+	for (unsigned int i{ 0 }; i < buffer.cells.size(); ++i)
+	{
+		const sf::Vector2i location{ static_cast<int>(i % buffer.width) + offset.x, static_cast<int>(i / buffer.width) + offset.y };
+		if (location.x < 0 || location.y < 0)
+			continue;
+		const sf::Vector2u cellLocation{ static_cast<unsigned int>(location.x), static_cast<unsigned int>(location.y) };
+		if (priv_isCellLocationInRange(cellLocation))
+			m_cells[priv_cellIndex(cellLocation)] = buffer.cells[i];
+	}
+
+	if (m_do.updateAutomatically)
+		update();
 }
 
 unsigned int ConsoleScreen::priv_getPrintIndex(sf::Vector2u location) const

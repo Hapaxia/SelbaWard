@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Console Screen v1.1.0
+// SW Console Screen v1.2.0
 class ConsoleScreen : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -140,6 +140,12 @@ public:
 	void printAt(sf::Vector2u location, char character, int colorId, sf::Color backgroundColor);
 	void printAt(sf::Vector2u location, char character, int colorId = Color::Ignore, int backgroundColorId = Color::Ignore);
 
+	// painting (directly)
+	void paintAt(sf::Vector2u location, unsigned int length, sf::Color color, sf::Color backgroundColor);
+	void paintAt(sf::Vector2u location, unsigned int length, sf::Color color, int backgroundColorId = Color::Ignore);
+	void paintAt(sf::Vector2u location, unsigned int length, int colorId, sf::Color backgroundColor);
+	void paintAt(sf::Vector2u location, unsigned int length, int colorId = Color::Current, int backgroundColorId = Color::Ignore);
+
 	// cell manipulation
 	void clearCellAt(sf::Vector2u location);
 	void setCellAt(sf::Vector2u location, const Cell& cell);
@@ -150,6 +156,12 @@ public:
 	void setBackgroundColorAt(sf::Vector2u location, int backgroundColorId);
 	void setColorsAt(sf::Vector2u location, sf::Color color, sf::Color backgroundColor);
 	void setColorsAt(sf::Vector2u location, int colorId, int backgroundColorId);
+
+	// cell information
+	Cell getCellAt(sf::Vector2u location) const;
+	unsigned int getValueAt(sf::Vector2u location) const;
+	sf::Color getColorAt(sf::Vector2u location) const;
+	sf::Color getBackgroundColorAt(sf::Vector2u location) const;
 
 	// manual scrolling
 	void scrollUp(unsigned int amount = 1);
@@ -165,6 +177,18 @@ public:
 	void setPaletteSize(unsigned int size);
 	unsigned int getPaletteSize() const;
 	void removePaletteColor(int colorId);
+
+	// buffers/clipboards/"screenshots"/captures
+	unsigned int copy(); // returns index of buffer
+	unsigned int copy(sf::IntRect selectionRectangle); // returns index of buffer
+	void paste(sf::Vector2i offset = sf::Vector2i(0, 0)); // replace screen with last saved buffer (recalls actual cell data, not the state of the console screen e.g. cursor isn't restored)
+	void removeBuffer(); // removes last saved buffer
+	void copy(unsigned int index); // copies over (replaces) an existing buffer
+	void copy(unsigned int index, sf::IntRect selectionRectangle);
+	void paste(unsigned int index, sf::Vector2i offset = sf::Vector2i(0, 0)); // replace screen with saved buffer (recalls actual cell data, not the state of the console screen e.g. cursor isn't restored)
+	void removeBuffer(unsigned int index); // as usual, when one buffer is removed, the indices of all following buffers are decreased
+	void removeAllBuffers();
+	unsigned int getNumberOfBuffers() const;
 
 	// direct manipulation
 	void poke(unsigned int index, const Cell& cell);
@@ -213,7 +237,14 @@ private:
 	using Cells = std::vector<Cell>;
 	Cells m_cells;
 	sf::Vector2u m_mode;
-	std::vector<Cells> m_screenBuffers;
+
+	// buffers
+	struct Buffer
+	{
+		unsigned int width;
+		Cells cells;
+	};
+	std::vector<Buffer> m_buffers;
 
 	// cursor
 	Cursor m_cursor;
@@ -239,6 +270,7 @@ private:
 	sf::Vector2u priv_cellLocation(unsigned int index) const;
 	bool priv_isCellIndexInRange(unsigned int index) const;
 	bool priv_isCellLocationInRange(sf::Vector2u location) const;
+	bool priv_isScreenBufferIndexInRange(unsigned int index) const;
 	bool priv_isCursorInRange() const;
 	bool priv_isColorIdInPaletteRange(int id) const;
 	//bool priv_isColorIdInExtendedRange(int id) const;
@@ -253,6 +285,8 @@ private:
 	void priv_moveCursorRight();
 	void priv_testCursorForScroll();
 	void priv_scroll();
+	void priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const sf::IntRect& selectionRectangle);
+	void priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i& offset);
 	unsigned int priv_getPrintIndex(sf::Vector2u location) const;
 	sf::Color priv_colorFromColorIdAtIndex(unsigned int index, int colorId) const;
 	sf::Color priv_backgroundColorFromColorIdAtIndex(unsigned int index, int colorId) const;
@@ -271,7 +305,6 @@ enum class ConsoleScreen::Palette
 	Colors2BlackWhite,
 	Colors2WhiteBlack,
 	Colors16Greenscale,
-	Colors16Greyscale,
 	Colors16Grayscale,
 	Colors16Sepia,
 	Colors16Cga,
@@ -281,7 +314,6 @@ enum class ConsoleScreen::Palette
 	Colors16ZxSpectrum,
 	Colors216Web,
 	Colors256Greenscale,
-	Colors256Greyscale,
 	Colors256Grayscale,
 	Colors256Sepia
 };
