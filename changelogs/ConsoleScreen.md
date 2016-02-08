@@ -1,6 +1,15 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2016-02-07
+### Added
+- Buffers/clipboards (entire screen or rectangular regions)
+- Painting: similar to printing but doesn't affect cell values (only alters colours), like highlighting
+- Cell information retrieval to allow getting a cell's value, colour, background colour, or entire cell
+
+### Removed
+- "Greyscale" from palette enum. Now only "grayscale" can be used
+
 ## [1.1.0] - 2016-01-12
 ### Added
 - Colour palettes
@@ -19,5 +28,6 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[1.2.0]: https://github.com/Hapaxia/SelbaWard/commit/37a22dbf625ce1468077c2455266a4b41651952d
 [1.1.0]: https://github.com/Hapaxia/SelbaWard/commit/869078f4294e62814c43d63416b5a68af9c5363d
 [1.0.0]: https://github.com/Hapaxia/SelbaWard/commit/424ca290165d74de99d00806166dc0b52eb6d5f0
