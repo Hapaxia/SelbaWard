@@ -1730,7 +1730,7 @@ void ConsoleScreen::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, cons
 		return;
 	}
 
-	buffer.width = selectionRectangle.width;
+	buffer.width = 0u;
 	buffer.cells.clear();
 
 	for (int y{ 0 }; y < selectionRectangle.height; ++y)
@@ -1742,12 +1742,13 @@ void ConsoleScreen::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, cons
 				continue;
 			const sf::Vector2u cellLocation{ static_cast<unsigned int>(location.x), static_cast<unsigned int>(location.y) };
 			if (priv_isCellLocationInRange(cellLocation))
+			{
 				buffer.cells.push_back(m_cells[priv_cellIndex(cellLocation)]);
+				if (y == 0)
+					++buffer.width;
+			}
 		}
 	}
-
-	if (buffer.width > buffer.cells.size())
-		buffer.width = buffer.cells.size();
 }
 
 void ConsoleScreen::priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i& offset)
