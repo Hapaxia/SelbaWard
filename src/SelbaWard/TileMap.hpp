@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// v1.0.0
+// SW Tile Map v1.1.0
 class TileMap : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -53,14 +53,21 @@ public:
 	void setTexture(const sf::Texture& texture);
 	void setTexture();
 	void setNumberOfTextureTilesPerRow(unsigned int numberOfTextureTilesPerRow);
+	void setTextureOffset(sf::Vector2u textureOffset);
 	void setTextureTileSize(sf::Vector2u textureTileSize);
 	sf::Vector2u getTextureTileSize() const;
 	void setSmooth(bool smooth);
 	bool getSmooth() const;
+	void setSmoothScroll(bool smoothScroll);
+	bool getSmoothScroll() const;
+	void setCameraTargetTile(sf::Vector2f cameraTargetTile);
+	sf::Vector2f getCameraTargetTile() const;
 	void setCamera(sf::Vector2f camera);
 	sf::Vector2f getCamera() const;
 	void setColor(sf::Color color);
 	sf::Color getColor() const;
+	sf::Vector2i getLevelPositionAtCoord(sf::Vector2f coord) const;
+	unsigned long int getTileAtCoord(sf::Vector2f coord) const;
 
 	void redraw();
 
@@ -83,12 +90,10 @@ public:
 
 
 private:
-	/*
 	struct ActionFlags
 	{
-		//bool nothing{ true };
+		bool scrollSmoothly{ false };
 	};
-	*/
 
 	struct StateFlags
 	{
@@ -96,7 +101,7 @@ private:
 	};
 
 	// flags
-	//ActionFlags m_do;
+	ActionFlags m_do;
 	StateFlags m_is;
 
 	// data
@@ -105,6 +110,7 @@ private:
 
 	// camera (in tiles)
 	sf::Vector2f m_camera;
+	sf::Vector2f m_cameraTarget;
 
 	// color
 	sf::Color m_color;
@@ -114,6 +120,7 @@ private:
 	sf::Vector2f m_size;
 	const sf::Texture* m_texture;
 	unsigned int m_numberOfTextureTilesPerRow;
+	sf::Vector2u m_textureOffset;
 	sf::Vector2u m_textureTileSize;
 	mutable std::vector<sf::Vertex> m_vertices;
 
@@ -126,6 +133,9 @@ private:
 	void priv_updateVertices() const;
 	void priv_updateRender() const;
 	void priv_recreateRenderTexture();
+	sf::Vector2i priv_getGridPositionAtCoord(sf::Vector2f coord) const;
+	unsigned int priv_getTileAtGridPosition(sf::Vector2i gridPosition) const;
+	sf::Vector2f priv_getActualCamera() const;
 	sf::Vector2f priv_getTileOffsetFromVector(sf::Vector2f vector) const;
 	sf::Vector2f priv_getVectorFromTileOffset(sf::Vector2f offset) const;
 };

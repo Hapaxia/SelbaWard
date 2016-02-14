@@ -54,12 +54,14 @@ TileMap::TileMap()
 	, m_gridSize({ 1u, 1u })
 	, m_texture(nullptr)
 	, m_numberOfTextureTilesPerRow(16u)
+	, m_textureOffset({ 0u, 0u })
 	, m_textureTileSize({ 16u, 16u })
 	, m_renderTexture()
 	, m_render(4)
 	, m_is()
-	//, m_do()
+	, m_do()
 	, m_camera({ 0.f, 0.f })
+	, m_cameraTarget({ 0.f, 0.f })
 	, m_color(sf::Color::White)
 	, m_redrawRequired(true)
 {
@@ -117,7 +119,14 @@ void TileMap::setNumberOfTextureTilesPerRow(const unsigned int numberOfTextureTi
 	m_redrawRequired = true;
 }
 
-void TileMap::setTextureTileSize(sf::Vector2u textureTileSize)
+void TileMap::setTextureOffset(const sf::Vector2u textureOffset)
+{
+	m_textureOffset = textureOffset;
+
+	m_redrawRequired = true;
+}
+
+void TileMap::setTextureTileSize(const sf::Vector2u textureTileSize)
 {
 	m_textureTileSize = textureTileSize;
 
@@ -141,9 +150,35 @@ bool TileMap::getSmooth() const
 	return m_is.smooth;
 }
 
-void TileMap::setCamera(sf::Vector2f camera)
+void TileMap::setSmoothScroll(const bool smoothScroll)
+{
+	m_do.scrollSmoothly = smoothScroll;
+
+	priv_updateRender();
+}
+
+bool TileMap::getSmoothScroll() const
+{
+	return m_do.scrollSmoothly;
+}
+
+void TileMap::setCameraTargetTile(const sf::Vector2f cameraTileTarget)
+{
+	m_cameraTarget = cameraTileTarget;;
+
+	m_redrawRequired = true;
+}
+
+sf::Vector2f TileMap::getCameraTargetTile() const
+{
+	return m_cameraTarget;
+}
+
+void TileMap::setCamera(const sf::Vector2f camera)
 {
 	m_camera = priv_getTileOffsetFromVector(camera);
+
+	m_redrawRequired = true;
 }
 
 sf::Vector2f TileMap::getCamera() const
@@ -151,7 +186,7 @@ sf::Vector2f TileMap::getCamera() const
 	return priv_getVectorFromTileOffset(m_camera);
 }
 
-void TileMap::setColor(sf::Color color)
+void TileMap::setColor(const sf::Color color)
 {
 	m_color = color;
 
@@ -161,6 +196,18 @@ void TileMap::setColor(sf::Color color)
 sf::Color TileMap::getColor() const
 {
 	return m_color;
+}
+
+sf::Vector2i TileMap::getLevelPositionAtCoord(sf::Vector2f coord) const
+{
+	coord = getInverseTransform().transformPoint(coord);
+	const sf::Vector2f actualCamera{ priv_getActualCamera() };
+	return{ static_cast<int>(floor(coord.x * (m_gridSize.x - 1) / m_size.x + actualCamera.x)), static_cast<int>(floor(coord.y * (m_gridSize.y - 1) / m_size.y + actualCamera.y)) };
+}
+
+unsigned long int TileMap::getTileAtCoord(const sf::Vector2f coord) const
+{
+	return priv_getTileAtGridPosition(priv_getGridPositionAtCoord(coord));
 }
 
 
@@ -207,27 +254,28 @@ void TileMap::priv_updateVertices() const
 
 			// top-left
 			pVertex->position = { static_cast<float>(m_textureTileSize.x * x), static_cast<float>(m_textureTileSize.y * y) };
-			pVertex->texCoords = sf::Vector2f(textureTilePosition);
+			pVertex->texCoords = sf::Vector2f(m_textureOffset + textureTilePosition);
 			pVertex++->color = m_color;
 
 			// top-right
 			pVertex->position = { static_cast<float>(m_textureTileSize.x * (x + 1)), static_cast<float>(m_textureTileSize.y * y) };
-			pVertex->texCoords = { static_cast<float>(textureTilePosition.x + m_textureTileSize.x), static_cast<float>(textureTilePosition.y) };
+			pVertex->texCoords = { static_cast<float>(m_textureOffset.x + textureTilePosition.x + m_textureTileSize.x), static_cast<float>(m_textureOffset.y + textureTilePosition.y) };
 			pVertex++->color = m_color;
 
 			// bottom-right
 			pVertex->position = { static_cast<float>(m_textureTileSize.x * (x + 1)), static_cast<float>(m_textureTileSize.y * (y + 1)) };
-			pVertex->texCoords = sf::Vector2f(textureTilePosition + m_textureTileSize);
+			pVertex->texCoords = sf::Vector2f(m_textureOffset + textureTilePosition + m_textureTileSize);
 			pVertex++->color = m_color;
 
 			// bottom-left
 			pVertex->position = { static_cast<float>(m_textureTileSize.x * x), static_cast<float>(m_textureTileSize.y * (y + 1)) };
-			pVertex->texCoords = { static_cast<float>(textureTilePosition.x), static_cast<float>(textureTilePosition.y + m_textureTileSize.y) };
+			pVertex->texCoords = { static_cast<float>(m_textureOffset.x + textureTilePosition.x), static_cast<float>(m_textureOffset.y + textureTilePosition.y + m_textureTileSize.y) };
 			pVertex++->color = m_color;
 		}
 	}
 
-	const sf::Vector2f cameraOffset{ trunc((m_camera.x - floor(m_camera.x)) * m_textureTileSize.x), trunc((m_camera.y - floor(m_camera.y)) * m_textureTileSize.y) };
+	const sf::Vector2f actualCamera{ priv_getActualCamera() };
+	const sf::Vector2f cameraOffset{ trunc((actualCamera.x - floor(actualCamera.x)) * m_textureTileSize.x), trunc((actualCamera.y - floor(actualCamera.y)) * m_textureTileSize.y) };
 	for (auto& vertex : m_vertices)
 		vertex.position -= cameraOffset;
 }
@@ -243,6 +291,17 @@ void TileMap::priv_updateRender() const
 	m_render[1].texCoords = { size.x, 0.f };
 	m_render[2].texCoords = size;
 	m_render[3].texCoords = { 0.f, size.y };
+
+	if (m_do.scrollSmoothly)
+	{
+		const sf::Vector2f tileSize{ m_size.x / m_gridSize.x, m_size.y / m_gridSize.y };
+		const sf::Vector2f pixelSize{ tileSize.x / m_textureTileSize.x, tileSize.y / m_textureTileSize.y };
+		const sf::Vector2f actualCamera{ priv_getActualCamera() };
+		const sf::Vector2f cameraOffset{ ((actualCamera.x - floor(actualCamera.x)) * m_textureTileSize.x), ((actualCamera.y - floor(actualCamera.y)) * m_textureTileSize.y) };
+		const sf::Vector2f fractionOffset{ round((cameraOffset.x - floor(cameraOffset.x)) * pixelSize.x), round((cameraOffset.y - floor(cameraOffset.y)) * pixelSize.y) };
+		for (auto& corner : m_render)
+			corner.position -= fractionOffset;
+	}
 
 	m_renderTexture.clear(sf::Color::Transparent);
 	const unsigned int numberOfVertices{ m_vertices.size() };
@@ -263,6 +322,30 @@ void TileMap::priv_recreateRenderTexture()
 	m_redrawRequired = true;
 }
 
+sf::Vector2i TileMap::priv_getGridPositionAtCoord(sf::Vector2f coord) const
+{
+	coord = getInverseTransform().transformPoint(coord);
+	const sf::Vector2f actualCamera{ priv_getActualCamera() };
+	const sf::Vector2f fraction{ actualCamera.x - floor(actualCamera.x), actualCamera.y - floor(actualCamera.y) };
+	return{ static_cast<int>(floor(coord.x * (m_gridSize.x - 1) / m_size.x + fraction.x)), static_cast<int>(floor(coord.y * (m_gridSize.y - 1) / m_size.y + fraction.y)) };
+}
+
+unsigned int TileMap::priv_getTileAtGridPosition(const sf::Vector2i gridPosition) const
+{
+	if (gridPosition.x < 0 ||
+		gridPosition.y < 0 ||
+		static_cast<unsigned int>(gridPosition.x) >= m_gridSize.x ||
+		static_cast<unsigned int>(gridPosition.y) >= m_gridSize.y)
+		return 0u;
+	
+	return m_grid[gridPosition.y * m_gridSize.x + gridPosition.x];
+}
+
+inline sf::Vector2f TileMap::priv_getActualCamera() const
+{
+	return m_camera - m_cameraTarget;
+}
+
 sf::Vector2f TileMap::priv_getTileOffsetFromVector(const sf::Vector2f vector) const
 {
 	return
@@ -272,7 +355,7 @@ sf::Vector2f TileMap::priv_getTileOffsetFromVector(const sf::Vector2f vector) co
 	};
 }
 
-sf::Vector2f TileMap::priv_getVectorFromTileOffset(sf::Vector2f offset) const
+sf::Vector2f TileMap::priv_getVectorFromTileOffset(const sf::Vector2f offset) const
 {
 	return
 	{
