@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Tile Map v1.1.0
+// SW Tile Map v1.2.0
 class TileMap : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -68,6 +68,7 @@ public:
 	sf::Color getColor() const;
 	sf::Vector2i getLevelPositionAtCoord(sf::Vector2f coord) const;
 	unsigned long int getTileAtCoord(sf::Vector2f coord) const;
+	sf::Vector2f getCoordAtLevelGridPosition(sf::Vector2f levelGridPosition) const; // takes a float vector so the parameter can specify different parts of that tile e.g. (2.5, 1.5) = centre of tile (2, 1)
 
 	void redraw();
 

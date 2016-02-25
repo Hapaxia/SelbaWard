@@ -210,6 +210,13 @@ unsigned long int TileMap::getTileAtCoord(const sf::Vector2f coord) const
 	return priv_getTileAtGridPosition(priv_getGridPositionAtCoord(coord));
 }
 
+sf::Vector2f TileMap::getCoordAtLevelGridPosition(sf::Vector2f levelGridPosition) const
+{
+	const sf::Vector2f actualCamera{ priv_getActualCamera() };
+	const sf::Vector2f local{ (levelGridPosition.x - actualCamera.x) * m_size.x / (m_gridSize.x - 1), (levelGridPosition.y - actualCamera.y) * m_size.y / (m_gridSize.y - 1) };
+	return getTransform().transformPoint(local);
+}
+
 
 
 void TileMap::redraw()
