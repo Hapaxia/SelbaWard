@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Tile Map v1.2.0
+// SW Tile Map v1.3.0
 class TileMap : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -50,6 +50,7 @@ public:
 	void setGridSize(sf::Vector2u gridSize);
 	sf::Vector2u getGridSize() const;
 	unsigned int getTotalGridSize() const;
+	void setOutOfBoundsTile(unsigned long int textureTileIndex);
 	void setTexture(const sf::Texture& texture);
 	void setTexture();
 	void setNumberOfTextureTilesPerRow(unsigned int numberOfTextureTilesPerRow);
@@ -69,6 +70,7 @@ public:
 	sf::Vector2i getLevelPositionAtCoord(sf::Vector2f coord) const;
 	unsigned long int getTileAtCoord(sf::Vector2f coord) const;
 	sf::Vector2f getCoordAtLevelGridPosition(sf::Vector2f levelGridPosition) const; // takes a float vector so the parameter can specify different parts of that tile e.g. (2.5, 1.5) = centre of tile (2, 1)
+	sf::Vector2f getTileSize() const; // display size of a tile before any transformations
 
 	void redraw();
 
@@ -108,6 +110,7 @@ private:
 	// data
 	sf::Vector2u m_gridSize;
 	std::vector<unsigned long int> m_grid;
+	unsigned long int m_outOfBoundsTile;
 
 	// camera (in tiles)
 	sf::Vector2f m_camera;

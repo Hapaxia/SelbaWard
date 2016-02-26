@@ -52,6 +52,7 @@ TileMap::TileMap()
 	, m_size()
 	, m_grid(1u)
 	, m_gridSize({ 1u, 1u })
+	, m_outOfBoundsTile(0u)
 	, m_texture(nullptr)
 	, m_numberOfTextureTilesPerRow(16u)
 	, m_textureOffset({ 0u, 0u })
@@ -96,6 +97,13 @@ sf::Vector2u TileMap::getGridSize() const
 unsigned int TileMap::getTotalGridSize() const
 {
 	return totalSizeFromSizeVector(getGridSize());
+}
+
+void TileMap::setOutOfBoundsTile(const unsigned long int textureTileIndex)
+{
+	m_outOfBoundsTile = textureTileIndex;
+
+	m_redrawRequired = true;
 }
 
 void TileMap::setTexture(const sf::Texture& texture)
@@ -215,6 +223,11 @@ sf::Vector2f TileMap::getCoordAtLevelGridPosition(sf::Vector2f levelGridPosition
 	const sf::Vector2f actualCamera{ priv_getActualCamera() };
 	const sf::Vector2f local{ (levelGridPosition.x - actualCamera.x) * m_size.x / (m_gridSize.x - 1), (levelGridPosition.y - actualCamera.y) * m_size.y / (m_gridSize.y - 1) };
 	return getTransform().transformPoint(local);
+}
+
+sf::Vector2f TileMap::getTileSize() const
+{
+	return{ m_size.x / (m_gridSize.x - 1), m_size.y / (m_gridSize.y - 1) };
 }
 
 

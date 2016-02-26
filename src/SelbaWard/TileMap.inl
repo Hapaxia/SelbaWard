@@ -77,7 +77,7 @@ void TileMap::update(const T& level, unsigned int width)
 				levelOffset.y + y >= 0 && levelOffset.y + y < height)
 				m_grid[gridIndex] = static_cast<unsigned long int>(level[levelIndex]);
 			else
-				m_grid[gridIndex] = 0u;
+				m_grid[gridIndex] = m_outOfBoundsTile;
 		}
 	}
 
@@ -109,7 +109,7 @@ void TileMap::update(const T* const level, const unsigned int size, unsigned int
 				levelOffset.y + y >= 0 && levelOffset.y + y < height)
 				m_grid[gridIndex] = static_cast<unsigned long int>(level[levelIndex]);
 			else
-				m_grid[gridIndex] = 0u;
+				m_grid[gridIndex] = m_outOfBoundsTile;
 		}
 	}
 
