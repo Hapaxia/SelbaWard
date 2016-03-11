@@ -1,6 +1,14 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2016-03-11
+### Added
+- Double-height printing. Each half can be printed separately or together
+- Cell attributes:
+- - Inverse swaps colour and background colour
+- - Bright displays fully bright colour (darkens when switched off)
+- - FlipX and FlipY flip the cell horizontally and vertically respectively
+
 ## [1.2.1] - 2016-02-09
 ### Fixed
 - Buffer width now correctly calculated when selection rectangle extends beyond screen limits ([#3])
