@@ -5,9 +5,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Double-height printing. Each half can be printed separately or together
 - Cell attributes:
-- - Inverse swaps colour and background colour
-- - Bright displays fully bright colour (darkens when switched off)
-- - FlipX and FlipY flip the cell horizontally and vertically respectively
+    - Inverse swaps colour and background colour
+    - Bright displays fully bright colour (darkens when switched off)
+    - FlipX and FlipY flip the cell horizontally and vertically respectively
 
 ## [1.2.1] - 2016-02-09
 ### Fixed
@@ -40,6 +40,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[1.3.0]: https://github.com/Hapaxia/SelbaWard/commit/661223c925e9c1d57ce11f77462812cd024f9aa9
 [1.2.1]: https://github.com/Hapaxia/SelbaWard/commit/2238bc8dfec3580d7da7188bf9a388b5e720ca2e
 [1.2.0]: https://github.com/Hapaxia/SelbaWard/commit/37a22dbf625ce1468077c2455266a4b41651952d
 [1.1.0]: https://github.com/Hapaxia/SelbaWard/commit/869078f4294e62814c43d63416b5a68af9c5363d
