@@ -45,8 +45,9 @@ const sf::Color defaultColor{ sf::Color::White };
 const sf::Color defaultBackgroundColor{ sf::Color::Black };
 const sf::Color defaultCursorColor{ sf::Color::White };
 const sf::Color defaultNewPaletteColor{ sf::Color::Black };
+const double unBrightAttributeMultiplier{ 0.5 };
 
-const selbaward::ConsoleScreen::Cell defaultCell{ 0u, sf::Color::White, sf::Color::Black };
+const selbaward::ConsoleScreen::Cell defaultCell{ 0u, sf::Color::White, sf::Color::Black, selbaward::ConsoleScreen::Stretch::None };
 
 std::mt19937 randomGenerator;
 const std::uniform_int_distribution<unsigned short int> randomDistribution(0u, 255u);
@@ -67,6 +68,20 @@ inline unsigned char randomByte()
 inline float linearInterpolation(const float start, const float end, const float alpha)
 {
 	return start * (1 - alpha) + end * alpha;
+}
+
+inline void makeColorUnBright(sf::Color& color)
+{
+	color.r = static_cast<unsigned int>(unBrightAttributeMultiplier * color.r);
+	color.g = static_cast<unsigned int>(unBrightAttributeMultiplier * color.g);
+	color.b = static_cast<unsigned int>(unBrightAttributeMultiplier * color.b);
+}
+
+inline void swapColors(sf::Color& a, sf::Color& b)
+{
+	sf::Color temp{ a };
+	a = b;
+	b = temp;
 }
 
 inline sf::Color sepiaColor(const float alpha)
@@ -293,6 +308,8 @@ ConsoleScreen::ConsoleScreen(const sf::Vector2u mode)
 	, m_colors({ defaultColor, defaultBackgroundColor, defaultCursorColor })
 	, m_palette()
 	, m_cursor({ 0u, '_', true })
+	, m_attributes()
+	, m_stretch()
 {
 	randomSeed();
 	setMode(m_mode);
@@ -585,6 +602,36 @@ sf::Color ConsoleScreen::getCursorColor() const
 	return m_colors.cursor;
 }
 
+void ConsoleScreen::setStretch(const Stretch stretch)
+{
+	m_stretch = stretch;
+}
+
+ConsoleScreen::Stretch ConsoleScreen::getStretch() const
+{
+	return m_stretch;
+}
+
+void ConsoleScreen::setAttributes(const CellAttributes attributes)
+{
+	m_attributes = attributes;
+}
+
+ConsoleScreen::CellAttributes ConsoleScreen::getAttributes() const
+{
+	return m_attributes;
+}
+
+void ConsoleScreen::setAttribute(const bool attributeValue, const Attribute attribute)
+{
+	priv_chooseAttribute(m_attributes, attribute) = attributeValue;
+}
+
+bool ConsoleScreen::getAttribute(const Attribute attribute)
+{
+	return priv_chooseAttribute(m_attributes, attribute);
+}
+
 void ConsoleScreen::cursorLeft(const unsigned int distance)
 {
 	for (unsigned int i{ 0 }; i < distance; ++i)
@@ -698,14 +745,46 @@ void ConsoleScreen::print(const char character, const int colorId, const int bac
 	if (!priv_isCursorInRange())
 		return;
 
+	print(character, m_cells[m_cursor.index].attributes, colorId, backgroundColorId);
+}
+
+void ConsoleScreen::print(const char character, const Stretch& stretch, const int colorId, const int backgroundColorId)
+{
+	if (!priv_isCursorInRange())
+		return;
+
 	const unsigned int currentIndex{ m_cursor.index };
 	if (colorId == Color::Invert || colorId == Color::Contrast)
 	{
-		poke(currentIndex, Cell{ static_cast<unsigned int>(character), sf::Color::Black, priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId) });
+		poke(currentIndex, Cell{ static_cast<unsigned int>(character), sf::Color::Black, priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId), stretch });
 		poke(currentIndex, priv_colorFromColorIdAtIndex(currentIndex, colorId));
 	}
 	else
-		poke(currentIndex, Cell{ static_cast<unsigned int>(character), priv_colorFromColorIdAtIndex(currentIndex, colorId), priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId) });
+		poke(currentIndex, Cell{ static_cast<unsigned int>(character), priv_colorFromColorIdAtIndex(currentIndex, colorId), priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId), stretch });
+	priv_moveCursorRight();
+
+	if (m_do.updateAutomatically)
+	{
+		priv_updateCell(currentIndex);
+		priv_updateCell(m_cursor.index);
+	}
+}
+
+
+void ConsoleScreen::print(const char character, const CellAttributes& attributes, const int colorId, const int backgroundColorId)
+{
+	if (!priv_isCursorInRange())
+		return;
+
+	const unsigned int currentIndex{ m_cursor.index };
+	const Cell existingCell = peek(currentIndex);
+	if (colorId == Color::Invert || colorId == Color::Contrast)
+	{
+		poke(currentIndex, Cell{ static_cast<unsigned int>(character), sf::Color::Black, priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId), existingCell.stretch, attributes });
+		poke(currentIndex, priv_colorFromColorIdAtIndex(currentIndex, colorId));
+	}
+	else
+		poke(currentIndex, Cell{ static_cast<unsigned int>(character), priv_colorFromColorIdAtIndex(currentIndex, colorId), priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId), existingCell.stretch, attributes });
 	priv_moveCursorRight();
 
 	if (m_do.updateAutomatically)
@@ -719,6 +798,24 @@ void ConsoleScreen::print(const std::string& string, const int colorId, const in
 {
 	for (auto& character : string)
 		print(character, colorId, backgroundColorId);
+
+	if (!priv_isCursorInRange())
+		priv_setCursorIndex(m_cells.size() - 1);
+}
+
+void ConsoleScreen::print(const std::string& string, const Stretch& stretch, const int colorId, const int backgroundColorId)
+{
+	for (auto& character : string)
+		print(character, stretch, colorId, backgroundColorId);
+
+	if (!priv_isCursorInRange())
+		priv_setCursorIndex(m_cells.size() - 1);
+}
+
+void ConsoleScreen::print(const std::string& string, const CellAttributes& attributes, const int colorId, const int backgroundColorId)
+{
+	for (auto& character : string)
+		print(character, attributes, colorId, backgroundColorId);
 
 	if (!priv_isCursorInRange())
 		priv_setCursorIndex(m_cells.size() - 1);
@@ -815,9 +912,11 @@ void ConsoleScreen::printAt(const sf::Vector2u location, const std::string& stri
 void ConsoleScreen::printAt(const sf::Vector2u location, const char character, const sf::Color color, const sf::Color backgroundColor)
 {
 	unsigned int index{ priv_getPrintIndex(location) };
-	m_cells[index].value = static_cast<unsigned int>(character);
-	m_cells[index].color = color;
-	m_cells[index].backgroundColor = backgroundColor;
+	Cell cell = defaultCell;
+	cell.value = static_cast<unsigned int>(character);
+	cell.color = color;
+	cell.backgroundColor = backgroundColor;
+	m_cells[index] = cell;
 
 	if (m_do.updateAutomatically)
 		priv_updateCell(index);
@@ -839,6 +938,106 @@ void ConsoleScreen::printAt(const sf::Vector2u location, const char character, c
 {
 	const unsigned int currentIndex{ priv_getPrintIndex(location) };
 	printAt(location, character, priv_colorFromColorIdAtIndex(currentIndex, colorId), priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId));
+}
+
+void ConsoleScreen::printStretchedAt(const sf::Vector2u location, const std::string& string, const Stretch& stretchAttribute, const sf::Color color, const sf::Color backgroundColor)
+{
+	if (string.size() == 0)
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot print.\nString does not exist.");
+		return;
+	}
+
+	for (unsigned int i{ 0 }; i < string.size(); ++i)
+		printStretchedAt({ location.x + i, location.y }, string[i], stretchAttribute, color, backgroundColor); // print single character
+}
+
+void ConsoleScreen::printStretchedAt(const sf::Vector2u location, const std::string& string, const Stretch& stretchAttribute, const int colorId, const int backgroundColorId)
+{
+	if (string.size() == 0)
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot print.\nString does not exist.");
+		return;
+	}
+
+	for (unsigned int i{ 0 }; i < string.size(); ++i)
+		printStretchedAt({ location.x + i, location.y }, string[i], stretchAttribute, colorId, backgroundColorId); // print single character
+}
+
+void ConsoleScreen::printStretchedAt(sf::Vector2u location, const char character, const Stretch& stretchAttribute, const sf::Color color, const sf::Color backgroundColor)
+{
+	switch (stretchAttribute)
+	{
+	case Stretch::Bottom:
+		if (location.y < 1)
+			return;
+		--location.y;
+	case Stretch::Top:
+		if (location.y > m_mode.y - 2)
+			return;
+		break;
+	case Stretch::None:
+	default:
+		return;
+	}
+	unsigned int topIndex{ priv_getPrintIndex(location) };
+	unsigned int bottomIndex{ topIndex + m_mode.x };
+
+	m_cells[topIndex] = defaultCell;
+	m_cells[topIndex].value = static_cast<unsigned int>(character);
+	m_cells[topIndex].color = color;
+	m_cells[topIndex].backgroundColor = backgroundColor;
+	m_cells[topIndex].stretch = Stretch::Top;
+	m_cells[bottomIndex] = defaultCell;
+	m_cells[bottomIndex].value = static_cast<unsigned int>(character);
+	m_cells[bottomIndex].color = color;
+	m_cells[bottomIndex].backgroundColor = backgroundColor;
+	m_cells[bottomIndex].stretch = Stretch::Bottom;
+
+	if (m_do.updateAutomatically)
+	{
+		priv_updateCell(topIndex);
+		priv_updateCell(bottomIndex);
+	}
+}
+
+void ConsoleScreen::printStretchedAt(sf::Vector2u location, const char character, const Stretch& stretchAttribute, const int colorId, const int backgroundColorId)
+{
+	switch (stretchAttribute)
+	{
+	case Stretch::Bottom:
+		if (location.y < 1)
+			return;
+		--location.y;
+	case Stretch::Top:
+		if (location.y > m_mode.y - 2)
+			return;
+		break;
+	case Stretch::None:
+	default:
+		return;
+	}
+	unsigned int topIndex{ priv_getPrintIndex(location) };
+	unsigned int bottomIndex{ topIndex + m_mode.x };
+
+	m_cells[topIndex] = defaultCell;
+	m_cells[topIndex].value = static_cast<unsigned int>(character);
+	m_cells[topIndex].color = priv_colorFromColorIdAtIndex(topIndex, colorId);
+	m_cells[topIndex].backgroundColor = priv_backgroundColorFromColorIdAtIndex(topIndex, backgroundColorId);
+	m_cells[topIndex].stretch = Stretch::Top;
+	m_cells[bottomIndex] = defaultCell;
+	m_cells[bottomIndex].value = static_cast<unsigned int>(character);
+	m_cells[bottomIndex].color = priv_colorFromColorIdAtIndex(bottomIndex, colorId);
+	m_cells[bottomIndex].backgroundColor = priv_backgroundColorFromColorIdAtIndex(bottomIndex, backgroundColorId);
+	m_cells[bottomIndex].stretch = Stretch::Bottom;
+
+	if (m_do.updateAutomatically)
+	{
+		priv_updateCell(topIndex);
+		priv_updateCell(bottomIndex);
+	}
 }
 
 void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int length, const sf::Color color, const sf::Color backgroundColor)
@@ -870,6 +1069,18 @@ void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int leng
 {
 	const unsigned int currentIndex{ priv_getPrintIndex(location) };
 	paintAt(location, length, priv_colorFromColorIdAtIndex(currentIndex, colorId), priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId));
+}
+
+void ConsoleScreen::paintAttributeAt(const sf::Vector2u location, const unsigned int length, const bool attributeValue, const Attribute attribute)
+{
+	for (unsigned int i{ 0 }; i < length; ++i)
+	{
+		unsigned int index{ priv_getPrintIndex({ location.x + i, location.y }) };
+		priv_chooseAttribute(m_cells[index].attributes, attribute) = attributeValue;
+
+		if (m_do.updateAutomatically)
+			priv_updateCell(index);
+	}
 }
 
 void ConsoleScreen::setValueAt(const sf::Vector2u location, const unsigned int value)
@@ -986,6 +1197,51 @@ void ConsoleScreen::setBackgroundColorAt(const sf::Vector2u location, const int 
 		priv_updateCell(index);
 }
 
+void ConsoleScreen::setStretchAt(const sf::Vector2u location, const Stretch& stretch)
+{
+	if (!priv_isCellLocationInRange(location))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot set stretch.\nLocation (" + std::to_string(location.x) + ", " + std::to_string(location.y) + ") out of range.");
+		return;
+	}
+
+	m_cells[priv_cellIndex(location)].stretch = stretch;
+
+	if (m_do.updateAutomatically)
+		priv_updateCell(priv_cellIndex(location));
+}
+
+void ConsoleScreen::setAttributesAt(const sf::Vector2u location, const CellAttributes& attributes)
+{
+	if (!priv_isCellLocationInRange(location))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot set attributes.\nLocation (" + std::to_string(location.x) + ", " + std::to_string(location.y) + ") out of range.");
+		return;
+	}
+
+	m_cells[priv_cellIndex(location)].attributes = attributes;
+
+	if (m_do.updateAutomatically)
+		priv_updateCell(priv_cellIndex(location));
+}
+
+void ConsoleScreen::setAttributeAt(const sf::Vector2u location, const bool attributeValue, const Attribute attribute)
+{
+	if (!priv_isCellLocationInRange(location))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot set attribute.\nLocation (" + std::to_string(location.x) + ", " + std::to_string(location.y) + ") out of range.");
+		return;
+	}
+
+	priv_chooseAttribute(m_cells[priv_cellIndex(location)].attributes, attribute) = attributeValue;
+	
+	if (m_do.updateAutomatically)
+		priv_updateCell(priv_cellIndex(location));
+}
+
 ConsoleScreen::Cell ConsoleScreen::getCellAt(const sf::Vector2u location) const
 {
 	if (!priv_isCellLocationInRange(location))
@@ -1032,6 +1288,42 @@ sf::Color ConsoleScreen::getBackgroundColorAt(const sf::Vector2u location) const
 	}
 
 	return m_cells[priv_cellIndex(location)].backgroundColor;
+}
+
+ConsoleScreen::Stretch ConsoleScreen::getStretchAt(const sf::Vector2u location) const
+{
+	if (!priv_isCellLocationInRange(location))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot get cell stretch.\nLocation (" + std::to_string(location.x) + ", " + std::to_string(location.y) + ") out of range.");
+		return Stretch::None;
+	}
+
+	return m_cells[priv_cellIndex(location)].stretch;
+}
+
+ConsoleScreen::CellAttributes ConsoleScreen::getAttributesAt(const sf::Vector2u location) const
+{
+	if (!priv_isCellLocationInRange(location))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot get cell attributes.\nLocation (" + std::to_string(location.x) + ", " + std::to_string(location.y) + ") out of range.");
+		return CellAttributes();
+	}
+
+	return m_cells[priv_cellIndex(location)].attributes;
+}
+
+bool ConsoleScreen::getAttributeAt(const sf::Vector2u location, const Attribute attribute)
+{
+	if (!priv_isCellLocationInRange(location))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot get cell attribute.\nLocation (" + std::to_string(location.x) + ", " + std::to_string(location.y) + ") out of range.");
+		return false;
+	}
+
+	return priv_chooseAttribute(m_cells[priv_cellIndex(location)].attributes, attribute);
 }
 
 void ConsoleScreen::scrollUp(const unsigned int amount)
@@ -1469,6 +1761,51 @@ void ConsoleScreen::poke(const unsigned int index, const sf::Color& color, const
 		priv_updateCell(index);
 }
 
+void ConsoleScreen::poke(const unsigned int index, const Stretch& stretch)
+{
+	if (!priv_isCellIndexInRange(index))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot poke stretch attribute.\nCell number (" + std::to_string(index) + ") out of range.");
+		return;
+	}
+
+	m_cells[index].stretch = stretch;
+
+	if (m_do.updateAutomatically)
+		priv_updateCell(index);
+}
+
+void ConsoleScreen::poke(const unsigned int index, const CellAttributes& cellAttributes)
+{
+	if (!priv_isCellIndexInRange(index))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot poke attributes.\nCell number (" + std::to_string(index) + ") out of range.");
+		return;
+	}
+
+	m_cells[index].attributes = cellAttributes;
+
+	if (m_do.updateAutomatically)
+		priv_updateCell(index);
+}
+
+void ConsoleScreen::poke(const unsigned int index, const bool attributeValue, const Attribute attribute)
+{
+	if (!priv_isCellIndexInRange(index))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot poke attribute.\nCell number (" + std::to_string(index) + ") out of range.");
+		return;
+	}
+
+	priv_chooseAttribute(m_cells[index].attributes, attribute) = attributeValue;
+
+	if (m_do.updateAutomatically)
+		priv_updateCell(index);
+}
+
 ConsoleScreen::Cell ConsoleScreen::peek(const unsigned int index) const
 {
 	if (!priv_isCellIndexInRange(index))
@@ -1520,9 +1857,11 @@ void ConsoleScreen::priv_updateCell(const unsigned int index)
 		return;
 	}
 
-	unsigned int cellValue{ m_cells[index].value };
-	sf::Color cellColor{ m_cells[index].color };
-	const sf::Color backgroundColor{ m_cells[index].backgroundColor };
+	Cell& cell{ m_cells[index] };
+
+	unsigned int cellValue{ cell.value };
+	sf::Color cellColor{ cell.color };
+	sf::Color backgroundColor{ cell.backgroundColor };
 
 	if (m_cursor.visible && m_cursor.index == index)
 	{
@@ -1530,18 +1869,27 @@ void ConsoleScreen::priv_updateCell(const unsigned int index)
 		cellColor = m_colors.cursor;
 	}
 
+	if (cell.attributes.inverse)
+		swapColors(cellColor, backgroundColor);
+
+	if (!cell.attributes.bright)
+	{
+		makeColorUnBright(cellColor);
+		makeColorUnBright(backgroundColor);
+	}
+
 	const unsigned int cellX{ index % m_mode.x };
 	const unsigned int cellY{ index / m_mode.x };
-	const float left{ linearInterpolation(0.f, m_size.x, static_cast<float>(cellX) / m_mode.x) };
-	const float right{ linearInterpolation(0.f, m_size.x, static_cast<float>(cellX + 1) / m_mode.x) };
-	const float top{ linearInterpolation(0.f, m_size.y, static_cast<float>(cellY) / m_mode.y) };
-	const float bottom{ linearInterpolation(0.f, m_size.y, static_cast<float>(cellY + 1) / m_mode.y) };
+	const float left{ linearInterpolation(0.f, m_size.x, static_cast<float>(cellX + (cell.attributes.flipX ? 1 : 0)) / m_mode.x) };
+	const float right{ linearInterpolation(0.f, m_size.x, static_cast<float>(cellX + (cell.attributes.flipX ? 0 : 1)) / m_mode.x) };
+	const float top{ linearInterpolation(0.f, m_size.y, static_cast<float>(cellY + (cell.attributes.flipY ? 1 : 0)) / m_mode.y) };
+	const float bottom{ linearInterpolation(0.f, m_size.y, static_cast<float>(cellY + (cell.attributes.flipY ? 0 : 1)) / m_mode.y) };
 
 	sf::Vector2u textureCell{ cellValue % m_numberOfTilesPerRow, cellValue / m_numberOfTilesPerRow };
 	const float textureLeft{ static_cast<float>(textureCell.x * m_tileSize.x) };
-	const float textureTop{ static_cast<float>(textureCell.y * m_tileSize.y) };
+	const float textureTop{ static_cast<float>((textureCell.y + (cell.stretch == Stretch::Bottom ? 0.5f : 0.f)) * m_tileSize.y) };
 	const float textureRight{ static_cast<float>((textureCell.x + 1) * m_tileSize.x) };
-	const float textureBottom{ static_cast<float>((textureCell.y + 1) * m_tileSize.y) };
+	const float textureBottom{ static_cast<float>((textureCell.y + (cell.stretch == Stretch::Top ? 0.5f : 1.f)) * m_tileSize.y) };
 
 	const unsigned int baseVertex{ index * 4 };
 	sf::Vertex* const pVertex1{ &m_display[baseVertex] };
@@ -1627,18 +1975,18 @@ inline void ConsoleScreen::priv_clearCell(const unsigned int index, const bool o
 {
 	const sf::Color color{ overwriteColor ? m_colors.main : m_cells[index].color };
 	const sf::Color backgroundColor{ overwriteBackgroundColor ? m_colors.background : m_cells[index].backgroundColor };
-	poke(index, { 0, color, backgroundColor });
+	poke(index, { 0, color, backgroundColor, Stretch::None, CellAttributes() });
 }
 
 inline void ConsoleScreen::priv_clearCell(const unsigned int index, const sf::Color backgroundColor, const bool overwriteColor)
 {
 	const sf::Color color{ overwriteColor ? m_colors.main : m_cells[index].color };
-	poke(index, { 0, color, backgroundColor });
+	poke(index, { 0, color, backgroundColor, Stretch::None, CellAttributes() });
 }
 
 inline void ConsoleScreen::priv_clearCell(const unsigned int index, const sf::Color color, const sf::Color backgroundColor)
 {
-	poke(index, { 0, color, backgroundColor });
+	poke(index, { 0, color, backgroundColor, Stretch::None, CellAttributes() });
 }
 
 void ConsoleScreen::priv_setCursorIndex(const unsigned int index)
@@ -1824,6 +2172,22 @@ sf::Color ConsoleScreen::priv_backgroundColorFromColorIdAtIndex(const unsigned i
 		default:
 			return m_colors.background;
 		}
+	}
+}
+
+bool& ConsoleScreen::priv_chooseAttribute(CellAttributes& cellAttributes, const Attribute attribute)
+{
+	switch (attribute)
+	{
+	case Attribute::FlipX:
+		return cellAttributes.flipX;
+	case Attribute::FlipY:
+		return cellAttributes.flipY;
+	case Attribute::Bright:
+		return cellAttributes.bright;
+	case Attribute::Inverse:
+	default:
+		return cellAttributes.inverse;
 	}
 }
 

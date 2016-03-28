@@ -38,12 +38,32 @@
 namespace selbaward
 {
 
-// SW Console Screen v1.2.1
+// SW Console Screen v1.3.0
 class ConsoleScreen : public sf::Drawable, public sf::Transformable
 {
 public:
 	struct Cell;
 	enum class Palette;
+	enum class Stretch
+	{
+		None,
+		Top,
+		Bottom
+	};
+	enum class Attribute
+	{
+		Inverse,
+		Bright,
+		FlipX,
+		FlipY,
+	};
+	struct CellAttributes
+	{
+		bool inverse{ false };
+		bool bright{ true };
+		bool flipX{ false };
+		bool flipY{ false };
+	};
 	enum Color // colour command
 	{
 		Current = -1, // use current colour
@@ -105,6 +125,16 @@ public:
 	sf::Color getBackgroundColor() const;
 	sf::Color getCursorColor() const;
 
+	// current stretch
+	void setStretch(Stretch stretch);
+	Stretch getStretch() const;
+
+	// current attributes
+	void setAttributes(CellAttributes attributes);
+	void setAttribute(bool attributeValue, Attribute attribute = Attribute::Inverse);
+	CellAttributes getAttributes() const;
+	bool getAttribute(Attribute attribute = Attribute::Inverse);
+
 	// cursor position
 	void cursorHome();
 	void cursorHomeLine();
@@ -127,7 +157,11 @@ public:
 
 	// printing (using cursor)
 	void print(char character, int colorId = Color::Current, int backgroundColorId = Color::Current);
+	void print(char character, const Stretch& stretch, int colorId = Color::Current, int backgroundColorId = Color::Current);
+	void print(char character, const CellAttributes& attributes, int colorId = Color::Current, int backgroundColorId = Color::Current);
 	void print(const std::string& string, int colorId = Color::Current, int backgroundColorId = Color::Current);
+	void print(const std::string& string, const Stretch& stretch, int colorId = Color::Current, int backgroundColorId = Color::Current);
+	void print(const std::string& string, const CellAttributes& attributes, int colorId = Color::Current, int backgroundColorId = Color::Current);
 	void printLine(const std::string& string, int colorId = Color::Current, int backgroundColorId = Color::Current);
 
 	// printing (directly)
@@ -140,11 +174,20 @@ public:
 	void printAt(sf::Vector2u location, char character, int colorId, sf::Color backgroundColor);
 	void printAt(sf::Vector2u location, char character, int colorId = Color::Ignore, int backgroundColorId = Color::Ignore);
 
+	// printing stretched (directly - cannot mix sf::Colors and color IDs therefore cannot supply only foreground colour)
+	void printStretchedAt(sf::Vector2u location, const std::string& string, const Stretch& stretch, sf::Color color, sf::Color backgroundColor);
+	void printStretchedAt(sf::Vector2u location, const std::string& string, const Stretch& stretch = Stretch::Top, int colorId = Color::Ignore, int backgroundColorId = Color::Ignore);
+	void printStretchedAt(sf::Vector2u location, char character, const Stretch& stretch, sf::Color color, sf::Color backgroundColor);
+	void printStretchedAt(sf::Vector2u location, char character, const Stretch& stretch = Stretch::Top, int colorId = Color::Ignore, int backgroundColorId = Color::Ignore);
+
 	// painting (directly)
 	void paintAt(sf::Vector2u location, unsigned int length, sf::Color color, sf::Color backgroundColor);
 	void paintAt(sf::Vector2u location, unsigned int length, sf::Color color, int backgroundColorId = Color::Ignore);
 	void paintAt(sf::Vector2u location, unsigned int length, int colorId, sf::Color backgroundColor);
 	void paintAt(sf::Vector2u location, unsigned int length, int colorId = Color::Current, int backgroundColorId = Color::Ignore);
+
+	// painting attributes (directly - flags only)
+	void paintAttributeAt(sf::Vector2u location, unsigned int length, bool attributeValue, Attribute attribute = Attribute::Inverse);
 
 	// cell manipulation
 	void clearCellAt(sf::Vector2u location);
@@ -156,12 +199,18 @@ public:
 	void setBackgroundColorAt(sf::Vector2u location, int backgroundColorId);
 	void setColorsAt(sf::Vector2u location, sf::Color color, sf::Color backgroundColor);
 	void setColorsAt(sf::Vector2u location, int colorId, int backgroundColorId);
+	void setStretchAt(sf::Vector2u location, const Stretch& stretch);
+	void setAttributesAt(sf::Vector2u location, const CellAttributes& attributes);
+	void setAttributeAt(sf::Vector2u location, bool attributeValue, Attribute attribute = Attribute::Inverse);
 
 	// cell information
 	Cell getCellAt(sf::Vector2u location) const;
 	unsigned int getValueAt(sf::Vector2u location) const;
 	sf::Color getColorAt(sf::Vector2u location) const;
 	sf::Color getBackgroundColorAt(sf::Vector2u location) const;
+	Stretch getStretchAt(sf::Vector2u location) const;
+	CellAttributes getAttributesAt(sf::Vector2u location) const;
+	bool getAttributeAt(sf::Vector2u location, Attribute attribute = Attribute::Inverse);
 
 	// manual scrolling
 	void scrollUp(unsigned int amount = 1);
@@ -195,6 +244,9 @@ public:
 	void poke(unsigned int index, unsigned int value);
 	void poke(unsigned int index, const sf::Color& color);
 	void poke(unsigned int index, const sf::Color& color, const sf::Color& backgroundColor);
+	void poke(unsigned int index, const Stretch& stretch);
+	void poke(unsigned int index, bool attributeValue, Attribute attribute = Attribute::Inverse);
+	void poke(unsigned int index, const CellAttributes& attributes);
 	Cell peek(unsigned int index) const;
 
 
@@ -252,6 +304,12 @@ private:
 	// current colours
 	CurrentColors m_colors;
 
+	// current stretch
+	Stretch m_stretch;
+
+	// current attributes
+	CellAttributes m_attributes;
+
 	// colour palette
 	std::vector<sf::Color> m_palette;
 
@@ -290,6 +348,7 @@ private:
 	unsigned int priv_getPrintIndex(sf::Vector2u location) const;
 	sf::Color priv_colorFromColorIdAtIndex(unsigned int index, int colorId) const;
 	sf::Color priv_backgroundColorFromColorIdAtIndex(unsigned int index, int colorId) const;
+	bool& priv_chooseAttribute(CellAttributes& cellAttributes, Attribute attribute = Attribute::Inverse);
 };
 
 struct ConsoleScreen::Cell
@@ -297,6 +356,8 @@ struct ConsoleScreen::Cell
 	unsigned int value;
 	sf::Color color;
 	sf::Color backgroundColor;
+	Stretch stretch;
+	CellAttributes attributes;
 };
 
 enum class ConsoleScreen::Palette

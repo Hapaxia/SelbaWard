@@ -40,15 +40,15 @@ template <class T>
 // level can be any const stl container with random access using indices (std::array/std::vector/std::deque) containing any integer type
 void TileMap::update(const T& level, unsigned int width, const sf::Vector2f camera)
 {
-	m_camera = priv_getTileOffsetFromVector(camera);
+	setCamera(camera);
 	update(level, width);
 }
 
 template <class T>
-// level can be a pointer to any integer type
+// level can be a pointer to any integer type. size of level data must also be provided
 void TileMap::update(const T* const level, const unsigned int size, unsigned int width, const sf::Vector2f camera)
 {
-	m_camera = priv_getTileOffsetFromVector(camera);
+	setCamera(camera);
 	update(level, size, width);
 }
 
@@ -63,8 +63,8 @@ void TileMap::update(const T& level, unsigned int width)
 	if (width == 0)
 		width = static_cast<unsigned int>(std::sqrt(level.size()));
 
-	const sf::Vector2i levelOffset{ static_cast<int>(floor(m_camera.x)), static_cast<int>(floor(m_camera.y)) };
-	//const unsigned int levelIndexOffset{ levelOffset.y * width + levelOffset.x };
+	const sf::Vector2f actualCamera{ priv_getActualCamera() };
+	const sf::Vector2i levelOffset{ static_cast<int>(floor(actualCamera.x)), static_cast<int>(floor(actualCamera.y)) };
 	const unsigned int height{ width > 0u ? level.size() / width : 0u };
 
 	for (unsigned int y{ 0 }; y < m_gridSize.y; ++y)
@@ -72,13 +72,12 @@ void TileMap::update(const T& level, unsigned int width)
 		for (unsigned int x{ 0 }; x < m_gridSize.x; ++x)
 		{
 			const unsigned int gridIndex{ y * m_gridSize.x + x };
-			//const unsigned int levelIndex{ levelIndexOffset + y * width + x };
 			const unsigned int levelIndex{ (levelOffset.y + y) * width + levelOffset.x + x };
 			if (levelOffset.x + x >= 0 && levelOffset.x + x < width &&
 				levelOffset.y + y >= 0 && levelOffset.y + y < height)
-				m_grid[gridIndex] = static_cast<unsigned int>(level[levelIndex]);
+				m_grid[gridIndex] = static_cast<unsigned long int>(level[levelIndex]);
 			else
-				m_grid[gridIndex] = 0u;
+				m_grid[gridIndex] = m_outOfBoundsTile;
 		}
 	}
 
@@ -86,7 +85,7 @@ void TileMap::update(const T& level, unsigned int width)
 }
 
 template <class T>
-// level can be a pointer to any integer type
+// level can be a pointer to any integer type. size of level data must also be provided
 void TileMap::update(const T* const level, const unsigned int size, unsigned int width)
 {
 	if (width > size)
@@ -96,7 +95,8 @@ void TileMap::update(const T* const level, const unsigned int size, unsigned int
 	if (width == 0)
 		width = static_cast<unsigned int>(std::sqrt(size));
 
-	const sf::Vector2i levelOffset{ static_cast<int>(floor(m_camera.x)), static_cast<int>(floor(m_camera.y)) };
+	const sf::Vector2f actualCamera{ priv_getActualCamera() };
+	const sf::Vector2i levelOffset{ static_cast<int>(floor(actualCamera.x)), static_cast<int>(floor(actualCamera.y)) };
 	const unsigned int height{ width > 0u ? size / width : 0u };
 
 	for (unsigned int y{ 0 }; y < m_gridSize.y; ++y)
@@ -107,9 +107,9 @@ void TileMap::update(const T* const level, const unsigned int size, unsigned int
 			const unsigned int levelIndex{ (levelOffset.y + y) * width + levelOffset.x + x };
 			if (levelOffset.x + x >= 0 && levelOffset.x + x < width &&
 				levelOffset.y + y >= 0 && levelOffset.y + y < height)
-				m_grid[gridIndex] = static_cast<unsigned int>(level[levelIndex]);
+				m_grid[gridIndex] = static_cast<unsigned long int>(level[levelIndex]);
 			else
-				m_grid[gridIndex] = 0u;
+				m_grid[gridIndex] = m_outOfBoundsTile;
 		}
 	}
 
