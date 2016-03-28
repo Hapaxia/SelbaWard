@@ -1,6 +1,10 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.3.1] - 2016-03-28
+### Fixed
+- Colour commands now functions correctly when using printStretchedAt() ([#5])
+
 ## [1.3.0] - 2016-03-11
 ### Added
 - Double-height printing. Each half can be printed separately or together
@@ -40,6 +44,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[1.3.1]: https://github.com/Hapaxia/SelbaWard/commit/f544eaf2e90d46558dcaeb80c54992def0a18ec8
 [1.3.0]: https://github.com/Hapaxia/SelbaWard/commit/661223c925e9c1d57ce11f77462812cd024f9aa9
 [1.2.1]: https://github.com/Hapaxia/SelbaWard/commit/2238bc8dfec3580d7da7188bf9a388b5e720ca2e
 [1.2.0]: https://github.com/Hapaxia/SelbaWard/commit/37a22dbf625ce1468077c2455266a4b41651952d
@@ -47,3 +52,4 @@ Some renamed slightly for grammatical reasons
 [1.0.0]: https://github.com/Hapaxia/SelbaWard/commit/424ca290165d74de99d00806166dc0b52eb6d5f0
 
 [#3]: https://github.com/Hapaxia/SelbaWard/pull/3
+[#5]: https://github.com/Hapaxia/SelbaWard/pull/5
