@@ -1022,16 +1022,16 @@ void ConsoleScreen::printStretchedAt(sf::Vector2u location, const char character
 	unsigned int topIndex{ priv_getPrintIndex(location) };
 	unsigned int bottomIndex{ topIndex + m_mode.x };
 
-	m_cells[topIndex] = defaultCell;
 	m_cells[topIndex].value = static_cast<unsigned int>(character);
 	m_cells[topIndex].color = priv_colorFromColorIdAtIndex(topIndex, colorId);
 	m_cells[topIndex].backgroundColor = priv_backgroundColorFromColorIdAtIndex(topIndex, backgroundColorId);
 	m_cells[topIndex].stretch = Stretch::Top;
-	m_cells[bottomIndex] = defaultCell;
+	m_cells[topIndex].attributes = CellAttributes();
 	m_cells[bottomIndex].value = static_cast<unsigned int>(character);
 	m_cells[bottomIndex].color = priv_colorFromColorIdAtIndex(bottomIndex, colorId);
 	m_cells[bottomIndex].backgroundColor = priv_backgroundColorFromColorIdAtIndex(bottomIndex, backgroundColorId);
 	m_cells[bottomIndex].stretch = Stretch::Bottom;
+	m_cells[bottomIndex].attributes = CellAttributes();
 
 	if (m_do.updateAutomatically)
 	{
