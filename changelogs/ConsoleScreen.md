@@ -1,6 +1,15 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2016-03-29
+### Added
+- Character mapping. Printed characters can now be mapped to any cell value
+- Reading. Retrieves a string from consecutive cells. Can use cursor or read directly
+- Texture offset. A sub-texture can now be used
+
+### Fixed
+- Colour commands now processed for every cell individually in paintAt()
+
 ## [1.3.1] - 2016-03-28
 ### Fixed
 - Colour commands now functions correctly when using printStretchedAt() ([#5])
@@ -44,6 +53,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[1.4.0]: https://github.com/Hapaxia/SelbaWard/commit/3dc18730df9a096d5bbf80d19e7e839357fc985d
 [1.3.1]: https://github.com/Hapaxia/SelbaWard/commit/f544eaf2e90d46558dcaeb80c54992def0a18ec8
 [1.3.0]: https://github.com/Hapaxia/SelbaWard/commit/661223c925e9c1d57ce11f77462812cd024f9aa9
 [1.2.1]: https://github.com/Hapaxia/SelbaWard/commit/2238bc8dfec3580d7da7188bf9a388b5e720ca2e
