@@ -35,10 +35,12 @@
 
 #include "Common.hpp"
 
+#include <unordered_map>
+
 namespace selbaward
 {
 
-// SW Console Screen v1.3.1
+// SW Console Screen v1.4
 class ConsoleScreen : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -75,14 +77,17 @@ public:
 	// setup
 	ConsoleScreen(sf::Vector2u mode = { 80u, 45u });
 	void setMode(sf::Vector2u mode); // "mode" is the number of cells used to fit the screen
-	void setTexture(const sf::Texture& texture);
-	void setTexture();
-	void setTextureTileSize(sf::Vector2u tileSize = { 8u, 8u });
-	void setNumberOfTextureTilesPerRow(unsigned int numberOfTextureTilesPerRow = 1);
 	sf::Vector2u getMode() const;
 	unsigned int getNumberOfCells() const;
 	sf::Vector2u getNumberOfTilesInTexture2d() const;
 	unsigned int getNumberOfTilesInTexture() const;
+
+	// texture
+	void setTexture(const sf::Texture& texture);
+	void setTexture();
+	void setTextureOffset(sf::Vector2u textureOffset = { 0u, 0u });
+	void setTextureTileSize(sf::Vector2u tileSize = { 8u, 8u });
+	void setNumberOfTextureTilesPerRow(unsigned int numberOfTextureTilesPerRow = 1);
 
 	// switches
 	void setThrowExceptions(bool exceptions);
@@ -106,7 +111,7 @@ public:
 
 	// global
 	void update();
-	void clear(unsigned int backgroundColorId = Color::Current);
+	void clear(int backgroundColorId = Color::Current);
 	void clear(sf::Color backgroundColor);
 	void crash();
 
@@ -189,6 +194,12 @@ public:
 	// painting attributes (directly - flags only)
 	void paintAttributeAt(sf::Vector2u location, unsigned int length, bool attributeValue, Attribute attribute = Attribute::Inverse);
 
+	// reading
+	std::string read(unsigned int length = 1u, bool unmapCharacters = true); // not const because cursor is moved by reading
+
+	// reading (directly)
+	std::string readAt(sf::Vector2u location, unsigned int length = 1u, bool unmapCharacters = true) const;
+
 	// cell manipulation
 	void clearCellAt(sf::Vector2u location);
 	void setCellAt(sf::Vector2u location, const Cell& cell);
@@ -238,6 +249,14 @@ public:
 	void removeBuffer(unsigned int index); // as usual, when one buffer is removed, the indices of all following buffers are decreased
 	void removeAllBuffers();
 	unsigned int getNumberOfBuffers() const;
+
+	// character mapping (to cell values)
+	void setMappedCharacter(char character, unsigned int value);
+	void setMappedCharacters(const std::string& characters, unsigned int initialValue);
+	void removeMappedCharacter(char character);
+	void removeMappedCharacters(const std::string& characters);
+	bool getIsMappedCharacter(char character) const;
+	unsigned int getMappedCharacter(char character) const;
 
 	// direct manipulation
 	void poke(unsigned int index, const Cell& cell);
@@ -313,12 +332,16 @@ private:
 	// colour palette
 	std::vector<sf::Color> m_palette;
 
+	// character map (mapped to cell value)
+	std::unordered_map<char, unsigned int> m_characterMap;
+
 	// visual representation
 	const sf::PrimitiveType m_primitiveType;
 	std::vector<sf::Vertex> m_display;
 	std::vector<sf::Vertex> m_backgroundDisplay;
 	sf::Vector2f m_size;
 	const sf::Texture* m_texture;
+	sf::Vector2u m_textureOffset;
 	sf::Vector2u m_tileSize;
 	unsigned int m_numberOfTilesPerRow;
 
@@ -333,8 +356,9 @@ private:
 	bool priv_isColorIdInPaletteRange(int id) const;
 	//bool priv_isColorIdInExtendedRange(int id) const;
 	void priv_clearCell(unsigned int index, bool overwriteColor, bool overwriteBackgroundColor);
-	void priv_clearCell(unsigned int index, sf::Color backgroundColor, bool overwriteColor);
-	void priv_clearCell(unsigned int index, sf::Color color, sf::Color backgroundColor);
+	void priv_clearCell(unsigned int index, const sf::Color& backgroundColor, bool overwriteColor);
+	void priv_clearCell(unsigned int index, const sf::Color& color, const sf::Color& backgroundColor);
+	void priv_paintCell(unsigned int index, const sf::Color& color, const sf::Color& backgroundColor);
 	void priv_setCursorIndex(unsigned int index);
 	void priv_moveCursorToBeginningOfLine();
 	void priv_moveCursorUp();
@@ -346,6 +370,8 @@ private:
 	void priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const sf::IntRect& selectionRectangle);
 	void priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i& offset);
 	unsigned int priv_getPrintIndex(sf::Vector2u location) const;
+	unsigned int priv_getCellValueFromCharacter(char character) const;
+	char priv_getCharacterFromCellValue(unsigned int cellValue) const;
 	sf::Color priv_colorFromColorIdAtIndex(unsigned int index, int colorId) const;
 	sf::Color priv_backgroundColorFromColorIdAtIndex(unsigned int index, int colorId) const;
 	bool& priv_chooseAttribute(CellAttributes& cellAttributes, Attribute attribute = Attribute::Inverse);
