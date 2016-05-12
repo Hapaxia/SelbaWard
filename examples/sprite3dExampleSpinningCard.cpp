@@ -37,7 +37,7 @@ int main()
 
 	// set up and position main card
 	const sf::Vector2f positionOfSpinningCard{ static_cast<float>(window.getSize().x) / 2, static_cast<float>(window.getSize().y) / 2 };
-	card.setOrigin(card.getLocalBounds().width / 2, card.getLocalBounds().height / 2);
+	card.setOrigin({ card.getLocalBounds().width / 2, card.getLocalBounds().height / 2 });
 	card.setPosition(sf::Vector2f(window.getSize() / 2u));
 	card.setRotation(10);
 	card.setSubdivision(2);
