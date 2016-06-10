@@ -163,6 +163,11 @@ const sf::Texture* Sprite3d::getTexture() const
 	return m_pTexture;
 }
 
+sf::IntRect Sprite3d::getTextureRect() const
+{
+	return sf::IntRect(m_textureOffset, m_size);
+}
+
 const sf::Texture* Sprite3d::getBackTexture() const
 {
 	return m_pBackTexture;
