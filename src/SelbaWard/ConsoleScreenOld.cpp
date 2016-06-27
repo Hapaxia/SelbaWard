@@ -3,7 +3,7 @@
 // Selba Ward (https://github.com/Hapaxia/SelbaWard)
 // --
 //
-// Console Screen
+// Console Screen v1
 //
 // Copyright(c) 2014-2016 M.J.Silk
 //
@@ -30,7 +30,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "ConsoleScreen.hpp"
+#include "ConsoleScreenOld.hpp"
 
 #include <random>
 #include <functional>
@@ -39,7 +39,7 @@
 namespace
 {
 
-const std::string exceptionPrefix{ "Console Screen: " };
+const std::string exceptionPrefix{ "Console Screen (v1): " };
 
 const sf::Color defaultColor{ sf::Color::White };
 const sf::Color defaultBackgroundColor{ sf::Color::Black };
@@ -47,7 +47,7 @@ const sf::Color defaultCursorColor{ sf::Color::White };
 const sf::Color defaultNewPaletteColor{ sf::Color::Black };
 const double unBrightAttributeMultiplier{ 0.5 };
 
-const selbaward::ConsoleScreen::Cell defaultCell{ 0u, sf::Color::White, sf::Color::Black, selbaward::ConsoleScreen::Stretch::None };
+const selbaward::ConsoleScreenV1::Cell defaultCell{ 0u, sf::Color::White, sf::Color::Black, selbaward::ConsoleScreenV1::Stretch::None };
 
 std::mt19937 randomGenerator;
 const std::uniform_int_distribution<unsigned short int> randomDistribution(0u, 255u);
@@ -293,7 +293,7 @@ void addPalette256ColorSepia(std::vector<sf::Color>& palette)
 namespace selbaward
 {
 
-ConsoleScreen::ConsoleScreen(const sf::Vector2u mode)
+ConsoleScreenV1::ConsoleScreenV1(const sf::Vector2u mode)
 	: m_cells()
 	, m_mode(mode)
 	, m_buffers()
@@ -308,7 +308,7 @@ ConsoleScreen::ConsoleScreen(const sf::Vector2u mode)
 	, m_numberOfTilesPerRow(8u)
 	, m_colors({ defaultColor, defaultBackgroundColor, defaultCursorColor })
 	, m_palette()
-	, m_cursor({ 0u, '_', true })
+	, m_cursor({ 0, static_cast<unsigned int>('_'), true, false, false })
 	, m_attributes()
 	, m_stretch()
 	, m_characterMap()
@@ -318,7 +318,7 @@ ConsoleScreen::ConsoleScreen(const sf::Vector2u mode)
 	loadPalette(Palette::Default);
 }
 
-void ConsoleScreen::setMode(sf::Vector2u mode)
+void ConsoleScreenV1::setMode(sf::Vector2u mode)
 {
 	if (mode.x == 0 || mode.y == 0)
 		mode = { 0u, 0u };
@@ -332,17 +332,17 @@ void ConsoleScreen::setMode(sf::Vector2u mode)
 	clear();
 }
 
-void ConsoleScreen::setTexture(const sf::Texture& texture)
+void ConsoleScreenV1::setTexture(const sf::Texture& texture)
 {
 	m_texture = &texture;
 }
 
-void ConsoleScreen::setTexture()
+void ConsoleScreenV1::setTexture()
 {
 	m_texture = nullptr;
 }
 
-void ConsoleScreen::setSize(const sf::Vector2f size)
+void ConsoleScreenV1::setSize(const sf::Vector2f size)
 {
 	m_size = size;
 
@@ -350,7 +350,7 @@ void ConsoleScreen::setSize(const sf::Vector2f size)
 		update();
 }
 
-void ConsoleScreen::setTextureOffset(const sf::Vector2u textureOffset)
+void ConsoleScreenV1::setTextureOffset(const sf::Vector2u textureOffset)
 {
 	m_textureOffset = textureOffset;
 
@@ -358,7 +358,7 @@ void ConsoleScreen::setTextureOffset(const sf::Vector2u textureOffset)
 		update();
 }
 
-void ConsoleScreen::setTextureTileSize(const sf::Vector2u tileSize)
+void ConsoleScreenV1::setTextureTileSize(const sf::Vector2u tileSize)
 {
 	m_tileSize = tileSize;
 
@@ -366,7 +366,7 @@ void ConsoleScreen::setTextureTileSize(const sf::Vector2u tileSize)
 		update();
 }
 
-void ConsoleScreen::setNumberOfTextureTilesPerRow(const unsigned int numberOfTextureTilesPerRow)
+void ConsoleScreenV1::setNumberOfTextureTilesPerRow(const unsigned int numberOfTextureTilesPerRow)
 {
 	if (numberOfTextureTilesPerRow < 1)
 	{
@@ -381,17 +381,17 @@ void ConsoleScreen::setNumberOfTextureTilesPerRow(const unsigned int numberOfTex
 		update();
 }
 
-void ConsoleScreen::setThrowExceptions(const bool throwExceptions)
+void ConsoleScreenV1::setThrowExceptions(const bool throwExceptions)
 {
 	m_do.throwExceptions = throwExceptions;
 }
 
-void ConsoleScreen::setUpdateAutomatically(const bool updateAutomatically)
+void ConsoleScreenV1::setUpdateAutomatically(const bool updateAutomatically)
 {
 	m_do.updateAutomatically = updateAutomatically;
 }
 
-void ConsoleScreen::setShowCursor(const bool showCursor)
+void ConsoleScreenV1::setShowCursor(const bool showCursor)
 {
 	m_cursor.visible = showCursor;
 
@@ -399,22 +399,38 @@ void ConsoleScreen::setShowCursor(const bool showCursor)
 		priv_updateCell(m_cursor.index);
 }
 
-void ConsoleScreen::setShowBackground(const bool showBackground)
+void ConsoleScreenV1::setInvertCursor(const bool invertCursor)
+{
+	m_cursor.inverse = invertCursor;
+
+	if (m_do.updateAutomatically)
+		priv_updateCell(m_cursor.index);
+}
+
+void ConsoleScreenV1::setUseCursorColor(const bool useCursorColor)
+{
+	m_cursor.useOwnColour = useCursorColor;
+
+	if (m_do.updateAutomatically)
+		priv_updateCell(m_cursor.index);
+}
+
+void ConsoleScreenV1::setShowBackground(const bool showBackground)
 {
 	m_do.showBackround = showBackground;
 }
 
-void ConsoleScreen::setScrollAutomatically(const bool scrollAutomatically)
+void ConsoleScreenV1::setScrollAutomatically(const bool scrollAutomatically)
 {
 	m_do.scrollAutomatically = scrollAutomatically;
 }
 
-void ConsoleScreen::setWrapOnManualScroll(const bool wrapOnManualScroll)
+void ConsoleScreenV1::setWrapOnManualScroll(const bool wrapOnManualScroll)
 {
 	m_do.wrapOnManualScroll = wrapOnManualScroll;
 }
 
-void ConsoleScreen::update()
+void ConsoleScreenV1::update()
 {
 	if (m_display.size() != (m_mode.x * m_mode.y * 4))
 		return;
@@ -432,79 +448,89 @@ void ConsoleScreen::update()
 		priv_updateCell(i);
 }
 
-sf::Vector2f ConsoleScreen::getSize() const
+sf::Vector2f ConsoleScreenV1::getSize() const
 {
 	return m_size;
 }
 
-sf::FloatRect ConsoleScreen::getLocalBounds() const
+sf::FloatRect ConsoleScreenV1::getLocalBounds() const
 {
 	return{ { 0.f, 0.f }, m_size };
 }
 
-sf::FloatRect ConsoleScreen::getGlobalBounds() const
+sf::FloatRect ConsoleScreenV1::getGlobalBounds() const
 {
 	return getTransform().transformRect(getLocalBounds());
 }
 
-sf::Vector2u ConsoleScreen::getMode() const
+sf::Vector2u ConsoleScreenV1::getMode() const
 {
 	return m_mode;
 }
 
-unsigned int ConsoleScreen::getNumberOfCells() const
+unsigned int ConsoleScreenV1::getNumberOfCells() const
 {
 	return m_cells.size();
 	//return m_mode.x * m_mode.y;
 }
 
-sf::Vector2u ConsoleScreen::getNumberOfTilesInTexture2d() const
+sf::Vector2u ConsoleScreenV1::getNumberOfTilesInTexture2d() const
 {
 	return{ m_numberOfTilesPerRow, m_texture->getSize().y / m_tileSize.y };
 }
 
-unsigned int ConsoleScreen::getNumberOfTilesInTexture() const
+unsigned int ConsoleScreenV1::getNumberOfTilesInTexture() const
 {
 	const sf::Vector2u numberOfTiles{ getNumberOfTilesInTexture2d() };
 	return numberOfTiles.x * numberOfTiles.y;
 }
 
-bool ConsoleScreen::getThrowExceptions() const
+bool ConsoleScreenV1::getThrowExceptions() const
 {
 	return m_do.throwExceptions;
 }
 
-bool ConsoleScreen::getUpdateAutomatically() const
+bool ConsoleScreenV1::getUpdateAutomatically() const
 {
 	return m_do.updateAutomatically;
 }
 
-bool ConsoleScreen::getShowCursor() const
+bool ConsoleScreenV1::getShowCursor() const
 {
 	return m_cursor.visible;
 }
 
-bool ConsoleScreen::getShowBackground() const
+bool ConsoleScreenV1::getInvertCursor() const
+{
+	return m_cursor.inverse;
+}
+
+bool ConsoleScreenV1::getUseCursorColor() const
+{
+	return m_cursor.useOwnColour;
+}
+
+bool ConsoleScreenV1::getShowBackground() const
 {
 	return m_do.showBackround;
 }
 
-bool ConsoleScreen::getScrollAutomatically() const
+bool ConsoleScreenV1::getScrollAutomatically() const
 {
 	return m_do.scrollAutomatically;
 }
 
-bool ConsoleScreen::getWrapOnManualScroll() const
+bool ConsoleScreenV1::getWrapOnManualScroll() const
 {
 	return m_do.wrapOnManualScroll;
 }
 
-void ConsoleScreen::setColor(const sf::Color color)
+void ConsoleScreenV1::setColor(const sf::Color color)
 {
 	m_colors.main = color;
 }
 
-void ConsoleScreen::setColor(const int colorId)
+void ConsoleScreenV1::setColor(const int colorId)
 {
 	if (priv_isColorIdInPaletteRange(colorId))
 		m_colors.main = m_palette[colorId];
@@ -523,12 +549,12 @@ void ConsoleScreen::setColor(const int colorId)
 	}
 }
 
-void ConsoleScreen::setBackgroundColor(const sf::Color backgroundColor)
+void ConsoleScreenV1::setBackgroundColor(const sf::Color backgroundColor)
 {
 	m_colors.background = backgroundColor;
 }
 
-void ConsoleScreen::setBackgroundColor(const int colorId)
+void ConsoleScreenV1::setBackgroundColor(const int colorId)
 {
 	if (priv_isColorIdInPaletteRange(colorId))
 		m_colors.background = m_palette[colorId];
@@ -547,12 +573,12 @@ void ConsoleScreen::setBackgroundColor(const int colorId)
 	}
 }
 
-void ConsoleScreen::setCursorColor(const sf::Color cursorColor)
+void ConsoleScreenV1::setCursorColor(const sf::Color cursorColor)
 {
 	m_colors.cursor = cursorColor;
 }
 
-void ConsoleScreen::setCursorColor(const int colorId)
+void ConsoleScreenV1::setCursorColor(const int colorId)
 {
 	if (priv_isColorIdInPaletteRange(colorId))
 		m_colors.cursor = m_palette[colorId];
@@ -573,100 +599,100 @@ void ConsoleScreen::setCursorColor(const int colorId)
 	}
 }
 
-void ConsoleScreen::setColors(const sf::Color color, const sf::Color backgroundColor)
+void ConsoleScreenV1::setColors(const sf::Color color, const sf::Color backgroundColor)
 {
 	setColor(color);
 	setBackgroundColor(backgroundColor);
 }
 
-void ConsoleScreen::setColors(const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::setColors(const int colorId, const int backgroundColorId)
 {
 	setColor(colorId);
 	setBackgroundColor(backgroundColorId);
 }
 
-void ConsoleScreen::setColors(const sf::Color color, const sf::Color backgroundColor, const sf::Color cursorColor)
+void ConsoleScreenV1::setColors(const sf::Color color, const sf::Color backgroundColor, const sf::Color cursorColor)
 {
 	setColors(color, backgroundColor);
 	setCursorColor(cursorColor);
 }
 
-void ConsoleScreen::setColors(const int colorId, const int backgroundColorId, const int cursorColorId)
+void ConsoleScreenV1::setColors(const int colorId, const int backgroundColorId, const int cursorColorId)
 {
 	setColors(colorId, backgroundColorId);
 	setCursorColor(cursorColorId);
 }
 
-sf::Color ConsoleScreen::getColor() const
+sf::Color ConsoleScreenV1::getColor() const
 {
 	return m_colors.main;
 }
 
-sf::Color ConsoleScreen::getBackgroundColor() const
+sf::Color ConsoleScreenV1::getBackgroundColor() const
 {
 	return m_colors.background;
 }
 
-sf::Color ConsoleScreen::getCursorColor() const
+sf::Color ConsoleScreenV1::getCursorColor() const
 {
 	return m_colors.cursor;
 }
 
-void ConsoleScreen::setStretch(const Stretch stretch)
+void ConsoleScreenV1::setStretch(const Stretch stretch)
 {
 	m_stretch = stretch;
 }
 
-ConsoleScreen::Stretch ConsoleScreen::getStretch() const
+ConsoleScreenV1::Stretch ConsoleScreenV1::getStretch() const
 {
 	return m_stretch;
 }
 
-void ConsoleScreen::setAttributes(const CellAttributes attributes)
+void ConsoleScreenV1::setAttributes(const CellAttributes attributes)
 {
 	m_attributes = attributes;
 }
 
-ConsoleScreen::CellAttributes ConsoleScreen::getAttributes() const
+ConsoleScreenV1::CellAttributes ConsoleScreenV1::getAttributes() const
 {
 	return m_attributes;
 }
 
-void ConsoleScreen::setAttribute(const bool attributeValue, const Attribute attribute)
+void ConsoleScreenV1::setAttribute(const bool attributeValue, const Attribute attribute)
 {
 	priv_chooseAttribute(m_attributes, attribute) = attributeValue;
 }
 
-bool ConsoleScreen::getAttribute(const Attribute attribute)
+bool ConsoleScreenV1::getAttribute(const Attribute attribute)
 {
 	return priv_chooseAttribute(m_attributes, attribute);
 }
 
-void ConsoleScreen::cursorLeft(const unsigned int distance)
+void ConsoleScreenV1::cursorLeft(const unsigned int distance)
 {
 	for (unsigned int i{ 0 }; i < distance; ++i)
 		priv_moveCursorLeft();
 }
 
-void ConsoleScreen::cursorRight(const unsigned int distance)
+void ConsoleScreenV1::cursorRight(const unsigned int distance)
 {
 	for (unsigned int i{ 0 }; i < distance; ++i)
 		priv_moveCursorRight();
 }
 
-void ConsoleScreen::cursorUp(const unsigned int distance)
+void ConsoleScreenV1::cursorUp(const unsigned int distance)
 {
 	for (unsigned int i{ 0 }; i < distance; ++i)
 		priv_moveCursorUp();
 }
 
-void ConsoleScreen::cursorDown(const unsigned int distance)
+void ConsoleScreenV1::cursorDown(const unsigned int distance)
 {
 	for (unsigned int i{ 0 }; i < distance; ++i)
 		priv_moveCursorDown();
 }
 
-void ConsoleScreen::moveCursor(const sf::Vector2i offset)
+void ConsoleScreenV1::moveCursor(const sf::Vector2i offset)
 {
 	if (offset.x < 0)
 		cursorLeft(abs(offset.x));
@@ -678,7 +704,7 @@ void ConsoleScreen::moveCursor(const sf::Vector2i offset)
 		cursorDown(offset.y);
 }
 
-void ConsoleScreen::setCursor(const sf::Vector2u location)
+void ConsoleScreenV1::setCursor(const sf::Vector2u location)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -690,38 +716,38 @@ void ConsoleScreen::setCursor(const sf::Vector2u location)
 	priv_setCursorIndex(priv_cellIndex(location));
 }
 
-sf::Vector2u ConsoleScreen::getCursor() const
+sf::Vector2u ConsoleScreenV1::getCursor() const
 {
 	return priv_cellLocation(m_cursor.index);
 }
 
-void ConsoleScreen::cursorHome()
+void ConsoleScreenV1::cursorHome()
 {
 	priv_setCursorIndex(0u);
 }
 
-void ConsoleScreen::cursorHomeLine()
+void ConsoleScreenV1::cursorHomeLine()
 {
 	priv_moveCursorToBeginningOfLine();
 }
 
-void ConsoleScreen::cursorEnd()
+void ConsoleScreenV1::cursorEnd()
 {
 	priv_setCursorIndex(m_cells.size() - 1u);
 }
 
-void ConsoleScreen::cursorEndLine()
+void ConsoleScreenV1::cursorEndLine()
 {
 	priv_setCursorIndex(m_cursor.index - m_cursor.index % m_mode.x + m_mode.x - 1);
 }
 
-void ConsoleScreen::cursorTab(const unsigned int tabSize)
+void ConsoleScreenV1::cursorTab(const unsigned int tabSize)
 {
 	const unsigned int targetDistance{ tabSize - (m_cursor.index % tabSize) };
 	cursorRight(targetDistance);
 }
 
-void ConsoleScreen::cursorTabReverse(const unsigned int tabSize)
+void ConsoleScreenV1::cursorTabReverse(const unsigned int tabSize)
 {
 	if (m_cursor.index == 0)
 		return;
@@ -730,19 +756,19 @@ void ConsoleScreen::cursorTabReverse(const unsigned int tabSize)
 	cursorLeft(targetDistance);
 }
 
-void ConsoleScreen::cursorNextline()
+void ConsoleScreenV1::cursorNextline()
 {
 	priv_moveCursorDown();
 	priv_moveCursorToBeginningOfLine();
 }
 
-void ConsoleScreen::cursorBackspace()
+void ConsoleScreenV1::cursorBackspace()
 {
 	priv_moveCursorLeft();
 	priv_clearCell(m_cursor.index, true, true);
 }
 
-void ConsoleScreen::setCursor(const unsigned int cellValue)
+void ConsoleScreenV1::setCursor(const int cellValue)
 {
 	m_cursor.value = cellValue;
 
@@ -750,7 +776,15 @@ void ConsoleScreen::setCursor(const unsigned int cellValue)
 		priv_updateCell(m_cursor.index);
 }
 
-void ConsoleScreen::print(const char character, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::setCursor(const char cellCharacter, bool mapCharacter)
+{
+	m_cursor.value = (mapCharacter && getIsMappedCharacter(cellCharacter)) ? getMappedCharacter(cellCharacter) : cellCharacter;
+
+	if (m_do.updateAutomatically)
+		priv_updateCell(m_cursor.index);
+}
+
+void ConsoleScreenV1::print(const char character, const int colorId, const int backgroundColorId)
 {
 	if (!priv_isCursorInRange())
 		return;
@@ -758,7 +792,7 @@ void ConsoleScreen::print(const char character, const int colorId, const int bac
 	print(character, m_cells[m_cursor.index].attributes, colorId, backgroundColorId);
 }
 
-void ConsoleScreen::print(const char character, const Stretch& stretch, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::print(const char character, const Stretch& stretch, const int colorId, const int backgroundColorId)
 {
 	if (!priv_isCursorInRange())
 		return;
@@ -782,7 +816,7 @@ void ConsoleScreen::print(const char character, const Stretch& stretch, const in
 }
 
 
-void ConsoleScreen::print(const char character, const CellAttributes& attributes, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::print(const char character, const CellAttributes& attributes, const int colorId, const int backgroundColorId)
 {
 	if (!priv_isCursorInRange())
 		return;
@@ -806,7 +840,7 @@ void ConsoleScreen::print(const char character, const CellAttributes& attributes
 	}
 }
 
-void ConsoleScreen::print(const std::string& string, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::print(const std::string& string, const int colorId, const int backgroundColorId)
 {
 	for (auto& character : string)
 		print(character, colorId, backgroundColorId);
@@ -815,7 +849,7 @@ void ConsoleScreen::print(const std::string& string, const int colorId, const in
 		priv_setCursorIndex(m_cells.size() - 1);
 }
 
-void ConsoleScreen::print(const std::string& string, const Stretch& stretch, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::print(const std::string& string, const Stretch& stretch, const int colorId, const int backgroundColorId)
 {
 	for (auto& character : string)
 		print(character, stretch, colorId, backgroundColorId);
@@ -824,7 +858,7 @@ void ConsoleScreen::print(const std::string& string, const Stretch& stretch, con
 		priv_setCursorIndex(m_cells.size() - 1);
 }
 
-void ConsoleScreen::print(const std::string& string, const CellAttributes& attributes, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::print(const std::string& string, const CellAttributes& attributes, const int colorId, const int backgroundColorId)
 {
 	for (auto& character : string)
 		print(character, attributes, colorId, backgroundColorId);
@@ -833,13 +867,13 @@ void ConsoleScreen::print(const std::string& string, const CellAttributes& attri
 		priv_setCursorIndex(m_cells.size() - 1);
 }
 
-void ConsoleScreen::printLine(const std::string& string, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::printLine(const std::string& string, const int colorId, const int backgroundColorId)
 {
 	print(string, colorId, backgroundColorId);
 	cursorNextline();
 }
 
-void ConsoleScreen::clearCellAt(const sf::Vector2u location)
+void ConsoleScreenV1::clearCellAt(const sf::Vector2u location)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -854,7 +888,7 @@ void ConsoleScreen::clearCellAt(const sf::Vector2u location)
 		priv_updateCell(priv_cellIndex(location));
 }
 
-void ConsoleScreen::setCellAt(const sf::Vector2u location, const Cell& cell)
+void ConsoleScreenV1::setCellAt(const sf::Vector2u location, const Cell& cell)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -869,7 +903,7 @@ void ConsoleScreen::setCellAt(const sf::Vector2u location, const Cell& cell)
 		priv_updateCell(priv_cellIndex(location));
 }
 
-void ConsoleScreen::printAt(const sf::Vector2u location, const std::string& string, const sf::Color color, const sf::Color backgroundColor)
+void ConsoleScreenV1::printAt(const sf::Vector2u location, const std::string& string, const sf::Color color, const sf::Color backgroundColor)
 {
 	if (string.size() == 0)
 	{
@@ -882,7 +916,7 @@ void ConsoleScreen::printAt(const sf::Vector2u location, const std::string& stri
 		printAt({ location.x + i, location.y }, string[i], color, backgroundColor); // print single character
 }
 
-void ConsoleScreen::printAt(const sf::Vector2u location, const std::string& string, const sf::Color color, const int backgroundColorId)
+void ConsoleScreenV1::printAt(const sf::Vector2u location, const std::string& string, const sf::Color color, const int backgroundColorId)
 {
 	if (string.size() == 0)
 	{
@@ -895,7 +929,7 @@ void ConsoleScreen::printAt(const sf::Vector2u location, const std::string& stri
 		printAt({ location.x + i, location.y }, string[i], color, backgroundColorId); // print single character
 }
 
-void ConsoleScreen::printAt(const sf::Vector2u location, const std::string& string, const int colorId, const sf::Color backgroundColor)
+void ConsoleScreenV1::printAt(const sf::Vector2u location, const std::string& string, const int colorId, const sf::Color backgroundColor)
 {
 	if (string.size() == 0)
 	{
@@ -908,7 +942,7 @@ void ConsoleScreen::printAt(const sf::Vector2u location, const std::string& stri
 		printAt({ location.x + i, location.y }, string[i], colorId, backgroundColor); // print single character
 }
 
-void ConsoleScreen::printAt(const sf::Vector2u location, const std::string& string, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::printAt(const sf::Vector2u location, const std::string& string, const int colorId, const int backgroundColorId)
 {
 	if (string.size() == 0)
 	{
@@ -921,7 +955,7 @@ void ConsoleScreen::printAt(const sf::Vector2u location, const std::string& stri
 		printAt({ location.x + i, location.y }, string[i], colorId, backgroundColorId); // print single character
 }
 
-void ConsoleScreen::printAt(const sf::Vector2u location, const char character, const sf::Color color, const sf::Color backgroundColor)
+void ConsoleScreenV1::printAt(const sf::Vector2u location, const char character, const sf::Color color, const sf::Color backgroundColor)
 {
 	unsigned int index{ priv_getPrintIndex(location) };
 	Cell cell = defaultCell;
@@ -934,25 +968,25 @@ void ConsoleScreen::printAt(const sf::Vector2u location, const char character, c
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::printAt(const sf::Vector2u location, const char character, const sf::Color color, const int backgroundColorId)
+void ConsoleScreenV1::printAt(const sf::Vector2u location, const char character, const sf::Color color, const int backgroundColorId)
 {
 	const unsigned int currentIndex{ priv_getPrintIndex(location) };
 	printAt(location, character, color, priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId));
 }
 
-void ConsoleScreen::printAt(const sf::Vector2u location, const char character, const int colorId, const sf::Color backgroundColor)
+void ConsoleScreenV1::printAt(const sf::Vector2u location, const char character, const int colorId, const sf::Color backgroundColor)
 {
 	const unsigned int currentIndex{ priv_getPrintIndex(location) };
 	printAt(location, character, priv_colorFromColorIdAtIndex(currentIndex, colorId), backgroundColor);
 }
 
-void ConsoleScreen::printAt(const sf::Vector2u location, const char character, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::printAt(const sf::Vector2u location, const char character, const int colorId, const int backgroundColorId)
 {
 	const unsigned int currentIndex{ priv_getPrintIndex(location) };
 	printAt(location, character, priv_colorFromColorIdAtIndex(currentIndex, colorId), priv_backgroundColorFromColorIdAtIndex(currentIndex, backgroundColorId));
 }
 
-void ConsoleScreen::printStretchedAt(const sf::Vector2u location, const std::string& string, const Stretch& stretchAttribute, const sf::Color color, const sf::Color backgroundColor)
+void ConsoleScreenV1::printStretchedAt(const sf::Vector2u location, const std::string& string, const Stretch& stretchAttribute, const sf::Color color, const sf::Color backgroundColor)
 {
 	if (string.size() == 0)
 	{
@@ -965,7 +999,7 @@ void ConsoleScreen::printStretchedAt(const sf::Vector2u location, const std::str
 		printStretchedAt({ location.x + i, location.y }, string[i], stretchAttribute, color, backgroundColor); // print single character
 }
 
-void ConsoleScreen::printStretchedAt(const sf::Vector2u location, const std::string& string, const Stretch& stretchAttribute, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::printStretchedAt(const sf::Vector2u location, const std::string& string, const Stretch& stretchAttribute, const int colorId, const int backgroundColorId)
 {
 	if (string.size() == 0)
 	{
@@ -978,7 +1012,7 @@ void ConsoleScreen::printStretchedAt(const sf::Vector2u location, const std::str
 		printStretchedAt({ location.x + i, location.y }, string[i], stretchAttribute, colorId, backgroundColorId); // print single character
 }
 
-void ConsoleScreen::printStretchedAt(sf::Vector2u location, const char character, const Stretch& stretchAttribute, const sf::Color color, const sf::Color backgroundColor)
+void ConsoleScreenV1::printStretchedAt(sf::Vector2u location, const char character, const Stretch& stretchAttribute, const sf::Color color, const sf::Color backgroundColor)
 {
 	switch (stretchAttribute)
 	{
@@ -1016,7 +1050,7 @@ void ConsoleScreen::printStretchedAt(sf::Vector2u location, const char character
 	}
 }
 
-void ConsoleScreen::printStretchedAt(sf::Vector2u location, const char character, const Stretch& stretchAttribute, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::printStretchedAt(sf::Vector2u location, const char character, const Stretch& stretchAttribute, const int colorId, const int backgroundColorId)
 {
 	switch (stretchAttribute)
 	{
@@ -1054,13 +1088,13 @@ void ConsoleScreen::printStretchedAt(sf::Vector2u location, const char character
 	}
 }
 
-void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int length, const sf::Color color, const sf::Color backgroundColor)
+void ConsoleScreenV1::paintAt(const sf::Vector2u location, const unsigned int length, const sf::Color color, const sf::Color backgroundColor)
 {
 	for (unsigned int i{ 0 }; i < length; ++i)
 		priv_paintCell(priv_getPrintIndex({ location.x + i, location.y }), color, backgroundColor);
 }
 
-void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int length, const sf::Color color, const int backgroundColorId)
+void ConsoleScreenV1::paintAt(const sf::Vector2u location, const unsigned int length, const sf::Color color, const int backgroundColorId)
 {
 	for (unsigned int i{ 0 }; i < length; ++i)
 	{
@@ -1069,7 +1103,7 @@ void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int leng
 	}
 }
 
-void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int length, const int colorId, const sf::Color backgroundColor)
+void ConsoleScreenV1::paintAt(const sf::Vector2u location, const unsigned int length, const int colorId, const sf::Color backgroundColor)
 {
 	for (unsigned int i{ 0 }; i < length; ++i)
 	{
@@ -1078,7 +1112,7 @@ void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int leng
 	}
 }
 
-void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int length, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::paintAt(const sf::Vector2u location, const unsigned int length, const int colorId, const int backgroundColorId)
 {
 	for (unsigned int i{ 0 }; i < length; ++i)
 	{
@@ -1087,7 +1121,7 @@ void ConsoleScreen::paintAt(const sf::Vector2u location, const unsigned int leng
 	}
 }
 
-void ConsoleScreen::paintAttributeAt(const sf::Vector2u location, const unsigned int length, const bool attributeValue, const Attribute attribute)
+void ConsoleScreenV1::paintAttributeAt(const sf::Vector2u location, const unsigned int length, const bool attributeValue, const Attribute attribute)
 {
 	for (unsigned int i{ 0 }; i < length; ++i)
 	{
@@ -1099,7 +1133,7 @@ void ConsoleScreen::paintAttributeAt(const sf::Vector2u location, const unsigned
 	}
 }
 
-std::string ConsoleScreen::read(const unsigned int length, const bool unmapCharacters)
+std::string ConsoleScreenV1::read(const unsigned int length, const bool unmapCharacters)
 {
 	std::string string;
 	
@@ -1116,7 +1150,7 @@ std::string ConsoleScreen::read(const unsigned int length, const bool unmapChara
 	return string;
 }
 
-std::string ConsoleScreen::readAt(const sf::Vector2u location, const unsigned int length, const bool unmapCharacters) const
+std::string ConsoleScreenV1::readAt(const sf::Vector2u location, const unsigned int length, const bool unmapCharacters) const
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1139,7 +1173,7 @@ std::string ConsoleScreen::readAt(const sf::Vector2u location, const unsigned in
 	return string;
 }
 
-void ConsoleScreen::setValueAt(const sf::Vector2u location, const unsigned int value)
+void ConsoleScreenV1::setValueAt(const sf::Vector2u location, const unsigned int value)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1154,7 +1188,7 @@ void ConsoleScreen::setValueAt(const sf::Vector2u location, const unsigned int v
 		priv_updateCell(priv_cellIndex(location));
 }
 
-void ConsoleScreen::setColorsAt(const sf::Vector2u location, const sf::Color color, const sf::Color backgroundColor)
+void ConsoleScreenV1::setColorsAt(const sf::Vector2u location, const sf::Color color, const sf::Color backgroundColor)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1172,7 +1206,7 @@ void ConsoleScreen::setColorsAt(const sf::Vector2u location, const sf::Color col
 
 }
 
-void ConsoleScreen::setColorsAt(const sf::Vector2u location, const int colorId, const int backgroundColorId)
+void ConsoleScreenV1::setColorsAt(const sf::Vector2u location, const int colorId, const int backgroundColorId)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1189,7 +1223,7 @@ void ConsoleScreen::setColorsAt(const sf::Vector2u location, const int colorId, 
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::setColorAt(const sf::Vector2u location, const sf::Color color)
+void ConsoleScreenV1::setColorAt(const sf::Vector2u location, const sf::Color color)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1205,7 +1239,7 @@ void ConsoleScreen::setColorAt(const sf::Vector2u location, const sf::Color colo
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::setColorAt(const sf::Vector2u location, const int colorId)
+void ConsoleScreenV1::setColorAt(const sf::Vector2u location, const int colorId)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1221,7 +1255,7 @@ void ConsoleScreen::setColorAt(const sf::Vector2u location, const int colorId)
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::setBackgroundColorAt(const sf::Vector2u location, const sf::Color backgroundColor)
+void ConsoleScreenV1::setBackgroundColorAt(const sf::Vector2u location, const sf::Color backgroundColor)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1237,7 +1271,7 @@ void ConsoleScreen::setBackgroundColorAt(const sf::Vector2u location, const sf::
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::setBackgroundColorAt(const sf::Vector2u location, const int backgroundColorId)
+void ConsoleScreenV1::setBackgroundColorAt(const sf::Vector2u location, const int backgroundColorId)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1253,7 +1287,7 @@ void ConsoleScreen::setBackgroundColorAt(const sf::Vector2u location, const int 
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::setStretchAt(const sf::Vector2u location, const Stretch& stretch)
+void ConsoleScreenV1::setStretchAt(const sf::Vector2u location, const Stretch& stretch)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1268,7 +1302,7 @@ void ConsoleScreen::setStretchAt(const sf::Vector2u location, const Stretch& str
 		priv_updateCell(priv_cellIndex(location));
 }
 
-void ConsoleScreen::setAttributesAt(const sf::Vector2u location, const CellAttributes& attributes)
+void ConsoleScreenV1::setAttributesAt(const sf::Vector2u location, const CellAttributes& attributes)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1283,7 +1317,7 @@ void ConsoleScreen::setAttributesAt(const sf::Vector2u location, const CellAttri
 		priv_updateCell(priv_cellIndex(location));
 }
 
-void ConsoleScreen::setAttributeAt(const sf::Vector2u location, const bool attributeValue, const Attribute attribute)
+void ConsoleScreenV1::setAttributeAt(const sf::Vector2u location, const bool attributeValue, const Attribute attribute)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1298,7 +1332,7 @@ void ConsoleScreen::setAttributeAt(const sf::Vector2u location, const bool attri
 		priv_updateCell(priv_cellIndex(location));
 }
 
-ConsoleScreen::Cell ConsoleScreen::getCellAt(const sf::Vector2u location) const
+ConsoleScreenV1::Cell ConsoleScreenV1::getCellAt(const sf::Vector2u location) const
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1310,7 +1344,7 @@ ConsoleScreen::Cell ConsoleScreen::getCellAt(const sf::Vector2u location) const
 	return m_cells[priv_cellIndex(location)];
 }
 
-unsigned int ConsoleScreen::getValueAt(const sf::Vector2u location) const
+unsigned int ConsoleScreenV1::getValueAt(const sf::Vector2u location) const
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1322,7 +1356,7 @@ unsigned int ConsoleScreen::getValueAt(const sf::Vector2u location) const
 	return m_cells[priv_cellIndex(location)].value;
 }
 
-sf::Color ConsoleScreen::getColorAt(const sf::Vector2u location) const
+sf::Color ConsoleScreenV1::getColorAt(const sf::Vector2u location) const
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1334,7 +1368,7 @@ sf::Color ConsoleScreen::getColorAt(const sf::Vector2u location) const
 	return m_cells[priv_cellIndex(location)].color;
 }
 
-sf::Color ConsoleScreen::getBackgroundColorAt(const sf::Vector2u location) const
+sf::Color ConsoleScreenV1::getBackgroundColorAt(const sf::Vector2u location) const
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1346,7 +1380,7 @@ sf::Color ConsoleScreen::getBackgroundColorAt(const sf::Vector2u location) const
 	return m_cells[priv_cellIndex(location)].backgroundColor;
 }
 
-ConsoleScreen::Stretch ConsoleScreen::getStretchAt(const sf::Vector2u location) const
+ConsoleScreenV1::Stretch ConsoleScreenV1::getStretchAt(const sf::Vector2u location) const
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1358,7 +1392,7 @@ ConsoleScreen::Stretch ConsoleScreen::getStretchAt(const sf::Vector2u location) 
 	return m_cells[priv_cellIndex(location)].stretch;
 }
 
-ConsoleScreen::CellAttributes ConsoleScreen::getAttributesAt(const sf::Vector2u location) const
+ConsoleScreenV1::CellAttributes ConsoleScreenV1::getAttributesAt(const sf::Vector2u location) const
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1370,7 +1404,7 @@ ConsoleScreen::CellAttributes ConsoleScreen::getAttributesAt(const sf::Vector2u 
 	return m_cells[priv_cellIndex(location)].attributes;
 }
 
-bool ConsoleScreen::getAttributeAt(const sf::Vector2u location, const Attribute attribute)
+bool ConsoleScreenV1::getAttributeAt(const sf::Vector2u location, const Attribute attribute)
 {
 	if (!priv_isCellLocationInRange(location))
 	{
@@ -1382,7 +1416,7 @@ bool ConsoleScreen::getAttributeAt(const sf::Vector2u location, const Attribute 
 	return priv_chooseAttribute(m_cells[priv_cellIndex(location)].attributes, attribute);
 }
 
-void ConsoleScreen::scrollUp(const unsigned int amount)
+void ConsoleScreenV1::scrollUp(const unsigned int amount)
 {
 	if (m_mode.y == 0 || amount == 0)
 		return;
@@ -1410,7 +1444,7 @@ void ConsoleScreen::scrollUp(const unsigned int amount)
 		update();
 }
 
-void ConsoleScreen::scrollDown(const unsigned int amount)
+void ConsoleScreenV1::scrollDown(const unsigned int amount)
 {
 	if (m_mode.y == 0 || amount == 0)
 		return;
@@ -1439,7 +1473,7 @@ void ConsoleScreen::scrollDown(const unsigned int amount)
 		update();
 }
 
-void ConsoleScreen::scrollLeft(const unsigned int amount)
+void ConsoleScreenV1::scrollLeft(const unsigned int amount)
 {
 	if (m_mode.x == 0 || amount == 0)
 		return;
@@ -1467,7 +1501,7 @@ void ConsoleScreen::scrollLeft(const unsigned int amount)
 		update();
 }
 
-void ConsoleScreen::scrollRight(const unsigned int amount)
+void ConsoleScreenV1::scrollRight(const unsigned int amount)
 {
 	if (m_mode.x == 0 || amount == 0)
 		return;
@@ -1496,7 +1530,7 @@ void ConsoleScreen::scrollRight(const unsigned int amount)
 		update();
 }
 
-void ConsoleScreen::clear(const int backgroundColorId)
+void ConsoleScreenV1::clear(const int backgroundColorId)
 {
 	if (priv_isColorIdInPaletteRange(backgroundColorId))
 		clear(m_palette[backgroundColorId]);
@@ -1518,7 +1552,7 @@ void ConsoleScreen::clear(const int backgroundColorId)
 	}
 }
 
-void ConsoleScreen::clear(const sf::Color backgroundColor)
+void ConsoleScreenV1::clear(const sf::Color backgroundColor)
 {
 	if (m_cells.size() == 0)
 	{
@@ -1535,7 +1569,7 @@ void ConsoleScreen::clear(const sf::Color backgroundColor)
 		update();
 }
 
-void ConsoleScreen::crash()
+void ConsoleScreenV1::crash()
 {
 	for (auto& cell : m_cells)
 	{
@@ -1547,7 +1581,7 @@ void ConsoleScreen::crash()
 		update();
 }
 
-void ConsoleScreen::loadPalette(const Palette palette)
+void ConsoleScreenV1::loadPalette(const Palette palette)
 {
 	m_palette.clear();
 	switch (palette)
@@ -1594,12 +1628,12 @@ void ConsoleScreen::loadPalette(const Palette palette)
 	}
 }
 
-void ConsoleScreen::addColorToPalette(const sf::Color color)
+void ConsoleScreenV1::addColorToPalette(const sf::Color color)
 {
 	m_palette.emplace_back(color);
 }
 
-void ConsoleScreen::setPaletteColor(const int colorId, const sf::Color color)
+void ConsoleScreenV1::setPaletteColor(const int colorId, const sf::Color color)
 {
 	if (!priv_isColorIdInPaletteRange(colorId))
 	{
@@ -1611,7 +1645,7 @@ void ConsoleScreen::setPaletteColor(const int colorId, const sf::Color color)
 	m_palette[colorId] = color;
 }
 
-sf::Color ConsoleScreen::getPaletteColor(const int colorId) const
+sf::Color ConsoleScreenV1::getPaletteColor(const int colorId) const
 {
 	if (!priv_isColorIdInPaletteRange(colorId))
 	{
@@ -1623,7 +1657,7 @@ sf::Color ConsoleScreen::getPaletteColor(const int colorId) const
 	return m_palette[colorId];
 }
 
-void ConsoleScreen::setPaletteSize(const unsigned int size)
+void ConsoleScreenV1::setPaletteSize(const unsigned int size)
 {
 	if (size < 1)
 	{
@@ -1635,12 +1669,12 @@ void ConsoleScreen::setPaletteSize(const unsigned int size)
 	m_palette.resize(size);
 }
 
-unsigned int ConsoleScreen::getPaletteSize() const
+unsigned int ConsoleScreenV1::getPaletteSize() const
 {
 	return m_palette.size();
 }
 
-void ConsoleScreen::removePaletteColor(const int colorId)
+void ConsoleScreenV1::removePaletteColor(const int colorId)
 {
 	if (!priv_isColorIdInPaletteRange(colorId))
 	{
@@ -1658,13 +1692,13 @@ void ConsoleScreen::removePaletteColor(const int colorId)
 	m_palette.erase(m_palette.begin() + colorId);
 }
 
-unsigned int ConsoleScreen::copy()
+unsigned int ConsoleScreenV1::copy()
 {
 	m_buffers.push_back({ m_mode.x, m_cells });
 	return m_buffers.size() - 1;
 }
 
-void ConsoleScreen::copy(const unsigned int index)
+void ConsoleScreenV1::copy(const unsigned int index)
 {
 	if (!priv_isScreenBufferIndexInRange(index))
 	{
@@ -1679,14 +1713,14 @@ void ConsoleScreen::copy(const unsigned int index)
 		update();
 }
 
-unsigned int ConsoleScreen::copy(const sf::IntRect selectionRectangle)
+unsigned int ConsoleScreenV1::copy(const sf::IntRect selectionRectangle)
 {
 	m_buffers.emplace_back();
 	priv_copyToBufferFromSelectionRectangle(m_buffers.back(), selectionRectangle);
 	return m_buffers.size() - 1;
 }
 
-void ConsoleScreen::copy(const unsigned int index, const sf::IntRect selectionRectangle)
+void ConsoleScreenV1::copy(const unsigned int index, const sf::IntRect selectionRectangle)
 {
 	if (!priv_isScreenBufferIndexInRange(index))
 	{
@@ -1698,7 +1732,7 @@ void ConsoleScreen::copy(const unsigned int index, const sf::IntRect selectionRe
 	priv_copyToBufferFromSelectionRectangle(m_buffers[index], selectionRectangle);
 }
 
-void ConsoleScreen::paste(const sf::Vector2i offset)
+void ConsoleScreenV1::paste(const sf::Vector2i offset)
 {
 	if (m_buffers.size() == 0)
 	{
@@ -1710,7 +1744,7 @@ void ConsoleScreen::paste(const sf::Vector2i offset)
 	priv_pasteOffsettedBuffer(m_buffers.back(), offset);
 }
 
-void ConsoleScreen::paste(const unsigned int index, const sf::Vector2i offset)
+void ConsoleScreenV1::paste(const unsigned int index, const sf::Vector2i offset)
 {
 	if (!priv_isScreenBufferIndexInRange(index))
 	{
@@ -1722,7 +1756,7 @@ void ConsoleScreen::paste(const unsigned int index, const sf::Vector2i offset)
 	priv_pasteOffsettedBuffer(m_buffers[index], offset);
 }
 
-void ConsoleScreen::removeBuffer()
+void ConsoleScreenV1::removeBuffer()
 {
 	if (m_buffers.size() == 0)
 	{
@@ -1734,7 +1768,7 @@ void ConsoleScreen::removeBuffer()
 	m_buffers.pop_back();
 }
 
-void ConsoleScreen::removeBuffer(const unsigned int index)
+void ConsoleScreenV1::removeBuffer(const unsigned int index)
 {
 	if (!priv_isScreenBufferIndexInRange(index))
 	{
@@ -1746,49 +1780,49 @@ void ConsoleScreen::removeBuffer(const unsigned int index)
 	m_buffers.erase(m_buffers.begin() + index);
 }
 
-void ConsoleScreen::removeAllBuffers()
+void ConsoleScreenV1::removeAllBuffers()
 {
 	m_buffers.clear();
 }
 
-unsigned int ConsoleScreen::getNumberOfBuffers() const
+unsigned int ConsoleScreenV1::getNumberOfBuffers() const
 {
 	return m_buffers.size();
 }
 
-void ConsoleScreen::setMappedCharacter(const char character, const unsigned int value)
+void ConsoleScreenV1::setMappedCharacter(const char character, const unsigned int value)
 {
 	m_characterMap[character] = value;
 }
 
-void ConsoleScreen::setMappedCharacters(const std::string& characters, unsigned int initialValue)
+void ConsoleScreenV1::setMappedCharacters(const std::string& characters, unsigned int initialValue)
 {
 	for (auto& character : characters)
 		setMappedCharacter(character, initialValue++);
 }
 
-void ConsoleScreen::removeMappedCharacter(const char character)
+void ConsoleScreenV1::removeMappedCharacter(const char character)
 {
 	m_characterMap.erase(character);
 }
 
-void ConsoleScreen::removeMappedCharacters(const std::string& characters)
+void ConsoleScreenV1::removeMappedCharacters(const std::string& characters)
 {
 	for (auto& character : characters)
 		removeMappedCharacter(character);
 }
 
-bool ConsoleScreen::getIsMappedCharacter(const char character) const
+bool ConsoleScreenV1::getIsMappedCharacter(const char character) const
 {
 	return m_characterMap.find(character) != m_characterMap.end();
 }
 
-unsigned int ConsoleScreen::getMappedCharacter(const char character) const
+unsigned int ConsoleScreenV1::getMappedCharacter(const char character) const
 {
 	return m_characterMap.at(character);
 }
 
-void ConsoleScreen::poke(const unsigned int index, const Cell& cell)
+void ConsoleScreenV1::poke(const unsigned int index, const Cell& cell)
 {
 	if (!priv_isCellIndexInRange(index))
 	{
@@ -1803,7 +1837,7 @@ void ConsoleScreen::poke(const unsigned int index, const Cell& cell)
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::poke(const unsigned int index, const unsigned int value)
+void ConsoleScreenV1::poke(const unsigned int index, const unsigned int value)
 {
 	if (!priv_isCellIndexInRange(index))
 	{
@@ -1818,7 +1852,7 @@ void ConsoleScreen::poke(const unsigned int index, const unsigned int value)
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::poke(const unsigned int index, const sf::Color& color)
+void ConsoleScreenV1::poke(const unsigned int index, const sf::Color& color)
 {
 	if (!priv_isCellIndexInRange(index))
 	{
@@ -1833,7 +1867,7 @@ void ConsoleScreen::poke(const unsigned int index, const sf::Color& color)
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::poke(const unsigned int index, const sf::Color& color, const sf::Color& backgroundColor)
+void ConsoleScreenV1::poke(const unsigned int index, const sf::Color& color, const sf::Color& backgroundColor)
 {
 	if (!priv_isCellIndexInRange(index))
 	{
@@ -1849,7 +1883,7 @@ void ConsoleScreen::poke(const unsigned int index, const sf::Color& color, const
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::poke(const unsigned int index, const Stretch& stretch)
+void ConsoleScreenV1::poke(const unsigned int index, const Stretch& stretch)
 {
 	if (!priv_isCellIndexInRange(index))
 	{
@@ -1864,7 +1898,7 @@ void ConsoleScreen::poke(const unsigned int index, const Stretch& stretch)
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::poke(const unsigned int index, const CellAttributes& cellAttributes)
+void ConsoleScreenV1::poke(const unsigned int index, const CellAttributes& cellAttributes)
 {
 	if (!priv_isCellIndexInRange(index))
 	{
@@ -1879,7 +1913,7 @@ void ConsoleScreen::poke(const unsigned int index, const CellAttributes& cellAtt
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::poke(const unsigned int index, const bool attributeValue, const Attribute attribute)
+void ConsoleScreenV1::poke(const unsigned int index, const bool attributeValue, const Attribute attribute)
 {
 	if (!priv_isCellIndexInRange(index))
 	{
@@ -1894,7 +1928,7 @@ void ConsoleScreen::poke(const unsigned int index, const bool attributeValue, co
 		priv_updateCell(index);
 }
 
-ConsoleScreen::Cell ConsoleScreen::peek(const unsigned int index) const
+ConsoleScreenV1::Cell ConsoleScreenV1::peek(const unsigned int index) const
 {
 	if (!priv_isCellIndexInRange(index))
 	{
@@ -1910,7 +1944,7 @@ ConsoleScreen::Cell ConsoleScreen::peek(const unsigned int index) const
 
 // PRIVATE
 
-void ConsoleScreen::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void ConsoleScreenV1::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.transform = getTransform();
 
@@ -1926,7 +1960,7 @@ void ConsoleScreen::draw(sf::RenderTarget& target, sf::RenderStates states) cons
 	}
 }
 
-void ConsoleScreen::priv_updateCell(const unsigned int index)
+void ConsoleScreenV1::priv_updateCell(const unsigned int index)
 {
 	if (!priv_isCellIndexInRange(index))
 		return;
@@ -1951,13 +1985,22 @@ void ConsoleScreen::priv_updateCell(const unsigned int index)
 	sf::Color cellColor{ cell.color };
 	sf::Color backgroundColor{ cell.backgroundColor };
 
-	if (m_cursor.visible && m_cursor.index == index)
-	{
-		cellValue = m_cursor.value;
-		cellColor = m_colors.cursor;
-	}
+	const bool isCursor{ m_cursor.visible && m_cursor.index == index };
+	bool useCursorValue{ false };
 
-	if (cell.attributes.inverse)
+	if (isCursor)
+	{
+		if (m_cursor.value >= 0)
+		{
+			useCursorValue = true;
+			cellValue = m_cursor.value;
+		}
+		if (m_cursor.useOwnColour)
+			cellColor = m_colors.cursor;
+		if (cell.attributes.inverse != m_cursor.inverse)
+			swapColors(cellColor, backgroundColor);
+	}
+	else if (cell.attributes.inverse)
 		swapColors(cellColor, backgroundColor);
 
 	if (!cell.attributes.bright)
@@ -1975,9 +2018,9 @@ void ConsoleScreen::priv_updateCell(const unsigned int index)
 
 	sf::Vector2u textureCell{ cellValue % m_numberOfTilesPerRow, cellValue / m_numberOfTilesPerRow };
 	const float textureLeft{ static_cast<float>(m_textureOffset.x + textureCell.x * m_tileSize.x) };
-	const float textureTop{ static_cast<float>(m_textureOffset.y + (textureCell.y + (cell.stretch == Stretch::Bottom ? 0.5f : 0.f)) * m_tileSize.y) };
+	const float textureTop{ static_cast<float>(m_textureOffset.y + (textureCell.y + (!useCursorValue && cell.stretch == Stretch::Bottom ? 0.5f : 0.f)) * m_tileSize.y) };
 	const float textureRight{ static_cast<float>(m_textureOffset.x + (textureCell.x + 1) * m_tileSize.x) };
-	const float textureBottom{ static_cast<float>(m_textureOffset.y + (textureCell.y + (cell.stretch == Stretch::Top ? 0.5f : 1.f)) * m_tileSize.y) };
+	const float textureBottom{ static_cast<float>(m_textureOffset.y + (textureCell.y + (!useCursorValue && cell.stretch == Stretch::Top ? 0.5f : 1.f)) * m_tileSize.y) };
 
 	const unsigned int baseVertex{ index * 4 };
 	sf::Vertex* const pVertex1{ &m_display[baseVertex] };
@@ -2017,67 +2060,60 @@ void ConsoleScreen::priv_updateCell(const unsigned int index)
 	pBackgroundVertex4->color = backgroundColor;
 }
 
-inline unsigned int ConsoleScreen::priv_cellIndex(const sf::Vector2u location) const
+inline unsigned int ConsoleScreenV1::priv_cellIndex(const sf::Vector2u location) const
 {
 	return location.y * m_mode.x + location.x;
 }
 
-inline sf::Vector2u ConsoleScreen::priv_cellLocation(const unsigned int index) const
+inline sf::Vector2u ConsoleScreenV1::priv_cellLocation(const unsigned int index) const
 {
 	return{ index % m_mode.x, index / m_mode.x };
 }
 
-inline bool ConsoleScreen::priv_isCellIndexInRange(const unsigned int index) const
+inline bool ConsoleScreenV1::priv_isCellIndexInRange(const unsigned int index) const
 {
 	return index < m_cells.size();
 }
 
-inline bool ConsoleScreen::priv_isCellLocationInRange(const sf::Vector2u location) const
+inline bool ConsoleScreenV1::priv_isCellLocationInRange(const sf::Vector2u location) const
 {
 	return (location.x < m_mode.x && location.y < m_mode.y);
 }
 
-inline bool ConsoleScreen::priv_isScreenBufferIndexInRange(const unsigned int index) const
+inline bool ConsoleScreenV1::priv_isScreenBufferIndexInRange(const unsigned int index) const
 {
 	return index < m_buffers.size();
 }
 
-inline bool ConsoleScreen::priv_isCursorInRange() const
+inline bool ConsoleScreenV1::priv_isCursorInRange() const
 {
 	return priv_isCellIndexInRange(m_cursor.index);
 }
 
-inline bool ConsoleScreen::priv_isColorIdInPaletteRange(const int id) const
+inline bool ConsoleScreenV1::priv_isColorIdInPaletteRange(const int id) const
 {
 	return (id >= 0) && (id < static_cast<int>(m_palette.size()));
 }
 
-/*
-inline bool ConsoleScreen::priv_isColorIdInExtendedRange(const int id) const
-{
-	return id < static_cast<int>(m_palette.size());
-}
-*/
-
-inline void ConsoleScreen::priv_clearCell(const unsigned int index, const bool overwriteColor, const bool overwriteBackgroundColor)
+inline void ConsoleScreenV1::priv_clearCell(const unsigned int index, const bool overwriteColor, const bool overwriteBackgroundColor)
 {
 	const sf::Color color{ overwriteColor ? m_colors.main : m_cells[index].color };
 	const sf::Color backgroundColor{ overwriteBackgroundColor ? m_colors.background : m_cells[index].backgroundColor };
 	poke(index, { 0, color, backgroundColor, Stretch::None, CellAttributes() });
 }
 
-inline void ConsoleScreen::priv_clearCell(const unsigned int index, const sf::Color& backgroundColor, const bool overwriteColor)
+inline void ConsoleScreenV1::priv_clearCell(const unsigned int index, const sf::Color& backgroundColor, const bool overwriteColor)
 {
 	const sf::Color color{ overwriteColor ? m_colors.main : m_cells[index].color };
 	poke(index, { 0, color, backgroundColor, Stretch::None, CellAttributes() });
 }
 
-inline void ConsoleScreen::priv_clearCell(const unsigned int index, const sf::Color& color, const sf::Color& backgroundColor)
+inline void ConsoleScreenV1::priv_clearCell(const unsigned int index, const sf::Color& color, const sf::Color& backgroundColor)
 {
 	poke(index, { 0, color, backgroundColor, Stretch::None, CellAttributes() });
 }
 
-inline void ConsoleScreen::priv_paintCell(const unsigned int index, const sf::Color& color, const sf::Color& backgroundColor)
+inline void ConsoleScreenV1::priv_paintCell(const unsigned int index, const sf::Color& color, const sf::Color& backgroundColor)
 {
 	poke(index, color, backgroundColor);
 
@@ -2085,7 +2121,7 @@ inline void ConsoleScreen::priv_paintCell(const unsigned int index, const sf::Co
 		priv_updateCell(index);
 }
 
-void ConsoleScreen::priv_setCursorIndex(const unsigned int index)
+void ConsoleScreenV1::priv_setCursorIndex(const unsigned int index)
 {
 	const unsigned int previousIndex{ m_cursor.index };
 	m_cursor.index = index;
@@ -2097,36 +2133,36 @@ void ConsoleScreen::priv_setCursorIndex(const unsigned int index)
 	}
 }
 
-void ConsoleScreen::priv_moveCursorToBeginningOfLine()
+void ConsoleScreenV1::priv_moveCursorToBeginningOfLine()
 {
 	priv_setCursorIndex(m_cursor.index - m_cursor.index % m_mode.x);
 }
 
-void ConsoleScreen::priv_moveCursorUp()
+void ConsoleScreenV1::priv_moveCursorUp()
 {
 	if (m_cursor.index >= m_mode.x)
 		priv_setCursorIndex(m_cursor.index - m_mode.x);
 }
 
-void ConsoleScreen::priv_moveCursorDown()
+void ConsoleScreenV1::priv_moveCursorDown()
 {
 	priv_setCursorIndex(m_cursor.index + m_mode.x);
 	priv_testCursorForScroll();
 }
 
-void ConsoleScreen::priv_moveCursorLeft()
+void ConsoleScreenV1::priv_moveCursorLeft()
 {
 	if (m_cursor.index > 0)
 		priv_setCursorIndex(m_cursor.index - 1);
 }
 
-void ConsoleScreen::priv_moveCursorRight()
+void ConsoleScreenV1::priv_moveCursorRight()
 {
 	priv_setCursorIndex(m_cursor.index + 1);
 	priv_testCursorForScroll();
 }
 
-void ConsoleScreen::priv_testCursorForScroll()
+void ConsoleScreenV1::priv_testCursorForScroll()
 {
 	if (m_cursor.index >= m_cells.size())
 	{
@@ -2145,7 +2181,7 @@ void ConsoleScreen::priv_testCursorForScroll()
 	}
 }
 
-void ConsoleScreen::priv_scroll()
+void ConsoleScreenV1::priv_scroll()
 {
 	for (unsigned int y{ 0 }; y < m_mode.y; ++y)
 	{
@@ -2160,7 +2196,7 @@ void ConsoleScreen::priv_scroll()
 	priv_moveCursorUp();
 }
 
-void ConsoleScreen::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const sf::IntRect& selectionRectangle)
+void ConsoleScreenV1::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const sf::IntRect& selectionRectangle)
 {
 	if (selectionRectangle.left >= static_cast<int>(m_mode.x) ||
 		selectionRectangle.top >= static_cast<int>(m_mode.y) ||
@@ -2195,7 +2231,7 @@ void ConsoleScreen::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, cons
 	}
 }
 
-void ConsoleScreen::priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i& offset)
+void ConsoleScreenV1::priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i& offset)
 {
 	for (unsigned int i{ 0 }; i < buffer.cells.size(); ++i)
 	{
@@ -2211,7 +2247,7 @@ void ConsoleScreen::priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i
 		update();
 }
 
-unsigned int ConsoleScreen::priv_getPrintIndex(sf::Vector2u location) const
+unsigned int ConsoleScreenV1::priv_getPrintIndex(sf::Vector2u location) const
 {
 	if (location.x >= m_mode.x)
 	{
@@ -2227,7 +2263,7 @@ unsigned int ConsoleScreen::priv_getPrintIndex(sf::Vector2u location) const
 	return priv_cellIndex(location);
 }
 
-inline unsigned int ConsoleScreen::priv_getCellValueFromCharacter(const char character) const
+inline unsigned int ConsoleScreenV1::priv_getCellValueFromCharacter(const char character) const
 {
 	if (getIsMappedCharacter(character))
 		return m_characterMap.at(character);
@@ -2235,7 +2271,7 @@ inline unsigned int ConsoleScreen::priv_getCellValueFromCharacter(const char cha
 		return static_cast<unsigned int>(character);
 }
 
-inline char ConsoleScreen::priv_getCharacterFromCellValue(const unsigned int cellValue) const
+inline char ConsoleScreenV1::priv_getCharacterFromCellValue(const unsigned int cellValue) const
 {
 	for (auto& pair : m_characterMap)
 	{
@@ -2245,7 +2281,7 @@ inline char ConsoleScreen::priv_getCharacterFromCellValue(const unsigned int cel
 	return static_cast<char>(cellValue);
 }
 
-sf::Color ConsoleScreen::priv_colorFromColorIdAtIndex(const unsigned int index, const int colorId) const
+sf::Color ConsoleScreenV1::priv_colorFromColorIdAtIndex(const unsigned int index, const int colorId) const
 {
 	sf::Color color;
 	if (priv_isColorIdInPaletteRange(colorId))
@@ -2267,7 +2303,7 @@ sf::Color ConsoleScreen::priv_colorFromColorIdAtIndex(const unsigned int index, 
 	}
 }
 
-sf::Color ConsoleScreen::priv_backgroundColorFromColorIdAtIndex(const unsigned int index, const int colorId) const
+sf::Color ConsoleScreenV1::priv_backgroundColorFromColorIdAtIndex(const unsigned int index, const int colorId) const
 {
 	sf::Color color;
 	if (priv_isColorIdInPaletteRange(colorId))
@@ -2289,7 +2325,7 @@ sf::Color ConsoleScreen::priv_backgroundColorFromColorIdAtIndex(const unsigned i
 	}
 }
 
-bool& ConsoleScreen::priv_chooseAttribute(CellAttributes& cellAttributes, const Attribute attribute)
+bool& ConsoleScreenV1::priv_chooseAttribute(CellAttributes& cellAttributes, const Attribute attribute)
 {
 	switch (attribute)
 	{

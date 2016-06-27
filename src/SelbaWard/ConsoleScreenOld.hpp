@@ -3,7 +3,7 @@
 // Selba Ward (https://github.com/Hapaxia/SelbaWard)
 // --
 //
-// Console Screen
+// Console Screen v1
 //
 // Copyright(c) 2014-2016 M.J.Silk
 //
@@ -30,8 +30,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef SELBAWARD_CONSOLESCREEN_HPP
-#define SELBAWARD_CONSOLESCREEN_HPP
+#ifndef SELBAWARD_CONSOLESCREEN_V1_HPP
+#define SELBAWARD_CONSOLESCREEN_V1_HPP
 
 #include "Common.hpp"
 
@@ -40,8 +40,8 @@
 namespace selbaward
 {
 
-// SW Console Screen v1.4
-class ConsoleScreen : public sf::Drawable, public sf::Transformable
+// SW Console Screen v1.5
+class ConsoleScreenV1 : public sf::Drawable, public sf::Transformable
 {
 public:
 	struct Cell;
@@ -75,7 +75,7 @@ public:
 	};
 
 	// setup
-	ConsoleScreen(sf::Vector2u mode = { 80u, 45u });
+	ConsoleScreenV1(sf::Vector2u mode = { 80u, 45u });
 	void setMode(sf::Vector2u mode); // "mode" is the number of cells used to fit the screen
 	sf::Vector2u getMode() const;
 	unsigned int getNumberOfCells() const;
@@ -93,12 +93,16 @@ public:
 	void setThrowExceptions(bool exceptions);
 	void setUpdateAutomatically(bool automaticUpdate);
 	void setShowCursor(bool showCursor);
+	void setInvertCursor(bool invertCursor);
+	void setUseCursorColor(bool useCursorColor);
 	void setShowBackground(bool showBackground);
 	void setScrollAutomatically(bool scroll);
 	void setWrapOnManualScroll(bool wrapOnManualScroll);
 	bool getThrowExceptions() const;
 	bool getUpdateAutomatically() const;
 	bool getShowCursor() const;
+	bool getInvertCursor() const;
+	bool getUseCursorColor() const;
 	bool getShowBackground() const;
 	bool getScrollAutomatically() const;
 	bool getWrapOnManualScroll() const;
@@ -158,7 +162,8 @@ public:
 	sf::Vector2u getCursor() const;
 
 	// cursor value (tile/character used to represent cursor)
-	void setCursor(unsigned int cellValue);
+	void setCursor(int cellValue);
+	void setCursor(char cellChar, bool mapCharacter); // converts from character to cell value. this can map the character if the character has an associated mapping
 
 	// printing (using cursor)
 	void print(char character, int colorId = Color::Current, int backgroundColorId = Color::Current);
@@ -288,8 +293,10 @@ private:
 	struct Cursor
 	{
 		unsigned int index;
-		unsigned int value;
+		int value; // if -1, doesn't change the cell's value (allows other cursor features to still be displayed)
 		bool visible;
+		bool inverse;
+		bool useOwnColour;
 	};
 
 	struct Flags
@@ -377,7 +384,7 @@ private:
 	bool& priv_chooseAttribute(CellAttributes& cellAttributes, Attribute attribute = Attribute::Inverse);
 };
 
-struct ConsoleScreen::Cell
+struct ConsoleScreenV1::Cell
 {
 	unsigned int value;
 	sf::Color color;
@@ -386,7 +393,7 @@ struct ConsoleScreen::Cell
 	CellAttributes attributes;
 };
 
-enum class ConsoleScreen::Palette
+enum class ConsoleScreenV1::Palette
 {
 	Default, // basic 16-colour palette
 	Colors2BlackWhite,
@@ -406,4 +413,4 @@ enum class ConsoleScreen::Palette
 };
 
 } // namespace selbaward
-#endif // SELBAWARD_CONSOLESCREEN_HPP
+#endif // SELBAWARD_CONSOLESCREEN_V1_HPP

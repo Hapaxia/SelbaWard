@@ -1,6 +1,18 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## 1.5.0 - 2016-06-27
+### Added
+- Cursor switches. Cursor no longer must affect the its cell's colours and it can invert its cell's colours
+- Ignored cursor value. A cursor value that is negative values will not affect its cell's value
+- A mapped character can be used to set the cursor's value
+
+### Changed
+- Class name is now ConsoleScreenV1 and the filenames now have been appended with "Old" in preparation for the additional inclusion of version 2.
+
+### Fixed
+- Cursor now never stretches regardless of the cell's stretch value.
+
 ## [1.4.0] - 2016-03-29
 ### Added
 - Character mapping. Printed characters can now be mapped to any cell value
