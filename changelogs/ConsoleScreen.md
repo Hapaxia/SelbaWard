@@ -1,6 +1,30 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2016-06-27
+### Added
+- Mappable cursor commands. Characters in a string can invoke cursor commands
+- Stack printing. Extra cells can be layers over and under the main screen
+- Entire screen can be filled with a single, specified cell
+- Individual cells can now be directly manipulated in place (by reference)
+- "Cs" standard alias shortcut for "sw::ConsoleScreen"
+- Switchable palette mode (standard/rgb). Standard is default
+- If a full colour is used in standard palette mode, either the colour will added to the palette or the closest match in the palette is used
+- Ability to get current print properties
+- Many simple types to use in the "stream" to specify different information
+- Ability to move the print position by an offset
+- Buffers can be pasted as stack tiles (see "Stack printing" above)
+- HTML 16-colour palette (https://www.w3.org/TR/REC-html40/types.html#h-6.5)
+- Palette enums file added to Selba Ward that allows enums to be used to specify colours in the palettes used by Console Screen
+
+### Changed
+- Colours are now stored as values (palette index/colour command). Changing the palette changes all instances of that colour
+- Most things are "streamed" directly into the Console Screen object using the insertion operator (<<)
+- Reading is also "streamed" by using the extraction operator (>>)
+
+### Fixed
+- Incorrect "web-safe" palette colour values
+
 ## [1.5.0] - 2016-06-27
 ### Added
 - Cursor switches. Cursor no longer must affect the its cell's colours and it can invert its cell's colours
@@ -65,6 +89,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[2.0.0]: https://github.com/Hapaxia/SelbaWard/commit/79ab58b379bb0fe540edfab26ec22324a20ca5a6
 [1.5.0]: https://github.com/Hapaxia/SelbaWard/commit/9cb2c06b2be8941f418d7eb03c1be893999af063
 [1.4.0]: https://github.com/Hapaxia/SelbaWard/commit/3dc18730df9a096d5bbf80d19e7e839357fc985d
 [1.3.1]: https://github.com/Hapaxia/SelbaWard/commit/f544eaf2e90d46558dcaeb80c54992def0a18ec8
