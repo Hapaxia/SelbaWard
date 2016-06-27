@@ -1,7 +1,7 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
-## 1.5.0 - 2016-06-27
+## [1.5.0] - 2016-06-27
 ### Added
 - Cursor switches. Cursor no longer must affect the its cell's colours and it can invert its cell's colours
 - Ignored cursor value. A cursor value that is negative values will not affect its cell's value
@@ -65,6 +65,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[1.5.0]: https://github.com/Hapaxia/SelbaWard/commit/9cb2c06b2be8941f418d7eb03c1be893999af063
 [1.4.0]: https://github.com/Hapaxia/SelbaWard/commit/3dc18730df9a096d5bbf80d19e7e839357fc985d
 [1.3.1]: https://github.com/Hapaxia/SelbaWard/commit/f544eaf2e90d46558dcaeb80c54992def0a18ec8
 [1.3.0]: https://github.com/Hapaxia/SelbaWard/commit/661223c925e9c1d57ce11f77462812cd024f9aa9
