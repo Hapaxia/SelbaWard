@@ -10,6 +10,6 @@ Contents: **Bitmap Text**, **Console Screen**, **Crosshair**, **Line**, **Nine P
 
 For information, view the [Wiki].
 
-More to come...
+Feedback and suggestions for new objects always welcome...
 
 [Wiki]: https://github.com/Hapaxia/SelbaWard/wiki
