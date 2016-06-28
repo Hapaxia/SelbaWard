@@ -1,4 +1,8 @@
-# Selba Ward
+#Welcome to Selba Ward!
+> > > > > > **_"check in to check it out"_**
+
+![Selba Ward](http://i.imgur.com/0k0um5B.jpg)
+
 A collection of SFML drawables  
 by [Hapax](http://github.com/Hapaxia)
 
