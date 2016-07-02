@@ -94,7 +94,7 @@ void Starfield::regenerate()
 	{
 		vertex.position = { randomValue(0.f, m_size.x), randomValue(0.f, m_size.y) };
 		vertex.color = m_color;
-		vertex.color.a = randomAlpha();
+		vertex.color.a = static_cast<sf::Uint8>(randomAlpha());
 	}
 }
 
@@ -110,25 +110,20 @@ void Starfield::regenerate(const sf::Vector2f size, const unsigned int numberOfS
 	regenerate(size);
 }
 
-void Starfield::regenerate(const sf::Vector2f size, const unsigned int numberOfStars, const sf::Color color)
-{
-	m_color = color;
-	regenerate(size, numberOfStars);
-}
-
 void Starfield::regenerate(const unsigned int numberOfStars)
 {
 	regenerate(m_size, numberOfStars);
 }
 
-void Starfield::regenerate(const unsigned int numberOfStars, const sf::Color color)
+void Starfield::setColor(const sf::Color color)
 {
-	regenerate(m_size, numberOfStars, color);
-}
-
-void Starfield::regenerate(const sf::Color color)
-{
-	regenerate(m_size, m_vertices.size(), color);
+	m_color = color;
+	for (auto& vertex : m_vertices)
+	{
+		const sf::Uint8 alphaDepth{ vertex.color.a };
+		vertex.color = m_color;
+		vertex.color.a = alphaDepth;
+	}
 }
 
 

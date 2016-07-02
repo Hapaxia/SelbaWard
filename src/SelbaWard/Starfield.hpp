@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Starfield v1.0.1
+// SW Starfield v1.1.0
 class Starfield : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -46,10 +46,9 @@ public:
 	void regenerate();
 	void regenerate(sf::Vector2f size);
 	void regenerate(sf::Vector2f size, unsigned int numberOfStars);
-	void regenerate(sf::Vector2f size, unsigned int numberOfStars, sf::Color color);
 	void regenerate(unsigned int numberOfStars);
-	void regenerate(unsigned int numberOfStars, sf::Color color);
-	void regenerate(sf::Color color);
+
+	void setColor(sf::Color color);
 
 	void move(sf::Vector2f movement);
 
