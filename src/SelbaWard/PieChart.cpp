@@ -32,8 +32,6 @@
 
 #include "PieChart.hpp"
 
-#include <iostream>
-
 namespace
 {
 

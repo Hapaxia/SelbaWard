@@ -32,8 +32,6 @@
 
 #include "ConsoleScreen.hpp"
 
-#include <iostream>
-
 #include <random>
 #include <functional>
 #include <algorithm>
