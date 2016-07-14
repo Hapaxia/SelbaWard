@@ -33,6 +33,7 @@
 #include "SelbaWard/BitmapText.hpp"
 #include "SelbaWard/ConsoleScreenOld.hpp"
 #include "SelbaWard/Crosshair.hpp"
+#include "SelbaWard/GallerySprite.hpp"
 #include "SelbaWard/Line.hpp"
 #include "SelbaWard/NinePatch.hpp"
 #include "SelbaWard/PieChart.hpp"
