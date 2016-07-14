@@ -32,33 +32,37 @@
 
 #include "Line.hpp"
 
+#include <algorithm>
+#include <cmath>
+
+namespace
+{
+
+const float thicknessEpsilon{ 0.001f };
+const float pi{ 3.141592653f };
+
+} // namespace
+
+
+
 namespace selbaward
 {
 
-Line::Line() :
-m_vertices(sf::Lines, 2),
-m_rectangle(),
-m_thickness(0.f),
-m_color(sf::Color::White)
+Line::Line()
+	: m_vertices(sf::Lines, 2)
+	, m_rectangle()
+	, m_thickness(0.f)
+	, m_color(sf::Color::White)
+	, m_texture(nullptr)
+	, m_textureRect()
 {
 }
 
-Line::Line(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition) :
-Line()
+Line::Line(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition)
+	: Line()
 {
 	setPoints(startPosition, endPosition);
 }
-
-/*
-template <typename T>
-Line::Line(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition, T thickness, const sf::Color& color) :
-Line(),
-m_color(color)
-{
-	setPoints(startPosition, endPosition);
-	setThickness(thickness);
-}
-*/
 
 void Line::setPoint(unsigned int index, const sf::Vector2f& position)
 {
@@ -100,7 +104,6 @@ sf::FloatRect Line::getGlobalBounds() const
 {
 	const sf::Vector2f transformedStartPosition{ getTransform().transformPoint(m_vertices[0].position) };
 	const sf::Vector2f transformedEndPosition{ getTransform().transformPoint(m_vertices[1].position) };
-
 	sf::FloatRect box;
 	box.left = std::min(transformedStartPosition.x, transformedEndPosition.x);
 	box.top = std::min(transformedStartPosition.y, transformedEndPosition.y);
@@ -127,6 +130,34 @@ void Line::setColor(const sf::Color& color)
 	m_rectangle.setFillColor(m_color);
 }
 
+void Line::setTexture(const sf::Texture& texture)
+{
+	m_texture = &texture;
+	m_textureRect = { { 0, 0 }, sf::Vector2i(texture.getSize()) };
+	updateRectangle();
+}
+
+void Line::setTexture()
+{
+	m_texture = nullptr;
+}
+
+const sf::Texture& Line::getTexture() const
+{
+	return *m_texture;
+}
+
+void Line::setTextureRect(const sf::IntRect& textureRect)
+{
+	m_textureRect = textureRect;
+	updateRectangle();
+}
+
+sf::IntRect Line::getTextureRect() const
+{
+	return m_textureRect;
+}
+
 
 
 // PRIVATE
@@ -134,28 +165,33 @@ void Line::setColor(const sf::Color& color)
 void Line::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.transform *= getTransform();
-	states.texture = NULL;
+	states.texture = nullptr;
 	if (isThick())
+	{
+		if (m_texture != nullptr)
+			states.texture = m_texture;
 		target.draw(m_rectangle, states);
+	}
 	else
 		target.draw(m_vertices, states);
 }
 
 inline bool Line::isThick() const
 {
-	return (m_thickness >= 0.001f);
+	return (m_thickness >= thicknessEpsilon || m_thickness <= -thicknessEpsilon);
 }
 
 void Line::updateRectangle()
 {
-	const float pi{ 3.141592653f };
 	const sf::Vector2f lineVector{ m_vertices[0].position - m_vertices[1].position };
-	const float lineLength{ sqrtf(lineVector.x * lineVector.x + lineVector.y * lineVector.y) };
+	const float lineLength{ std::sqrt(lineVector.x * lineVector.x + lineVector.y * lineVector.y) };
 	m_rectangle.setSize({ m_thickness, lineLength });
 	m_rectangle.setOrigin({ m_thickness / 2.f, 0.f });
-	const float angle{ 90.f + atan2f(lineVector.y, lineVector.x) * 180.f / pi };
+	const float angle{ 90.f + std::atan2(lineVector.y, lineVector.x) * 180.f / pi };
 	m_rectangle.setRotation(angle);
 	m_rectangle.setPosition(m_vertices[0].position);
+	m_rectangle.setTexture(m_texture);
+	m_rectangle.setTextureRect(m_textureRect);
 }
 
 } // selbaward

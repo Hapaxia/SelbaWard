@@ -30,21 +30,18 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-// currently uses sf::RectangleShape for a line with thickness. seems simpler to implement but has less control over the vertices than a dedicated vertex array
-
 #ifndef SELBAWARD_LINE_HPP
 #define SELBAWARD_LINE_HPP
 
 #include "Common.hpp"
 
-#include <math.h>
-
 #include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/Texture.hpp>
 
 namespace selbaward
 {
 
-// SW Line v1.0.0
+// SW Line v1.1.0
 class Line : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -56,7 +53,7 @@ public:
 
 	Line();
 	Line(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition);
-	template <typename T>
+	template <class T>
 	Line(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition, T thickness, const sf::Color& color = sf::Color::White);
 	void setPoint(unsigned int index, const sf::Vector2f& position);
 	void setPoints(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition);
@@ -65,28 +62,50 @@ public:
 	sf::FloatRect getGlobalBounds() const; // currently get bounds of only the points, not the corners of a line with thickness (basically, thickness is ignored)
 	PointIndex getStartIndex() const;
 	PointIndex getEndIndex() const;
-	template <typename T>
-	void setThickness(T thickness) { m_thickness = static_cast<float>(thickness); if (isThick()) updateRectangle(); }
+	template <class T>
+	void setThickness(T thickness);
 	void setColor(const sf::Color& color);
+	void setTexture(const sf::Texture& texture);
+	void setTexture();
+	const sf::Texture& getTexture() const;
+	void setTextureRect(const sf::IntRect& textureRect);
+	sf::IntRect getTextureRect() const;
+
+
+
+
+
+
 
 private:
 	sf::VertexArray m_vertices;
 	float m_thickness; // 0 to draw as line, 1+ to be drawn as a rectangle (using a quad) (currently using a rectangle shape instead)
 	sf::Color m_color;
 	sf::RectangleShape m_rectangle;
+	const sf::Texture* m_texture;
+	sf::IntRect m_textureRect;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 	bool isThick() const;
 	void updateRectangle();
 };
 
-template <typename T>
+template <class T>
 Line::Line(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition, T thickness, const sf::Color& color) :
 Line()
 {
 	setColor(color);
 	setPoints(startPosition, endPosition);
 	setThickness(thickness);
+}
+
+template <class T>
+void Line::setThickness(T thickness)
+{
+	m_thickness = static_cast<float>(thickness);
+
+	if (isThick())
+		updateRectangle();
 }
 
 } // selbaward
