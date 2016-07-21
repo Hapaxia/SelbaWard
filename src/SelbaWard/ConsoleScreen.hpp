@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Console Screen v2.0.0
+// SW Console Screen v2.1.0
 class ConsoleScreen : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -207,6 +207,7 @@ public:
 	// visual representation
 	void setSize(sf::Vector2f size);
 	sf::Vector2f getSize() const;
+	sf::Vector2f getPerfectSize() const;
 	sf::FloatRect getLocalBounds() const;
 	sf::FloatRect getGlobalBounds() const;
 
@@ -326,6 +327,10 @@ public:
 	void scrollDown(unsigned int amount = 1);
 	void scrollLeft(unsigned int amount = 1);
 	void scrollRight(unsigned int amount = 1);
+	void scrollUp(unsigned int amount, sf::IntRect selectionRectangle);
+	void scrollDown(unsigned int amount, sf::IntRect selectionRectangle);
+	void scrollLeft(unsigned int amount, sf::IntRect selectionRectangle);
+	void scrollRight(unsigned int amount, sf::IntRect selectionRectangle);
 
 	// colour palette
 	void loadPalette(Palette palette);
@@ -335,6 +340,10 @@ public:
 	void setPaletteSize(unsigned long int size);
 	unsigned long int getPaletteSize() const;
 	void removePaletteColor(Color color);
+	void cyclePaletteUp(long amount = 1);
+	void cyclePaletteDown(long amount = 1);
+	void cyclePaletteUp(long amount, Color firstColor, Color lastColor); // first colour and last colour of range to cycle
+	void cyclePaletteDown(long amount, Color firstColor, Color lastColor); // first colour and last colour of range to cycle
 
 	// buffers/clipboards/"screenshots"/captures
 	unsigned int copy(); // returns index of buffer
@@ -517,6 +526,7 @@ private:
 	void priv_scroll();
 	void priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const sf::IntRect& selectionRectangle);
 	void priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i& offset);
+	bool priv_isSelectionRectangleContainedInScreen(const sf::IntRect& selectionRectangle);
 	unsigned int priv_getPrintIndex(sf::Vector2u location) const;
 	unsigned int priv_getCellValueFromCharacter(char character) const;
 	char priv_getCharacterFromCellValue(unsigned int cellValue) const;

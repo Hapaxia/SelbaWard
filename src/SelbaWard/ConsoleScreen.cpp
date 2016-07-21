@@ -490,6 +490,8 @@ ConsoleScreen& ConsoleScreen::operator<<(const CursorCommand& cursorCommand)
 	{
 	case CursorCommand::Newline:
 		printProperties.index += m_mode.x;
+		if (printProperties.stretch == StretchType::Both)
+			printProperties.index += m_mode.x;
 		printProperties.index -= printProperties.index % m_mode.x;
 		break;
 	case CursorCommand::Left:
@@ -545,10 +547,22 @@ ConsoleScreen& ConsoleScreen::operator<<(const CursorCommand& cursorCommand)
 		if (printProperties.index > 0)
 			--printProperties.index;
 		priv_clearCell(printProperties.index, false, false);
+		if (printProperties.stretch == StretchType::Both)
+		{
+			const unsigned int belowIndex{ printProperties.index + m_mode.x };
+			if (priv_isCellIndexInRange(belowIndex))
+				priv_clearCell(belowIndex, false, false);
+		}
 		break;
 	case CursorCommand::Delete:
 		// affects cell contents
 		priv_clearCell(printProperties.index, false, false);
+		if (printProperties.stretch == StretchType::Both)
+		{
+			const unsigned int belowIndex{ printProperties.index + m_mode.x };
+			if (priv_isCellIndexInRange(belowIndex))
+				priv_clearCell(belowIndex, false, false);
+		}
 		break;
 	case CursorCommand::None:
 	default:
@@ -781,6 +795,11 @@ sf::Vector2f ConsoleScreen::getSize() const
 	return m_size;
 }
 
+sf::Vector2f ConsoleScreen::getPerfectSize() const
+{
+	return{ static_cast<float>(m_tileSize.x * m_mode.x), static_cast<float>(m_tileSize.y * m_mode.y) };
+}
+
 sf::FloatRect ConsoleScreen::getLocalBounds() const
 {
 	return{ { 0.f, 0.f }, m_size };
@@ -942,7 +961,9 @@ void ConsoleScreen::print(const char character)
 		}
 	}
 	++printProperties.index;
-	if (!priv_isCellIndexInRange(printProperties.index))
+	if (!m_is.directPrinting)
+		priv_testCursorForScroll();
+	else if (!priv_isCellIndexInRange(printProperties.index))
 		printProperties.index = m_cells.size() - 1;
 
 	if (m_do.updateAutomatically)
@@ -1652,6 +1673,148 @@ void ConsoleScreen::scrollRight(const unsigned int amount)
 		update();
 }
 
+void ConsoleScreen::scrollUp(unsigned int amount, sf::IntRect selectionRectangle)
+{
+	if (m_mode.y == 0 || amount == 0)
+		return;
+
+	if (!priv_isSelectionRectangleContainedInScreen(selectionRectangle))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot scroll selection up.\nThe selection rectangle is not valid.");
+		return;
+	}
+
+	std::vector<Cell> topRow(selectionRectangle.width);
+	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
+	{
+		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+		{
+			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+			{
+				if (m_do.wrapOnManualScroll && y == 0)
+					topRow[x] = m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })];
+				if (y < static_cast<unsigned int>(selectionRectangle.height) - 1)
+					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y + 1 })];
+				else if (m_do.wrapOnManualScroll)
+					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = topRow[x];
+				else
+					priv_clearCell(priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y }), true, true);
+			}
+		}
+	}
+
+	if (m_do.updateAutomatically)
+		update();
+}
+
+void ConsoleScreen::scrollDown(unsigned int amount, sf::IntRect selectionRectangle)
+{
+	if (m_mode.y == 0 || amount == 0)
+		return;
+
+	if (!priv_isSelectionRectangleContainedInScreen(selectionRectangle))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot scroll selection down.\nThe selection rectangle is not valid.");
+		return;
+	}
+
+	std::vector<Cell> bottomRow(selectionRectangle.width);
+	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
+	{
+		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+		{
+			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+			{
+				const unsigned cellY{ selectionRectangle.top + selectionRectangle.height - y - 1 };
+				if (m_do.wrapOnManualScroll && y == 0)
+					bottomRow[x] = m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY })];
+				if (cellY > static_cast<unsigned int>(selectionRectangle.top))
+					m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY })] = m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY - 1 })];
+				else if (m_do.wrapOnManualScroll)
+					m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY })] = bottomRow[x];
+				else
+					priv_clearCell(priv_cellIndex({ selectionRectangle.left + x, cellY }), true, true);
+			}
+		}
+	}
+
+	if (m_do.updateAutomatically)
+		update();
+}
+
+void ConsoleScreen::scrollLeft(unsigned int amount, sf::IntRect selectionRectangle)
+{
+	if (m_mode.x == 0 || amount == 0)
+		return;
+
+	if (!priv_isSelectionRectangleContainedInScreen(selectionRectangle))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot scroll selection left.\nThe selection rectangle is not valid.");
+		return;
+	}
+
+	std::vector<Cell> leftColumn(selectionRectangle.height);
+	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
+	{
+		for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+		{
+			for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+			{
+				if (m_do.wrapOnManualScroll && x == 0)
+					leftColumn[y] = m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })];
+				if (x < static_cast<unsigned int>(selectionRectangle.width) - 1)
+					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = m_cells[priv_cellIndex({ selectionRectangle.left + x + 1, selectionRectangle.top + y })];
+				else if (m_do.wrapOnManualScroll)
+					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = leftColumn[y];
+				else
+					priv_clearCell(priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y }), true, true);
+			}
+		}
+	}
+
+	if (m_do.updateAutomatically)
+		update();
+}
+
+void ConsoleScreen::scrollRight(unsigned int amount, sf::IntRect selectionRectangle)
+{
+	if (m_mode.x == 0 || amount == 0)
+		return;
+
+	if (!priv_isSelectionRectangleContainedInScreen(selectionRectangle))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot scroll selection right.\nThe selection rectangle is not valid.");
+		return;
+	}
+
+	std::vector<Cell> rightColumn(selectionRectangle.height);
+	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
+	{
+		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+		{
+			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+			{
+				const unsigned cellX{ selectionRectangle.left + selectionRectangle.width - x - 1 };
+				if (m_do.wrapOnManualScroll && x == 0)
+					rightColumn[y] = m_cells[priv_cellIndex({ cellX, selectionRectangle.top + y, })];
+				if (cellX > static_cast<unsigned int>(selectionRectangle.left))
+					m_cells[priv_cellIndex({ cellX, selectionRectangle.top + y })] = m_cells[priv_cellIndex({ cellX - 1, selectionRectangle.top + y })];
+				else if (m_do.wrapOnManualScroll)
+					m_cells[priv_cellIndex({ cellX, selectionRectangle.top + y })] = rightColumn[y];
+				else
+					priv_clearCell(priv_cellIndex({ cellX, selectionRectangle.top + y }), true, true);
+			}
+		}
+	}
+
+	if (m_do.updateAutomatically)
+		update();
+}
+
 void ConsoleScreen::fill(Cell cell)
 {
 	if (m_cells.size() == 0)
@@ -1838,6 +2001,9 @@ void ConsoleScreen::setPaletteColor(const Color color, const sf::Color newColor)
 	}
 
 	m_palette[color.id] = newColor;
+
+	if (m_do.updateAutomatically)
+		update();
 }
 
 sf::Color ConsoleScreen::getPaletteColor(const Color color) const
@@ -1897,6 +2063,84 @@ void ConsoleScreen::removePaletteColor(const Color color)
 	}
 
 	m_palette.erase(m_palette.begin() + color.id);
+}
+
+void ConsoleScreen::cyclePaletteUp(const long amount)
+{
+	if (m_palette.size() < 2)
+		return;
+
+	cyclePaletteUp(amount, 0, m_palette.size() - 1);
+}
+
+void ConsoleScreen::cyclePaletteDown(const long amount)
+{
+	if (m_palette.size() < 2)
+		return;
+
+	cyclePaletteDown(amount, 0, m_palette.size() - 1);
+}
+
+void ConsoleScreen::cyclePaletteUp(long amount, Color firstColor, Color lastColor)
+{
+	if (m_palette.size() < 2 || amount < 1)
+		return;
+
+	if (lastColor.id < firstColor.id)
+		std::swap(lastColor, firstColor);
+
+	if (firstColor.id < 0)
+		firstColor = 0;
+	if (lastColor.id > static_cast<long>(m_palette.size() - 1))
+		lastColor = m_palette.size() - 1;
+
+	const long rangeSize{ lastColor.id - firstColor.id + 1 };
+	amount %= rangeSize;
+
+	std::vector<sf::Color> buffer;
+	for (long i{ 0 }; i < amount; ++i)
+		buffer.emplace_back(m_palette[lastColor.id - i]);
+	for (long i{ lastColor.id }; i >= firstColor.id; --i)
+	{
+		if (i - amount >= firstColor.id)
+			m_palette[i] = m_palette[i - amount];
+		else
+			m_palette[i] = buffer[firstColor.id - (i - amount) - 1];
+	}
+
+	if (m_do.updateAutomatically)
+		update();
+}
+
+void ConsoleScreen::cyclePaletteDown(long amount, Color firstColor, Color lastColor)
+{
+	if (m_palette.size() < 2 || amount < 1)
+		return;
+
+	if (lastColor.id < firstColor.id)
+		std::swap(lastColor, firstColor);
+
+	if (firstColor.id < 0)
+		firstColor = 0;
+	if (lastColor.id > static_cast<long>(m_palette.size() - 1))
+		lastColor = m_palette.size() - 1;
+
+	const long rangeSize{ lastColor.id - firstColor.id + 1 };
+	amount %= rangeSize;
+
+	std::vector<sf::Color> buffer;
+	for (long i{ 0 }; i < amount; ++i)
+		buffer.emplace_back(m_palette[firstColor.id + i]);
+	for (long i{ firstColor.id }; i <= lastColor.id; ++i)
+	{
+		if (i + amount <= lastColor.id)
+			m_palette[i] = m_palette[i + amount];
+		else
+			m_palette[i] = buffer[i + amount - lastColor.id - 1];
+	}
+
+	if (m_do.updateAutomatically)
+		update();
 }
 
 unsigned int ConsoleScreen::copy()
@@ -2590,6 +2834,16 @@ void ConsoleScreen::priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i
 
 	if (m_do.updateAutomatically)
 		update();
+}
+
+inline bool ConsoleScreen::priv_isSelectionRectangleContainedInScreen(const sf::IntRect& selectionRectangle)
+{
+	return (selectionRectangle.left >= 0 &&
+		selectionRectangle.top >= 0 &&
+		selectionRectangle.width >= 0 &&
+		selectionRectangle.height >= 0 &&
+		static_cast<unsigned int>(selectionRectangle.left + selectionRectangle.width) < m_mode.x &&
+		static_cast<unsigned int>(selectionRectangle.top + selectionRectangle.height) < m_mode.y);
 }
 
 unsigned int ConsoleScreen::priv_getPrintIndex(sf::Vector2u location) const
