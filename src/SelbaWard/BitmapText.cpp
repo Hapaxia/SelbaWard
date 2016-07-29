@@ -138,7 +138,7 @@ void BitmapText::updateVertices()
 
 		const int kerning{ (character < m_string.length() - 1) ? m_pBitmapFont->getKerning(m_string.substr(character, 2)) : 0 };
 
-		BitmapFont::Glyph glyph{ m_pBitmapFont->getGlyph(glyphNumber) };
+		BitmapFont::Glyph glyph = m_pBitmapFont->getGlyph(glyphNumber);
 
 		const sf::Vector2f glyphOffset{ 0.f - glyph.startX, (glyph.baseline < 0) ? (0.f - glyph.baseline - glyph.textureRect.height) : (0.f - glyph.baseline) };
 		const sf::Vector2f glyphPosition{ penPosition + glyphOffset };
