@@ -104,7 +104,15 @@ void BitmapText::setScale(unsigned int scaleX, unsigned int scaleY)
 	this->Transformable::setScale(static_cast<float>(scaleX), static_cast<float>(scaleY));
 }
 
+sf::FloatRect BitmapText::getGlobalBounds() const
+{
+	return getTransform().transformRect(m_bounds);
+}
 
+sf::FloatRect BitmapText::getLocalBounds() const
+{
+	return m_bounds;
+}
 
 
 // PRIVATE
@@ -121,6 +129,8 @@ void BitmapText::updateVertices()
 	m_vertices.resize(m_string.length() * 4);
 
 	sf::Vector2f penPosition{ 0.f, 0.f };
+
+	float minX(0.f), minY(0.f), maxX(0.f), maxY(0.f);
 
 	for (unsigned int character{ 0 }; character < m_string.length(); ++character)
 	{
@@ -152,10 +162,20 @@ void BitmapText::updateVertices()
 			static_cast<float>(glyph.textureRect.top + glyph.textureRect.height));
 
 		penPosition += sf::Vector2f((glyph.width > 0) ? (0.f + m_tracking + kerning + glyph.width) : (0.f + m_tracking + kerning + glyph.width + glyph.textureRect.width - glyph.startX), 0);
+
+		minX = std::min(minX, m_vertices[character * 4 + 0].position.x);
+		maxX = std::max(maxX, m_vertices[character * 4 + 2].position.x);
+		minY = std::min(minY, m_vertices[character * 4 + 0].position.y);
+		maxY = std::max(maxY, m_vertices[character * 4 + 2].position.y);
 	}
 
 	for (unsigned int v{ 0 }; v < m_vertices.getVertexCount(); ++v)
 		m_vertices[v].color = m_color;
+
+	m_bounds.left = minX;
+	m_bounds.top = minY;
+	m_bounds.width = maxX - minX;
+	m_bounds.height = maxY - minY;
 }
 
 } // namespace selbaward
