@@ -35,9 +35,13 @@
 namespace
 {
 
-void extractScalePositionsFromTexture(const sf::Texture* const pTexture, sf::Vector2f& topLeft, sf::Vector2f& bottomRight)
+const sf::Vector2f trimAmount{ 1.f, 1.f };
+
+void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTexture, sf::Vector2f& topLeft, sf::Vector2f& bottomRight, sf::Vector2f& contentTopLeft, sf::Vector2f& contentBottomRight)
 {
 	sf::Image image{ pTexture->copyToImage() };
+
+	// scale positions
 	topLeft = { 0.f, 0.f };
 	bottomRight = { image.getSize().x - 2.f, image.getSize().y - 2.f };
 	bool foundStart{ false }, foundEnd{ false };
@@ -83,6 +87,55 @@ void extractScalePositionsFromTexture(const sf::Texture* const pTexture, sf::Vec
 				break;
 		}
 	}
+
+	// content area
+	contentTopLeft = { 0.f, 0.f };
+	contentBottomRight = { image.getSize().x - 2.f, image.getSize().y - 2.f };
+	foundStart = false;
+	foundEnd = false;
+	const sf::Vector2u textureBottomRightPixel(image.getSize() - sf::Vector2u(1, 1));
+	for (unsigned int x{ 1 }; x < image.getSize().x; ++x)
+	{
+		if (!foundStart)
+		{
+			if (image.getPixel(x, textureBottomRightPixel.y) == sf::Color::Black)
+			{
+				foundStart = true;
+				contentTopLeft.x = x - 1.f;
+			}
+			else
+				continue;
+		}
+		if (foundStart)
+		{
+			if (image.getPixel(x, textureBottomRightPixel.y) == sf::Color::Black)
+				contentBottomRight.x = x - 1.f;
+			else
+				break;
+		}
+	}
+	foundStart = false;
+	foundEnd = false;
+	for (unsigned int y{ 1 }; y < image.getSize().y; ++y)
+	{
+		if (!foundStart)
+		{
+			if (image.getPixel(textureBottomRightPixel.x, y) == sf::Color::Black)
+			{
+				foundStart = true;
+				contentTopLeft.y = y - 1.f;
+			}
+			else
+				continue;
+		}
+		if (foundStart)
+		{
+			if (image.getPixel(textureBottomRightPixel.x, y) == sf::Color::Black)
+				contentBottomRight.y = y - 1.f;
+			else
+				break;
+		}
+	}
 }
 
 } // namespace
@@ -91,23 +144,25 @@ namespace selbaward
 {
 
 NinePatch::NinePatch()
-	: m_trimAmount({ 1.f, 1.f })
-	, m_primitiveType(sf::PrimitiveType::Quads)
+	: m_primitiveType(sf::PrimitiveType::Quads)
 	, m_vertices(36, sf::Vertex({ 0.f, 0.f }))
 	, m_texture(nullptr)
 	, m_trimmedSize({ 0.f, 0.f })
 	, m_size({ 0.f, 0.f })
 	, m_scaleTopLeft({ 0.f, 0.f })
 	, m_scaleBottomRight({ 0.f, 0.f })
+	, m_contentTopLeft({ 0.f, 0.f })
+	, m_contentBottomRight({ 0.f, 0.f })
 {
 }
 
-void NinePatch::setTexture(const sf::Texture& texture)
+void NinePatch::setTexture(const sf::Texture& texture, bool resetSize)
 {
 	m_texture = &texture;
-	m_trimmedSize = sf::Vector2f(m_texture->getSize()) - m_trimAmount * 2.f;
-	m_size = m_trimmedSize;
-	extractScalePositionsFromTexture(m_texture, m_scaleTopLeft, m_scaleBottomRight);
+	m_trimmedSize = sf::Vector2f(m_texture->getSize()) - trimAmount * 2.f;
+	if (resetSize)
+		m_size = m_trimmedSize;
+	extractScalePositionsAndContentAreaFromTexture(m_texture, m_scaleTopLeft, m_scaleBottomRight, m_contentTopLeft, m_contentBottomRight);
 	priv_updateVertices();
 }
 
@@ -122,6 +177,22 @@ void NinePatch::setSize(sf::Vector2f size)
 	priv_updateVerticesPositions();
 }
 
+sf::FloatRect NinePatch::getLocalBounds() const
+{
+	return{ { 0.f, 0.f }, m_size };
+}
+
+sf::FloatRect NinePatch::getGlobalBounds() const
+{
+	return getTransform().transformRect(getLocalBounds());
+}
+
+sf::FloatRect NinePatch::getContentArea() const
+{
+	const sf::Vector2f topLeft{ priv_getResultingPositionOfTextureCoord(m_contentTopLeft) };
+	return getTransform().transformRect({ topLeft, priv_getResultingPositionOfTextureCoord(m_contentBottomRight) - topLeft });
+}
+
 
 
 // PRIVATE
@@ -129,6 +200,7 @@ void NinePatch::setSize(sf::Vector2f size)
 void NinePatch::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.texture = m_texture;
+	states.transform = getTransform();
 	target.draw(&m_vertices.front(), 36, m_primitiveType, states);
 }
 
@@ -246,7 +318,31 @@ void NinePatch::priv_updateVerticesTexCoords()
 
 	// offset trim
 	for (auto& vertex : m_vertices)
-		vertex.texCoords += m_trimAmount;
+		vertex.texCoords += trimAmount;
+}
+
+sf::Vector2f NinePatch::priv_getResultingPositionOfTextureCoord(sf::Vector2f textureCoord) const
+{
+	sf::Vector2f result;
+
+	const sf::Vector2f newBottomRightScaled{ m_size - (m_trimmedSize - m_scaleBottomRight) };
+	const sf::Vector2f scaleSize{ m_scaleBottomRight - m_scaleTopLeft };
+	const sf::Vector2f newScaleSize{ newBottomRightScaled - m_scaleTopLeft };
+
+	if (textureCoord.x <= m_scaleTopLeft.x)
+		result.x = textureCoord.x;
+	else if (textureCoord.x >= m_scaleBottomRight.x)
+		result.x = newBottomRightScaled.x + (textureCoord.x - m_scaleBottomRight.x); // brackets are to help clarity
+	else
+		result.x = ((textureCoord.x - m_scaleTopLeft.x) / scaleSize.x) * newScaleSize.x + m_scaleTopLeft.x;
+	if (textureCoord.y <= m_scaleTopLeft.y)
+		result.y = textureCoord.y;
+	else if (textureCoord.y >= m_scaleBottomRight.y)
+		result.y = newBottomRightScaled.y + (textureCoord.y - m_scaleBottomRight.y); // brackets are to help clarity
+	else
+		result.y = ((textureCoord.y - m_scaleTopLeft.y) / (scaleSize.y)) * newScaleSize.y + m_scaleTopLeft.y;
+
+	return result;
 }
 
 } // namespace selbaward
