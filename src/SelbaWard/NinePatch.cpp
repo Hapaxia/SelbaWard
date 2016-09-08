@@ -177,6 +177,11 @@ void NinePatch::setSize(sf::Vector2f size)
 	priv_updateVerticesPositions();
 }
 
+void NinePatch::resetSize()
+{
+	setSize(m_trimmedSize);
+}
+
 sf::FloatRect NinePatch::getLocalBounds() const
 {
 	return{ { 0.f, 0.f }, m_size };
@@ -190,7 +195,7 @@ sf::FloatRect NinePatch::getGlobalBounds() const
 sf::FloatRect NinePatch::getContentArea() const
 {
 	const sf::Vector2f topLeft{ priv_getResultingPositionOfTextureCoord(m_contentTopLeft) };
-	return getTransform().transformRect({ topLeft, priv_getResultingPositionOfTextureCoord(m_contentBottomRight) - topLeft });
+	return getTransform().transformRect({ topLeft, priv_getResultingPositionOfTextureCoord(m_contentBottomRight) - topLeft + sf::Vector2f(1.f, 1.f) });
 }
 
 
