@@ -30,7 +30,35 @@
 #ifndef SELBAWARD_COMMON_HPP
 #define SELBAWARD_COMMON_HPP
 
-#include "Exception.hpp"
+#include <exception>
+#include <string>
+
+#ifdef _MSC_VER
+#define NOEXCEPT
+#else
+#define NOEXCEPT noexcept
+#endif
+
+namespace selbaward
+{
+
+class Exception : public std::exception
+{
+public:
+	Exception(const std::string& errorMessage = "Unknown error.") :
+		m_errorMessage("[Selba Ward] " + errorMessage)
+	{
+	}
+	virtual const char* what() const NOEXCEPT override
+	{
+		return m_errorMessage.c_str();
+	}
+
+private:
+	std::string m_errorMessage;
+};
+
+} // namespace selbaward
 
 #ifndef SELBAWARD_NO_NAMESPACE_SHORTCUT
 namespace sw = selbaward; // create shortcut namespace
