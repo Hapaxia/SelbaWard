@@ -4,7 +4,7 @@
 ![Selba Ward](http://i.imgur.com/0k0um5B.jpg)
 
 A collection of SFML drawables  
-by [Hapax](http://github.com/Hapaxia)
+by [Hapaxia](http://github.com/Hapaxia)
 
 Contents: **Bitmap Text**, **Console Screen**, **Crosshair**, **Gallery Sprite**, **Line**, **Nine Patch**, **Pie Chart**, **Progress Bar**, **Ring**, **Spinning Card**, **Spline**, **Sprite 3D**, **Starfield**, **Tile Map**
 
