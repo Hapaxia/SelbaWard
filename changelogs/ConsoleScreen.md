@@ -1,6 +1,10 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2016-09-08
+### Fixed
+- Selection rectangle size information is now correct
+
 ## [2.1.0] - 2016-07-21
 ### Added
 - Ability to cycle colours
@@ -102,6 +106,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[2.1.1]: https://github.com/Hapaxia/SelbaWard/commit/fb7a2babede652359015497a2dc494dddde1d824
 [2.1.0]: https://github.com/Hapaxia/SelbaWard/commit/d4f771265a3ba6b90b88b59d7b41c8bc835c8db3
 [2.0.0]: https://github.com/Hapaxia/SelbaWard/commit/79ab58b379bb0fe540edfab26ec22324a20ca5a6
 [1.5.0]: https://github.com/Hapaxia/SelbaWard/commit/9cb2c06b2be8941f418d7eb03c1be893999af063
