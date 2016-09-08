@@ -2842,8 +2842,8 @@ inline bool ConsoleScreen::priv_isSelectionRectangleContainedInScreen(const sf::
 		selectionRectangle.top >= 0 &&
 		selectionRectangle.width >= 0 &&
 		selectionRectangle.height >= 0 &&
-		static_cast<unsigned int>(selectionRectangle.left + selectionRectangle.width) < m_mode.x &&
-		static_cast<unsigned int>(selectionRectangle.top + selectionRectangle.height) < m_mode.y);
+		static_cast<unsigned int>(selectionRectangle.left + selectionRectangle.width) <= m_mode.x &&
+		static_cast<unsigned int>(selectionRectangle.top + selectionRectangle.height) <= m_mode.y);
 }
 
 unsigned int ConsoleScreen::priv_getPrintIndex(sf::Vector2u location) const

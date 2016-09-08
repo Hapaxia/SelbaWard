@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Console Screen v2.1.0
+// SW Console Screen v2.1.1
 class ConsoleScreen : public sf::Drawable, public sf::Transformable
 {
 public:
