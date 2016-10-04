@@ -176,7 +176,7 @@ void Line::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		target.draw(m_vertices, states);
 }
 
-inline bool Line::isThick() const
+bool Line::isThick() const
 {
 	return (m_thickness >= thicknessEpsilon || m_thickness <= -thicknessEpsilon);
 }
