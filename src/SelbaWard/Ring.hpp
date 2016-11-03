@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Ring v1.1.0
+// SW Ring v1.1.1
 class Ring : public sf::Drawable, public sf::Transformable
 {
 public:

@@ -33,6 +33,7 @@
 #include "Ring.hpp"
 
 #include <SFML/Graphics/Texture.hpp>
+#include <cmath>
 
 namespace
 {
@@ -87,10 +88,11 @@ void Ring::setNumberOfSides(const unsigned int numberOfSides)
 	priv_updateVertices();
 }
 
-std::size_t Ring::getNumberOfSides() const
+unsigned int Ring::getNumberOfSides() const
 {
 	return m_numberOfSides;
 }
+
 void Ring::setColor(const sf::Color color)
 {
 	m_color = color;
