@@ -41,7 +41,7 @@
 namespace selbaward
 {
 
-// SW Line v1.1.1
+// SW Line v1.1.2
 class Line : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -52,11 +52,11 @@ public:
 	};
 
 	Line();
-	Line(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition);
+	Line(sf::Vector2f startPosition, sf::Vector2f endPosition);
 	template <class T>
-	Line(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition, T thickness, const sf::Color& color = sf::Color::White);
-	void setPoint(unsigned int index, const sf::Vector2f& position);
-	void setPoints(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition);
+	Line(sf::Vector2f startPosition, sf::Vector2f endPosition, T thickness, const sf::Color& color = sf::Color::White);
+	void setPoint(unsigned int index, sf::Vector2f position);
+	void setPoints(sf::Vector2f startPosition, sf::Vector2f endPosition);
 	sf::Vector2f getPoint(unsigned int index) const;
 	sf::FloatRect getLocalBounds() const; // currently get bounds of only the points, not the corners of a line with thickness (basically, thickness is ignored)
 	sf::FloatRect getGlobalBounds() const; // currently get bounds of only the points, not the corners of a line with thickness (basically, thickness is ignored)
@@ -91,8 +91,8 @@ private:
 };
 
 template <class T>
-Line::Line(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition, T thickness, const sf::Color& color) :
-Line()
+inline Line::Line(const sf::Vector2f startPosition, const sf::Vector2f endPosition, const T thickness, const sf::Color& color)
+	: Line()
 {
 	setColor(color);
 	setPoints(startPosition, endPosition);
@@ -100,7 +100,7 @@ Line()
 }
 
 template <class T>
-void Line::setThickness(T thickness)
+inline void Line::setThickness(const T thickness)
 {
 	m_thickness = static_cast<float>(thickness);
 

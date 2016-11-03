@@ -58,13 +58,13 @@ Line::Line()
 {
 }
 
-Line::Line(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition)
+Line::Line(const sf::Vector2f startPosition, const sf::Vector2f endPosition)
 	: Line()
 {
 	setPoints(startPosition, endPosition);
 }
 
-void Line::setPoint(unsigned int index, const sf::Vector2f& position)
+void Line::setPoint(const unsigned int index, const sf::Vector2f position)
 {
 	if (index > 1)
 		return;
@@ -74,7 +74,7 @@ void Line::setPoint(unsigned int index, const sf::Vector2f& position)
 		updateRectangle();
 }
 
-void Line::setPoints(const sf::Vector2f& startPosition, const sf::Vector2f& endPosition)
+void Line::setPoints(const sf::Vector2f startPosition, const sf::Vector2f endPosition)
 {
 	m_vertices[0].position = startPosition;
 	m_vertices[1].position = endPosition;
@@ -83,7 +83,7 @@ void Line::setPoints(const sf::Vector2f& startPosition, const sf::Vector2f& endP
 		updateRectangle();
 }
 
-sf::Vector2f Line::getPoint(unsigned int index) const
+sf::Vector2f Line::getPoint(const unsigned int index) const
 {
 	if (index > 1)
 		return{ 0.f, 0.f };
