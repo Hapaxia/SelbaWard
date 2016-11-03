@@ -34,62 +34,102 @@
 
 #include "Sprite3d.hpp"
 
+namespace
+{
+
+inline float linearInterpolation(const float from, const float to, const float alpha)
+{
+	return from * (1.f - alpha) + to * alpha;
+}
+
+inline float mod(const float numerator, float denominator)
+{
+	// avoid division by zero (if more accuracy is required, only offset the divided denominator, still use the actual denominator to multiply back as zero multiplication is fine)
+	if (denominator > -0.000001f && denominator < 0.000001f)
+		denominator = 0.000001f;
+
+	return numerator - (trunc(numerator / denominator) * denominator);
+}
+
+inline float min(const float a, const float b)
+{
+	return (a < b) ? a : b;
+}
+
+inline float max(const float a, const float b)
+{
+	return (a > b) ? a : b;
+}
+
+template <class T>
+inline T abs(const T value)
+{
+	return value < 0 ? -value : value;
+}
+
+inline sf::Vector2i abs(const sf::Vector2i& vector)
+{
+	return{ abs(vector.x), abs(vector.y) };
+}
+
+} // namespace
+
 namespace selbaward
 {
 
-Sprite3d::Sprite3d() :
-m_depthToShallownessConversionNumerator(10000.f),
-m_pitch(0.f),
-m_yaw(0.f),
-m_depth(10.f),
-m_shallowness(m_depthToShallownessConversionNumerator / m_depth),
-m_meshDensity(0u),
-m_flipBack(false),
-m_pTexture(nullptr),
-m_pBackTexture(nullptr),
-m_textureOffset(),
-m_backTextureOffset(),
-m_size(),
-m_useDynamicSubdivision(false),
-m_minSubdivision(1u),
-m_maxSubdivision(4u),
-m_subdivision(0u),
-m_subdividedMeshDensity(0u),
-m_points(4),
-m_transformedPoints(4),
-m_origin(),
-m_vertices(4),
-m_isBackFacing(false),
-m_compactTransformMatrix(8, 0.f), // was 5. is now 8 to take into account z (for origin's z)
-m_topLeft(),
-m_topRight(),
-m_bottomLeft(),
-m_bottomRight()
+Sprite3d::Sprite3d()
+	: m_depthToShallownessConversionNumerator(10000.f)
+	, m_pitch(0.f)
+	, m_yaw(0.f)
+	, m_depth(10.f)
+	, m_shallowness(m_depthToShallownessConversionNumerator / m_depth)
+	, m_meshDensity(0u)
+	, m_flipBack(false)
+	, m_pTexture(nullptr)
+	, m_pBackTexture(nullptr)
+	, m_textureOffset()
+	, m_backTextureOffset()
+	, m_size()
+	, m_useDynamicSubdivision(false)
+	, m_minSubdivision(1u)
+	, m_maxSubdivision(4u)
+	, m_subdivision(0u)
+	, m_subdividedMeshDensity(0u)
+	, m_points(4)
+	, m_transformedPoints(4)
+	, m_origin()
+	, m_vertices(4)
+	, m_isBackFacing(false)
+	, m_compactTransformMatrix(8, 0.f) // was 5. is now 8 to take into account z (for origin's z)
+	, m_topLeft()
+	, m_topRight()
+	, m_bottomLeft()
+	, m_bottomRight()
 {
 }
 
-Sprite3d::Sprite3d(const sf::Texture& texture) :
-Sprite3d()
+Sprite3d::Sprite3d(const sf::Texture& texture)
+	: Sprite3d()
 {
 	setTexture(texture);
 }
 
-Sprite3d::Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect) :
-Sprite3d()
+Sprite3d::Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect)
+	: Sprite3d()
 {
 	setTexture(texture);
 	setTextureRect(textureRect);
 }
 
-Sprite3d::Sprite3d(const sf::Texture& texture, const sf::Texture& backTexture) :
-Sprite3d()
+Sprite3d::Sprite3d(const sf::Texture& texture, const sf::Texture& backTexture)
+	: Sprite3d()
 {
 	setTexture(texture);
 	setBackTexture(backTexture);
 }
 
-Sprite3d::Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect, const sf::Texture& backTexture, sf::Vector2i backTextureOffset) :
-Sprite3d()
+Sprite3d::Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect, const sf::Texture& backTexture, const sf::Vector2i backTextureOffset)
+	: Sprite3d()
 {
 	setTexture(texture);
 	setTextureRect(textureRect);
@@ -97,8 +137,8 @@ Sprite3d()
 	setBackTextureOffset(backTextureOffset);
 }
 
-Sprite3d::Sprite3d(const sf::Sprite& sprite) :
-Sprite3d()
+Sprite3d::Sprite3d(const sf::Sprite& sprite)
+	: Sprite3d()
 {
 	setTexture(*sprite.getTexture());
 	setTextureRect(sprite.getTextureRect());
@@ -165,7 +205,7 @@ const sf::Texture* Sprite3d::getTexture() const
 
 sf::IntRect Sprite3d::getTextureRect() const
 {
-	return sf::IntRect(m_textureOffset, m_size);
+	return{ m_textureOffset, m_size };
 }
 
 const sf::Texture* Sprite3d::getBackTexture() const
@@ -183,7 +223,7 @@ sf::Vector2i Sprite3d::getTextureOffset() const
 	return m_textureOffset;
 }
 
-void Sprite3d::setTextureOffset(sf::Vector2i textureOffset)
+void Sprite3d::setTextureOffset(const sf::Vector2i textureOffset)
 {
 	m_textureOffset = textureOffset;
 }
@@ -193,7 +233,7 @@ sf::Vector2i Sprite3d::getBackTextureOffset() const
 	return m_backTextureOffset;
 }
 
-void Sprite3d::setBackTextureOffset(sf::Vector2i backTextureOffset)
+void Sprite3d::setBackTextureOffset(const sf::Vector2i backTextureOffset)
 {
 	m_backTextureOffset = backTextureOffset;
 }
@@ -235,7 +275,7 @@ sf::Vector3f Sprite3d::getOrigin3d() const
 	return{ origin2d.x, origin2d.y, m_origin.z };
 }
 
-void Sprite3d::setPitch(float pitch)
+void Sprite3d::setPitch(const float pitch)
 {
 	m_pitch = pitch;
 	while (m_pitch > 180.f)
@@ -244,7 +284,7 @@ void Sprite3d::setPitch(float pitch)
 		m_pitch += 360.f;
 }
 
-void Sprite3d::setYaw(float yaw)
+void Sprite3d::setYaw(const float yaw)
 {
 	m_yaw = yaw;
 	while (m_yaw > 180.f)
@@ -253,45 +293,45 @@ void Sprite3d::setYaw(float yaw)
 		m_yaw += 360.f;
 }
 
-void Sprite3d::setRoll(float roll)
+void Sprite3d::setRoll(const float roll)
 {
 	this->Transformable::setRotation(roll);
 }
 
-void Sprite3d::setRotation(float rotation)
+void Sprite3d::setRotation(const float rotation)
 {
 	setRoll(rotation);
 }
 
-void Sprite3d::setRotation(sf::Vector3f rotation)
+void Sprite3d::setRotation(const sf::Vector3f rotation)
 {
 	setRotation3d(rotation);
 }
 
-void Sprite3d::setRotation3d(sf::Vector3f rotation)
+void Sprite3d::setRotation3d(const sf::Vector3f rotation)
 {
 	setPitch(rotation.x);
 	setYaw(rotation.y);
 	setRoll(rotation.z);
 }
 
-void Sprite3d::setOriginZ(float originZ)
+void Sprite3d::setOriginZ(const float originZ)
 {
 	m_origin.z = originZ;
 }
 
-void Sprite3d::setOrigin(sf::Vector2f origin)
+void Sprite3d::setOrigin(const sf::Vector2f origin)
 {
 	this->Transformable::setOrigin(origin);
 	m_origin.z = 0.f; // reset origin's z back to zero when setting a 2D origin
 }
 
-void Sprite3d::setOrigin(sf::Vector3f origin)
+void Sprite3d::setOrigin(const sf::Vector3f origin)
 {
 	setOrigin3d(origin);
 }
 
-void Sprite3d::setOrigin3d(sf::Vector3f origin)
+void Sprite3d::setOrigin3d(const sf::Vector3f origin)
 {
 	setOrigin(sf::Vector2f(origin.x, origin.y));
 	setOriginZ(origin.z);
@@ -299,13 +339,13 @@ void Sprite3d::setOrigin3d(sf::Vector3f origin)
 
 float Sprite3d::getMostExtremeAngle() const
 {
-	float pitch = std::abs(m_pitch);
+	float pitch{ abs(m_pitch) };
 	if (pitch > 90.f)
 		pitch = 180.f - pitch;
-	float yaw = std::abs(m_yaw);
+	float yaw{ abs(m_yaw) };
 	if (yaw > 90.f)
 		yaw = 180.f - yaw;
-	return std::max(pitch, yaw);
+	return max(pitch, yaw);
 }
 
 void Sprite3d::setMeshDensity(const unsigned int meshDensity)
@@ -327,11 +367,11 @@ unsigned int Sprite3d::getSubdividedMeshDensity() const
 
 void Sprite3d::reserveMeshDensity(const unsigned int meshDensity)
 {
-	const unsigned int numberOfPointsPerDimension = meshDensity + 2;
+	const unsigned int numberOfPointsPerDimension{ meshDensity + 2u };
 	m_points.reserve(numberOfPointsPerDimension * numberOfPointsPerDimension);
 	m_transformedPoints.reserve(m_points.size());
 
-	const unsigned int currentSubdividedMeshDensity = m_subdividedMeshDensity;
+	const unsigned int currentSubdividedMeshDensity{ m_subdividedMeshDensity };
 	m_subdividedMeshDensity = meshDensity;
 	m_vertices.reserve(getNumberOfVerticesNeededForCurrentSubdividedMeshDensity());
 	m_subdividedMeshDensity = currentSubdividedMeshDensity;
@@ -346,8 +386,7 @@ void Sprite3d::setDynamicSubdivisionRange(unsigned int maximum, unsigned int min
 {
 	if (maximum < minimum)
 	{
-		unsigned int temp;
-		temp = maximum;
+		const unsigned int temp{ maximum };
 		maximum = minimum;
 		minimum = temp;
 	}
@@ -367,7 +406,7 @@ void Sprite3d::setSubdivision(const unsigned int subdivision) const
 
 	m_subdividedMeshDensity = m_meshDensity;
 
-	for (unsigned int i = 0; i < m_subdivision; ++i)
+	for (unsigned int i{ 0u }; i < m_subdivision; ++i)
 		m_subdividedMeshDensity = m_subdividedMeshDensity * 2 + 1;
 
 	createPointGrid();
@@ -381,7 +420,7 @@ unsigned int Sprite3d::getSubdivision() const
 
 void Sprite3d::setNumberOfPoints(const unsigned int numberOfPoints)
 {
-	unsigned int root = static_cast<unsigned int>(sqrt(numberOfPoints));
+	const unsigned int root{ static_cast<unsigned int>(sqrt(numberOfPoints)) };
 	if (root > 2)
 		setMeshDensity(root - 2);
 	else
@@ -390,7 +429,7 @@ void Sprite3d::setNumberOfPoints(const unsigned int numberOfPoints)
 
 void Sprite3d::setNumberOfQuads(const unsigned int numberOfQuads)
 {
-	unsigned int root = static_cast<unsigned int>(sqrt(numberOfQuads));
+	const unsigned int root{ static_cast<unsigned int>(sqrt(numberOfQuads)) };
 	if (root > 1)
 		setMeshDensity(root - 1);
 	else
@@ -405,7 +444,7 @@ void Sprite3d::minimalMesh()
 
 sf::FloatRect Sprite3d::getLocalBounds() const
 {
-	return sf::FloatRect(sf::Vector2f(0.f, 0.f), sf::Vector2f(abs(m_size)));
+	return{ { 0.f, 0.f }, sf::Vector2f(abs(m_size)) };
 }
 
 sf::FloatRect Sprite3d::getGlobalBounds() const
@@ -413,12 +452,12 @@ sf::FloatRect Sprite3d::getGlobalBounds() const
 	updateTransformedPoints();
 	updateGlobalCorners();
 
-	float minX = min(m_topLeft.x, min(m_topRight.x, min(m_bottomLeft.x, m_bottomRight.x)));
-	float maxX = max(m_topLeft.x, max(m_topRight.x, max(m_bottomLeft.x, m_bottomRight.x)));
-	float minY = min(m_topLeft.y, min(m_topRight.y, min(m_bottomLeft.y, m_bottomRight.y)));
-	float maxY = max(m_topLeft.y, max(m_topRight.y, max(m_bottomLeft.y, m_bottomRight.y)));
+	const float minX{ min(m_topLeft.x, min(m_topRight.x, min(m_bottomLeft.x, m_bottomRight.x))) };
+	const float maxX{ max(m_topLeft.x, max(m_topRight.x, max(m_bottomLeft.x, m_bottomRight.x))) };
+	const float minY{ min(m_topLeft.y, min(m_topRight.y, min(m_bottomLeft.y, m_bottomRight.y))) };
+	const float maxY{ max(m_topLeft.y, max(m_topRight.y, max(m_bottomLeft.y, m_bottomRight.y))) };
 
-	return sf::FloatRect(sf::Vector2f(minX, minY), sf::Vector2f(maxX - minX, maxY - minY));
+	return{ { minX, minY }, { maxX - minX, maxY - minY } };
 }
 
 void Sprite3d::setDepth(const float depth)
@@ -440,7 +479,7 @@ void Sprite3d::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		updateVertices();
 		states.transform *= getTransform();
 
-		if (m_isBackFacing && m_pBackTexture != nullptr)
+		if (m_isBackFacing && (m_pBackTexture != nullptr))
 			states.texture = m_pBackTexture;
 		else
 			states.texture = m_pTexture;
@@ -455,14 +494,14 @@ void Sprite3d::updateTransformedPoints() const
 		setSubdivision(static_cast<unsigned int>((m_maxSubdivision - m_minSubdivision) * getMostExtremeAngle() / 90.f + m_minSubdivision));
 
 	m_origin = { this->getOrigin().x, this->getOrigin().y, m_origin.z };
-	const float radiansFromDegreesMultiplier = 0.0174532925f; // pi / 180;
-	const float pitchInRadians = m_pitch * radiansFromDegreesMultiplier;
-	const float yawInRadians = m_yaw * radiansFromDegreesMultiplier;
+	const float radiansFromDegreesMultiplier{ 0.0174532925f }; // pi / 180;
+	const float pitchInRadians{ m_pitch * radiansFromDegreesMultiplier };
+	const float yawInRadians{ m_yaw * radiansFromDegreesMultiplier };
 
-	const float cosPitch = cos(pitchInRadians);
-	const float sinPitch = sin(pitchInRadians);
-	const float cosYaw = cos(yawInRadians);
-	const float sinYaw = sin(yawInRadians);
+	const float cosPitch{ cos(pitchInRadians) };
+	const float sinPitch{ sin(pitchInRadians) };
+	const float cosYaw{ cos(yawInRadians) };
+	const float sinYaw{ sin(yawInRadians) };
 
 	/*******************************************************
 	*          Pitch and Yaw combined matrix               *
@@ -476,9 +515,9 @@ void Sprite3d::updateTransformedPoints() const
 	//m_compactTransformMatrix = { cosYaw, sinYaw, sinPitch * sinYaw, cosPitch, -sinPitch * cosYaw }; // only the five used elements
 	m_compactTransformMatrix = { cosYaw, sinYaw, sinPitch * sinYaw, cosPitch, -sinPitch * cosYaw, -cosPitch * sinYaw, sinPitch, cosPitch * cosYaw }; // all eight used elements
 
-	for (unsigned int v = 0; v < m_points.size(); ++v)
+	for (unsigned int v{ 0u }; v < m_points.size(); ++v)
 	{
-		sf::Vector3f point = m_points[v];
+		sf::Vector3f point{ m_points[v] };
 
 		point -= m_origin;
 		point =
@@ -495,7 +534,7 @@ void Sprite3d::updateTransformedPoints() const
 		point *= m_shallowness / (m_shallowness + point.z); // apply depth
 		point += m_origin;
 
-		m_transformedPoints[v] = sf::Vector2f(point.x, point.y);
+		m_transformedPoints[v] = { point.x, point.y };
 	}
 
 	updateGlobalCorners();
@@ -509,15 +548,15 @@ void Sprite3d::updateTransformedPoints() const
 
 void Sprite3d::updateVertices() const
 {
-	sf::Vector2i currentTextureOffset = m_textureOffset;
+	sf::Vector2i currentTextureOffset{ m_textureOffset };
 	if (m_isBackFacing)
 		currentTextureOffset = m_backTextureOffset;
 
 	// create a mesh (triangle strip) from the points
-	for (unsigned int v = 0; v < m_vertices.size(); ++v)
+	for (unsigned int v{ 0u }; v < m_vertices.size(); ++v)
 	{
-		const unsigned int pointIndex = getPointIndexForVertexIndex(v);
-		const unsigned int texturePointIndex = getPointIndexForVertexIndex(v, m_isBackFacing && m_flipBack);
+		const unsigned int pointIndex{ getPointIndexForVertexIndex(v) };
+		const unsigned int texturePointIndex{ getPointIndexForVertexIndex(v, m_isBackFacing && m_flipBack) };
 
 		// update vertex
 		m_vertices[v].position = m_transformedPoints[pointIndex];
@@ -540,13 +579,13 @@ void Sprite3d::createPointGrid() const
 	sf::Vector2f leftTop(0.f, 0.f);
 	sf::Vector2f rightBottom(abs(m_size));
 
-	const unsigned int numberOfPointsPerDimension = m_subdividedMeshDensity + 2;
+	const unsigned int numberOfPointsPerDimension{ m_subdividedMeshDensity + 2u };
 
 	// create a grid of points
 	m_points.resize(numberOfPointsPerDimension * numberOfPointsPerDimension);
-	for (unsigned int y = 0; y < numberOfPointsPerDimension; ++y)
+	for (unsigned int y{ 0u }; y < numberOfPointsPerDimension; ++y)
 	{
-		for (unsigned int x = 0; x < numberOfPointsPerDimension; ++x)
+		for (unsigned int x{ 0u }; x < numberOfPointsPerDimension; ++x)
 		{
 			m_points[y * numberOfPointsPerDimension + x].x = linearInterpolation(leftTop.x, rightBottom.x, static_cast<float>(x) / (numberOfPointsPerDimension - 1));
 			m_points[y * numberOfPointsPerDimension + x].y = linearInterpolation(leftTop.y, rightBottom.y, static_cast<float>(y) / (numberOfPointsPerDimension - 1));
@@ -559,16 +598,16 @@ void Sprite3d::createPointGrid() const
 
 unsigned int Sprite3d::getPointIndexForVertexIndex(const unsigned int vertexIndex, const bool invertPointX) const
 {
-	const unsigned int numberOfPointsPerDimension = m_subdividedMeshDensity + 2;
-	const unsigned int numberOfVerticesPerRow = numberOfPointsPerDimension * 2 - 1;
+	const unsigned int numberOfPointsPerDimension{ m_subdividedMeshDensity + 2u };
+	const unsigned int numberOfVerticesPerRow{ numberOfPointsPerDimension * 2u - 1u };
 
-	bool isOddRow = ((vertexIndex / numberOfVerticesPerRow) % 2) == 1;
-	unsigned int pointX = (vertexIndex % numberOfVerticesPerRow) / 2;
+	const bool isOddRow{ ((vertexIndex / numberOfVerticesPerRow) % 2) == 1 };
+	unsigned int pointX{ (vertexIndex % numberOfVerticesPerRow) / 2 };
 	if (isOddRow)
 		pointX = numberOfPointsPerDimension - pointX - 1;
 	if (invertPointX)
 		pointX = numberOfPointsPerDimension - pointX - 1;
-	unsigned int pointY = (vertexIndex / numberOfVerticesPerRow) + ((vertexIndex % numberOfVerticesPerRow) % 2);
+	unsigned int pointY{ (vertexIndex / numberOfVerticesPerRow) + ((vertexIndex % numberOfVerticesPerRow) % 2) };
 
 	return pointY * numberOfPointsPerDimension + pointX;
 }
@@ -602,35 +641,6 @@ unsigned int Sprite3d::getNumberOfVerticesNeededForCurrentSubdividedMeshDensity(
 	= m(2m + 5) + 4
 	*/
 	return (m_subdividedMeshDensity * 2 + 5) * m_subdividedMeshDensity + 4;
-}
-
-float Sprite3d::linearInterpolation(float from, float to, float alpha) const
-{
-	return from * (1.f - alpha) + to * alpha;
-}
-
-float Sprite3d::mod(float numerator, float denominator) const
-{
-	// avoid division by zero (if more accuracy is required, only offset the divided denominator, still use the actual denominator to multiply back as zero multiplication is fine)
-	if (denominator > -0.000001f && denominator < 0.000001f)
-		denominator = 0.000001f;
-
-	return numerator - (trunc(numerator / denominator) * denominator);
-}
-
-float Sprite3d::min(float a, float b) const
-{
-	return (a < b) ? a : b;
-}
-
-float Sprite3d::max(float a, float b) const
-{
-	return (a > b) ? a : b;
-}
-
-sf::Vector2i Sprite3d::abs(const sf::Vector2i& vector) const
-{
-	return sf::Vector2i(std::abs(vector.x), std::abs(vector.y));
 }
 
 } // namespace selbaward

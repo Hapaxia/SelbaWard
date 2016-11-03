@@ -44,7 +44,7 @@
 namespace selbaward
 {
 
-// Sprite3d version 1.1.1
+// Sprite3d version 1.1.2
 class Sprite3d : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -84,8 +84,8 @@ public:
 
 	void setBackTexture(const sf::Texture& texture, bool resetOffset = false);
 	void setBackFlipEnabled(bool flipBack = true);
-	void setTextureOffset(sf::Vector2i textureOffset = sf::Vector2i());
-	void setBackTextureOffset(sf::Vector2i backTextureOffset = sf::Vector2i());
+	void setTextureOffset(sf::Vector2i textureOffset = { 0, 0 });
+	void setBackTextureOffset(sf::Vector2i backTextureOffset = { 0, 0 });
 
 
 
@@ -188,11 +188,6 @@ private:
 
 	unsigned int getPointIndexForVertexIndex(unsigned int vertexIndex, bool invertPointX = false) const;
 	unsigned int getNumberOfVerticesNeededForCurrentSubdividedMeshDensity() const;
-	float linearInterpolation(float from, float to, float alpha) const;
-	float mod(float numerator, float denominator) const;
-	float min(float a, float b) const;
-	float max(float a, float b) const;
-	sf::Vector2i abs(const sf::Vector2i& vector) const;
 };
 
 } // namespace selbaward
