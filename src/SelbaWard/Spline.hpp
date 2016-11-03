@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.0.0
+// SW Spline v1.0.1
 class Spline : public sf::Drawable
 {
 public:
@@ -51,15 +51,15 @@ public:
 		Vertex(sf::Vector2f newPosition) : position(newPosition) {}
 	};
 
-	Spline(unsigned int vertexCount = 0, sf::Vector2f initialPosition = { 0.f, 0.f });
+	Spline(unsigned int vertexCount = 0u, sf::Vector2f initialPosition = { 0.f, 0.f });
 	void update();
 
 	Vertex& operator[] (unsigned int index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
 
-	const unsigned int getVertexCount() const;
-	const unsigned int getLastVertexIndex() const;
-	const float getLength() const; // returns the length of (linear) spline - the sum of the lengths of all of the lines between consecutive vertices
-	const float getInterpolatedLength() const; // returns the actual length of the spline - the sum of the lengths of all of the line segments drawn
+	unsigned int getVertexCount() const;
+	unsigned int getLastVertexIndex() const;
+	float getLength() const; // returns the length of (linear) spline - the sum of the lengths of all of the lines between consecutive vertices
+	float getInterpolatedLength() const; // returns the actual length of the spline - the sum of the lengths of all of the line segments drawn
 
 	void reserveVertices(unsigned int numberOfVertices);
 
@@ -76,35 +76,35 @@ public:
 	void setPosition(unsigned int index, sf::Vector2f position = { 0.f, 0.f });
 	void setPositions(unsigned int index, unsigned int numberOfVertices = 0u, sf::Vector2f position = { 0.f, 0.f }); // if numberOfvertices is zero (the default), sets positions of all vertices from specified index until the end
 	void setPositions(const std::vector<sf::Vector2f>& positions, unsigned int index = 0u);
-	const sf::Vector2f getPosition(unsigned int index) const;
+	sf::Vector2f getPosition(unsigned int index) const;
 
 	void setFrontHandle(unsigned int index, sf::Vector2f offset);
-	const sf::Vector2f getFrontHandle(unsigned int index) const;
+	sf::Vector2f getFrontHandle(unsigned int index) const;
 
 	void setBackHandle(unsigned int index, sf::Vector2f offset);
-	const sf::Vector2f getBackHandle(unsigned int index) const;
+	sf::Vector2f getBackHandle(unsigned int index) const;
 
 	void resetHandles(unsigned int index = 0u, unsigned int numberOfVertices = 0u); // if numberOfvertices is zero (the default), reset handles for all vertices from specified index until the end. if no index is specified, all handles are reset
 
 	void smoothHandles();
 
 	void setHandlesVisible(bool handlesVisible = true);
-	const bool getHandlesVisible() const;
+	bool getHandlesVisible() const;
 
 	void setColor(sf::Color color);
-	const sf::Color getColor() const;
+	sf::Color getColor() const;
 
 	void setInterpolationSteps(unsigned int interpolationSteps);
-	const unsigned int getInterpolationSteps() const;
+	unsigned int getInterpolationSteps() const;
 
 	void setHandleMirrorLockEnabled(bool enableHandleMirrorLock = true);
 	void setHandleAngleLockEnabled(bool enableHandleAngleLock = true);
 
 	void setBezierInterpolationEnabled(bool enableBezierInterpolation = true);
-	const bool getBezierInterpolationEnabled() const;
+	bool getBezierInterpolationEnabled() const;
 
 	void setPrimitiveType(sf::PrimitiveType primitiveType);
-	const sf::PrimitiveType getPrimitiveType() const;
+	sf::PrimitiveType getPrimitiveType() const;
 
 private:
 	bool m_throwExceptions;
@@ -123,8 +123,8 @@ private:
 	bool m_lockHandleAngle;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-	const bool priv_isValidVertexIndex(unsigned int vertexIndex) const;
-	const bool priv_testVertexIndex(unsigned int vertexIndex, const std::string& exceptionMessage) const;
+	bool priv_isValidVertexIndex(unsigned int vertexIndex) const;
+	bool priv_testVertexIndex(unsigned int vertexIndex, const std::string& exceptionMessage) const;
 };
 
 inline Spline::Vertex& Spline::operator[] (const unsigned int index)
@@ -132,37 +132,37 @@ inline Spline::Vertex& Spline::operator[] (const unsigned int index)
 	return m_vertices[index];
 }
 
-inline const unsigned int Spline::getVertexCount() const
+inline unsigned int Spline::getVertexCount() const
 {
 	return m_vertices.size();
 }
 
-inline const unsigned int Spline::getLastVertexIndex() const
+inline unsigned int Spline::getLastVertexIndex() const
 {
 	return m_vertices.size() - 1u;
 }
 
-inline const bool Spline::getHandlesVisible() const
+inline bool Spline::getHandlesVisible() const
 {
 	return m_showHandles;
 }
 
-inline const sf::Color Spline::getColor() const
+inline sf::Color Spline::getColor() const
 {
 	return m_color;
 }
 
-inline const unsigned int Spline::getInterpolationSteps() const
+inline unsigned int Spline::getInterpolationSteps() const
 {
 	return m_interpolationSteps;
 }
 
-inline const sf::PrimitiveType Spline::getPrimitiveType() const
+inline sf::PrimitiveType Spline::getPrimitiveType() const
 {
 	return m_primitiveType;
 }
 
-inline const bool Spline::getBezierInterpolationEnabled() const
+inline bool Spline::getBezierInterpolationEnabled() const
 {
 	return m_useBezier;
 }

@@ -39,12 +39,12 @@ namespace
 
 const std::string exceptionPrefix = "Spline: ";
 
-inline sf::Vector2f linearInterpolation(const sf::Vector2f& start, const sf::Vector2f& end, const float& alpha)
+inline sf::Vector2f linearInterpolation(const sf::Vector2f start, const sf::Vector2f end, const float alpha)
 {
 	return (end * alpha + start * (1 - alpha));
 }
 
-inline sf::Vector2f bezierInterpolation(const sf::Vector2f& start, const sf::Vector2f& end, const sf::Vector2f& startHandle, const sf::Vector2f& endHandle, const float& alpha)
+inline sf::Vector2f bezierInterpolation(const sf::Vector2f start, const sf::Vector2f end, const sf::Vector2f startHandle, const sf::Vector2f endHandle, const float alpha)
 {
 	const sf::Vector2f startControl{ start + startHandle };
 	const sf::Vector2f endControl{ end + endHandle };
@@ -52,20 +52,19 @@ inline sf::Vector2f bezierInterpolation(const sf::Vector2f& start, const sf::Vec
 	const float alphaSquared{ alpha * alpha };
 	const float alpha2Squared{ alpha2 * alpha2 };
 
-	sf::Vector2f p;
-
-	p.x = start.x * alpha2Squared * alpha2 + startControl.x * 3 * alpha2Squared * alpha + endControl.x * 3 * alpha2 * alphaSquared + end.x * alpha * alphaSquared;
-	p.y = start.y * alpha2Squared * alpha2 + startControl.y * 3 * alpha2Squared * alpha + endControl.y * 3 * alpha2 * alphaSquared + end.y * alpha * alphaSquared;
-
-	return p;
+	return
+	{
+		start.x * alpha2Squared * alpha2 + startControl.x * 3 * alpha2Squared * alpha + endControl.x * 3 * alpha2 * alphaSquared + end.x * alpha * alphaSquared,
+		start.y * alpha2Squared * alpha2 + startControl.y * 3 * alpha2Squared * alpha + endControl.y * 3 * alpha2 * alphaSquared + end.y * alpha * alphaSquared
+	};
 }
 
-inline float vectorLength(const sf::Vector2f& vector)
+inline float vectorLength(const sf::Vector2f vector)
 {
 	return std::sqrt(vector.x * vector.x + vector.y * vector.y);
 }
 
-inline void copyAngle(const sf::Vector2f& source, sf::Vector2f& destination)
+inline void copyAngle(const sf::Vector2f source, sf::Vector2f destination)
 {
 	destination = -(source / vectorLength(source)) * vectorLength(destination);
 }
@@ -90,7 +89,7 @@ Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPositio
 {
 }
 
-const float Spline::getLength() const
+float Spline::getLength() const
 {
 	if (m_vertices.size() < 2)
 		return 0.f;
@@ -101,7 +100,7 @@ const float Spline::getLength() const
 	return total;
 }
 
-const float Spline::getInterpolatedLength() const
+float Spline::getInterpolatedLength() const
 {
 	if (m_sfmlVertices.size() < 2)
 		return 0.f;
@@ -183,13 +182,13 @@ void Spline::addVertices(const unsigned int index, const std::vector<sf::Vector2
 
 void Spline::addVertices(const unsigned int numberOfVertices, const sf::Vector2f position)
 {
-	for (unsigned int i{ 0 }; i < numberOfVertices; ++i)
+	for (unsigned int i{ 0u }; i < numberOfVertices; ++i)
 		addVertex(position);
 }
 
 void Spline::addVertices(const unsigned int numberOfVertices, const unsigned int index, const sf::Vector2f position)
 {
-	for (unsigned int i{ 0 }; i < numberOfVertices; ++i)
+	for (unsigned int i{ 0u }; i < numberOfVertices; ++i)
 		addVertex(index + i, position);
 }
 
@@ -216,7 +215,7 @@ void Spline::removeVertex(const unsigned int index)
 
 void Spline::removeVertices(const unsigned int index, const unsigned int numberOfVertices)
 {
-	if (!priv_testVertexIndex(index, "Cannot remove vertices") || (numberOfVertices > 1 && !priv_testVertexIndex(index + numberOfVertices - 1, "Cannot remove vertices")))
+	if (!priv_testVertexIndex(index, "Cannot remove vertices") || ((numberOfVertices > 1) && (!priv_testVertexIndex(index + numberOfVertices - 1, "Cannot remove vertices"))))
 		return;
 
 	if (numberOfVertices == 0)
@@ -262,7 +261,7 @@ void Spline::setPositions(const unsigned int index, unsigned int numberOfVertice
 void Spline::setPositions(const std::vector<sf::Vector2f>& positions, unsigned int index)
 {
 	const unsigned int numberOfVertices{ positions.size() };
-	if (numberOfVertices < 1 || !priv_testVertexIndex(index, "Cannot set vertices' positions") || (numberOfVertices > 1 && !priv_testVertexIndex(index + numberOfVertices - 1, "Cannot set vertices' positions")))
+	if ((numberOfVertices < 1) || (!priv_testVertexIndex(index, "Cannot set vertices' positions")) || ((numberOfVertices > 1) && (!priv_testVertexIndex(index + numberOfVertices - 1, "Cannot set vertices' positions"))))
 		return;
 
 	for (auto& position : positions)
@@ -272,7 +271,7 @@ void Spline::setPositions(const std::vector<sf::Vector2f>& positions, unsigned i
 	}
 }
 
-const sf::Vector2f Spline::getPosition(const unsigned int index) const
+sf::Vector2f Spline::getPosition(const unsigned int index) const
 {
 	if (!priv_testVertexIndex(index, "Cannot get vertex position."))
 		return{ 0.f, 0.f };
@@ -292,7 +291,7 @@ void Spline::setFrontHandle(const unsigned int index, const sf::Vector2f offset)
 		copyAngle(m_vertices[index].frontHandle, m_vertices[index].backHandle);
 }
 
-const sf::Vector2f Spline::getFrontHandle(const unsigned int index) const
+sf::Vector2f Spline::getFrontHandle(const unsigned int index) const
 {
 	if (!priv_testVertexIndex(index, "Cannot get vertex front handle."))
 		return{ 0.f, 0.f };
@@ -312,7 +311,7 @@ void Spline::setBackHandle(const unsigned int index, const sf::Vector2f offset)
 		copyAngle(m_vertices[index].backHandle, m_vertices[index].frontHandle);
 }
 
-const sf::Vector2f Spline::getBackHandle(const unsigned int index) const
+sf::Vector2f Spline::getBackHandle(const unsigned int index) const
 {
 	if (!priv_testVertexIndex(index, "Cannot get vertex back handle."))
 		return{ 0.f, 0.f };
@@ -322,7 +321,7 @@ const sf::Vector2f Spline::getBackHandle(const unsigned int index) const
 
 void Spline::resetHandles(const unsigned int index, unsigned int numberOfVertices)
 {
-	if (!priv_testVertexIndex(index, "Cannot reset vertices' handles") || (numberOfVertices > 1 && !priv_testVertexIndex(index + numberOfVertices - 1, "Cannot reset vertices' handles")))
+	if ((!priv_testVertexIndex(index, "Cannot reset vertices' handles")) || ((numberOfVertices > 1) && (!priv_testVertexIndex(index + numberOfVertices - 1, "Cannot reset vertices' handles"))))
 		return;
 
 	if (numberOfVertices == 0)
@@ -339,8 +338,8 @@ void Spline::smoothHandles()
 {
 	for (unsigned int v{ 0 }; v < m_vertices.size() - 1; ++v)
 	{
-		sf::Vector2f p1{ m_vertices[v].position };
-		sf::Vector2f p2{ m_vertices[v + 1].position };
+		const sf::Vector2f p1{ m_vertices[v].position };
+		const sf::Vector2f p2{ m_vertices[v + 1].position };
 		sf::Vector2f p0{ p1 };
 		sf::Vector2f p3{ p2 };
 		if (v > 0)
@@ -348,13 +347,13 @@ void Spline::smoothHandles()
 		if (v < m_vertices.size() - 2)
 			p3 = m_vertices[v + 2].position;
 
-		sf::Vector2f m0{ linearInterpolation(p0, p1, 0.5f) };
-		sf::Vector2f m1{ linearInterpolation(p1, p2, 0.5f) };
-		sf::Vector2f m2{ linearInterpolation(p2, p3, 0.5f) };
+		const sf::Vector2f m0{ linearInterpolation(p0, p1, 0.5f) };
+		const sf::Vector2f m1{ linearInterpolation(p1, p2, 0.5f) };
+		const sf::Vector2f m2{ linearInterpolation(p2, p3, 0.5f) };
 
-		float p01{ vectorLength(p1 - p0) };
-		float p12{ vectorLength(p2 - p1) };
-		float p23{ vectorLength(p3 - p2) };
+		const float p01{ vectorLength(p1 - p0) };
+		const float p12{ vectorLength(p2 - p1) };
+		const float p23{ vectorLength(p3 - p2) };
 		float proportion0{ 0.f };
 		float proportion1{ 0.f };
 		if (p01 + p12 != 0.f)
@@ -362,8 +361,8 @@ void Spline::smoothHandles()
 		if (p12 + p23 != 0.f)
 			proportion1 = p12 / (p12 + p23);
 
-		sf::Vector2f q0{ linearInterpolation(m0, m1, proportion0) };
-		sf::Vector2f q1{ linearInterpolation(m1, m2, proportion1) };
+		const sf::Vector2f q0{ linearInterpolation(m0, m1, proportion0) };
+		const sf::Vector2f q1{ linearInterpolation(m1, m2, proportion1) };
 
 		m_vertices[v].frontHandle = m1 - q0;
 		m_vertices[v + 1].backHandle = m1 - q1;
@@ -420,12 +419,12 @@ void Spline::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		target.draw(&m_handlesVertices.front(), m_handlesVertices.size(), sf::PrimitiveType::Lines, states);
 }
 
-inline const bool Spline::priv_isValidVertexIndex(const unsigned int vertexIndex) const
+bool Spline::priv_isValidVertexIndex(const unsigned int vertexIndex) const
 {
 	return vertexIndex < m_vertices.size();
 }
 
-const bool Spline::priv_testVertexIndex(const unsigned int vertexIndex, const std::string& exceptionMessage) const
+bool Spline::priv_testVertexIndex(const unsigned int vertexIndex, const std::string& exceptionMessage) const
 {
 	if (!priv_isValidVertexIndex(vertexIndex))
 	{
