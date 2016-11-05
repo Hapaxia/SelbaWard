@@ -1,6 +1,16 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.2.0] - 2016-11-05
+### Added
+- New "Character" type to allow single characters to be streamed
+- Ability to manipulate buffer cells directly
+- Ability to add and resize buffers
+
+### Fixed
+- Double-height printing with stretch type of both now prints also prints the lower line
+- Specified storage type of forward-declared enums
+
 ## [2.1.1] - 2016-09-08
 ### Fixed
 - Selection rectangle size information is now correct
@@ -106,6 +116,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[2.2.0]: https://github.com/Hapaxia/SelbaWard/commit/289487af9a34aede3f6c2dd1f2697e208c43538f
 [2.1.1]: https://github.com/Hapaxia/SelbaWard/commit/fb7a2babede652359015497a2dc494dddde1d824
 [2.1.0]: https://github.com/Hapaxia/SelbaWard/commit/d4f771265a3ba6b90b88b59d7b41c8bc835c8db3
 [2.0.0]: https://github.com/Hapaxia/SelbaWard/commit/79ab58b379bb0fe540edfab26ec22324a20ca5a6
