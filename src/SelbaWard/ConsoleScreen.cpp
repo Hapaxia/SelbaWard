@@ -321,6 +321,12 @@ ConsoleScreen& ConsoleScreen::operator<<(const std::string& string)
 	return *this;
 }
 
+ConsoleScreen& ConsoleScreen::operator<<(const Char& csChar)
+{
+	print(csChar.character);
+	return *this;
+}
+
 ConsoleScreen& ConsoleScreen::operator<<(const Direct& direct)
 {
 	if (direct == Direct::Begin)
@@ -466,7 +472,7 @@ ConsoleScreen& ConsoleScreen::operator<<(const MovementControl& movementControl)
 	default:
 		;
 	}
-	if (printProperties.index >= m_cells.size())
+	if (!priv_isCellIndexInRange(printProperties.index))
 	{
 		if (m_is.directPrinting)
 			printProperties.index = m_cells.size() - 1;
@@ -925,41 +931,27 @@ void ConsoleScreen::print(const char character)
 	if (!priv_isCellIndexInRange(printProperties.index))
 		return;
 
+	bool doAlterValue{ (printProperties.affectBitmask & Affect::Value) == Affect::Value };
 	const unsigned int currentIndex{ printProperties.index };
-	const unsigned int cellValue{ priv_getCellValueFromCharacter(character) };
-	const Cell existingCell = peek(currentIndex);
-	Cell cell = existingCell;
-	if (printProperties.affectBitmask & Affect::Value)
-		cell.value = cellValue;
-	if (printProperties.affectBitmask & Affect::FgColor)
-		cell.colors.foreground = printProperties.colors.foreground;
-	if (printProperties.affectBitmask & Affect::BgColor)
-		cell.colors.background = printProperties.colors.background;
-	if (printProperties.affectBitmask & Affect::Inverse)
-		cell.attributes.inverse = printProperties.attributes.inverse;
-	if (printProperties.affectBitmask & Affect::Bright)
-		cell.attributes.bright = printProperties.attributes.bright;
-	if (printProperties.affectBitmask & Affect::FlipX)
-		cell.attributes.flipX = printProperties.attributes.flipX;
-	if (printProperties.affectBitmask & Affect::FlipY)
-		cell.attributes.flipY = printProperties.attributes.flipY;
-	if (printProperties.affectBitmask & Affect::Stretch)
+	if (doAlterValue)
+		m_cells[currentIndex].value = priv_getCellValueFromCharacter(character);
+
+	bool isBelowCellInRange{ false };
+	if (printProperties.stretch != StretchType::Both)
+		priv_modifyCellUsingPrintProperties(currentIndex, PrintType::Current, printProperties.stretch);
+	else
 	{
-		if (printProperties.stretch == StretchType::Both)
-			cell.stretch = StretchType::Top;
-		else
-			cell.stretch = printProperties.stretch;
-	}
-	poke(currentIndex, cell);
-	if (printProperties.stretch == StretchType::Both)
-	{
+		priv_modifyCellUsingPrintProperties(currentIndex, PrintType::Current, StretchType::Top);
 		const unsigned int belowIndex{ currentIndex + m_mode.x };
 		if (priv_isCellIndexInRange(belowIndex))
 		{
-			cell.stretch = StretchType::Bottom;
-			poke(belowIndex, cell);
+			isBelowCellInRange = true;
+			priv_modifyCellUsingPrintProperties(belowIndex, PrintType::Current, StretchType::Bottom);
+			if (doAlterValue)
+				m_cells[belowIndex].value = m_cells[currentIndex].value;
 		}
 	}
+	
 	++printProperties.index;
 	if (!m_is.directPrinting)
 		priv_testCursorForScroll();
@@ -969,6 +961,8 @@ void ConsoleScreen::print(const char character)
 	if (m_do.updateAutomatically)
 	{
 		priv_updateCell(currentIndex);
+		if (isBelowCellInRange)
+			priv_updateCell(currentIndex + m_mode.x);
 		if (currentIndex != printProperties.index)
 			priv_updateCell(printProperties.index);
 	}
@@ -2236,9 +2230,106 @@ void ConsoleScreen::removeAllBuffers()
 	m_buffers.clear();
 }
 
+unsigned int ConsoleScreen::addBuffer(const sf::Vector2u size)
+{
+	const unsigned int newBufferIndex{ m_buffers.size() };
+	m_buffers.emplace_back();
+	resizeBuffer(m_buffers.size() - 1, size);
+	return newBufferIndex;
+}
+
+void ConsoleScreen::resizeBuffer(const unsigned int index, const sf::Vector2u size)
+{
+	if (!priv_isScreenBufferIndexInRange(index))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot resize buffer.\nBuffer index (" + std::to_string(index) + ") out of range.");
+		return;
+	}
+
+	Buffer& buffer{ m_buffers[index] };
+
+	const unsigned int newNumberOfCells{ size.x * size.y };
+
+	if (buffer.cells.empty())
+	{
+		buffer.cells.resize(newNumberOfCells, defaultCell);
+		buffer.width = size.x;
+		return;
+	}
+
+	const unsigned int currentBufferHeight{ buffer.cells.size() / buffer.width };
+
+	if (size.x < buffer.width)
+	{
+		for (unsigned int i{ 0u }; i < size.x * currentBufferHeight; ++i)
+		{
+			const unsigned int targetIndex{ (i / size.x) * buffer.width + (i % size.x) };
+			buffer.cells[i] = buffer.cells[targetIndex];
+		}
+
+		buffer.cells.resize(size.x * currentBufferHeight);
+		buffer.width = size.x;
+	}
+	if (size.x > buffer.width)
+	{
+		buffer.cells.resize(size.x * currentBufferHeight);
+		for (int i{ static_cast<int>(size.x * currentBufferHeight - 1) }; i >= 0; --i)
+		{
+			if (i % size.x >= buffer.width)
+			{
+				buffer.cells[i] = defaultCell;
+				continue;
+			}
+			const unsigned int targetIndex{ (i / size.x) * buffer.width + (i % size.x) };
+			buffer.cells[i] = buffer.cells[targetIndex];
+		}
+
+		buffer.width = size.x;
+	}
+
+	if (size.y < currentBufferHeight)
+	{
+		for (unsigned int i{ 0u }; i < newNumberOfCells; ++i)
+		{
+			const unsigned int targetIndex{ (i / size.x) * buffer.width + (i % size.x) };
+			buffer.cells[i] = buffer.cells[targetIndex];
+		}
+
+		buffer.cells.resize(newNumberOfCells);
+	}
+	if (size.y > currentBufferHeight)
+	{
+		buffer.cells.resize(newNumberOfCells);
+		for (int i{ static_cast<int>(newNumberOfCells - 1) }; i >= 0; --i)
+		{
+			if (i / size.x >= currentBufferHeight)
+			{
+				buffer.cells[i] = defaultCell;
+				continue;
+			}
+			const unsigned int targetIndex{ (i / size.x) * buffer.width + (i % size.x) };
+			buffer.cells[i] = buffer.cells[targetIndex];
+		}
+	}
+}
+
 unsigned int ConsoleScreen::getNumberOfBuffers() const
 {
 	return m_buffers.size();
+}
+
+sf::Vector2u ConsoleScreen::getSizeOfBuffer(const unsigned int index) const
+{
+	if (!priv_isScreenBufferIndexInRange(index))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot get size of buffer.\nBuffer index (" + std::to_string(index) + ") out of range.");
+		return sf::Vector2u();
+	}
+
+	const Buffer& buffer{ m_buffers[index] };
+	return sf::Vector2u(buffer.cells.size() % buffer.width, buffer.cells.size() / buffer.width);
 }
 
 void ConsoleScreen::setMappedCharacter(const char character, const unsigned int value)
@@ -2442,6 +2533,26 @@ ConsoleScreen::Cell& ConsoleScreen::cell(const unsigned int index)
 
 	return m_cells[index];
 }
+
+ConsoleScreen::Cell& ConsoleScreen::bufferCell(const unsigned int bufferIndex, const unsigned int cellIndex)
+{
+	if (!priv_isScreenBufferIndexInRange(bufferIndex))
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot retrieve buffer cell.\nBuffer index (" + std::to_string(bufferIndex) + ") out of range.");
+		return fakeCell;
+	}
+
+	if (cellIndex >= m_buffers[bufferIndex].cells.size())
+	{
+		if (m_do.throwExceptions)
+			throw Exception(exceptionPrefix + "Cannot retrieve buffer cell.\nCell index (" + std::to_string(cellIndex) + ") out of range.");
+		return m_buffers[bufferIndex].cells.empty() ? fakeCell : m_buffers[bufferIndex].cells.back();
+	}
+
+	return m_buffers[bufferIndex].cells[cellIndex];
+}
+
 
 
 
@@ -2997,6 +3108,26 @@ std::string ConsoleScreen::priv_read(unsigned int index, const bool unmapCharact
 	}
 
 	return string;
+}
+
+void ConsoleScreen::priv_modifyCellUsingPrintProperties(const unsigned int index, const PrintType& printType, const StretchType stretch)
+{
+	PrintProperties& printProperties{ priv_getPrintProperties(printType) };
+	Cell& currentCell = m_cells[index];
+	if ((printProperties.affectBitmask & Affect::FgColor) == Affect::FgColor)
+		currentCell.colors.foreground = printProperties.colors.foreground;
+	if ((printProperties.affectBitmask & Affect::BgColor) == Affect::BgColor)
+		currentCell.colors.background = printProperties.colors.background;
+	if ((printProperties.affectBitmask & Affect::Inverse) == Affect::Inverse)
+		currentCell.attributes.inverse = printProperties.attributes.inverse;
+	if ((printProperties.affectBitmask & Affect::Bright) == Affect::Bright)
+		currentCell.attributes.bright = printProperties.attributes.bright;
+	if ((printProperties.affectBitmask & Affect::FlipX) == Affect::FlipX)
+		currentCell.attributes.flipX = printProperties.attributes.flipX;
+	if ((printProperties.affectBitmask & Affect::FlipY) == Affect::FlipY)
+		currentCell.attributes.flipY = printProperties.attributes.flipY;
+	if ((printProperties.affectBitmask & Affect::Stretch) == Affect::Stretch)
+		currentCell.stretch = stretch;
 }
 
 } // namespace selbaward

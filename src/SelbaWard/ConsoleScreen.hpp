@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Console Screen v2.1.1
+// SW Console Screen v2.2.0
 class ConsoleScreen : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -49,8 +49,10 @@ public:
 
 	enum class Direction;
 	enum class Palette;
-	enum ColorCommand;
-	enum Direct;
+	enum ColorCommand : int;
+	enum Direct : int;
+	enum TargetBufferCommand : int;
+	struct Char;
 	struct Fg;
 	struct Bg;
 	struct MovementControl;
@@ -222,6 +224,7 @@ public:
 
 	// stream
 	ConsoleScreen& operator<<(const std::string& string);
+	ConsoleScreen& operator<<(const Char& csChar);
 	ConsoleScreen& operator<<(const Direct& direct);
 	ConsoleScreen& operator<<(const Location& location);
 	ConsoleScreen& operator<<(const Offset& offset);
@@ -355,7 +358,10 @@ public:
 	void paste(unsigned int index, sf::Vector2i offset = sf::Vector2i(0, 0)); // replace screen with saved buffer (recalls actual cell data, not the state of the console screen e.g. cursor isn't restored)
 	void removeBuffer(unsigned int index); // as usual, when one buffer is removed, the indices of all following buffers are decreased
 	void removeAllBuffers();
+	unsigned int addBuffer(sf::Vector2u size = { 1u, 1u }); // returns index of new buffer
+	void resizeBuffer(unsigned int index, sf::Vector2u size);
 	unsigned int getNumberOfBuffers() const;
+	sf::Vector2u getSizeOfBuffer(unsigned int index) const;
 
 	// character mapping (to cell values)
 	void setMappedCharacter(char character, unsigned int value);
@@ -383,6 +389,7 @@ public:
 	void poke(unsigned int index, const CellAttributes& attributes);
 	Cell peek(unsigned int index) const;
 	Cell& cell(unsigned int index);
+	Cell& bufferCell(unsigned int bufferIndex, unsigned int cellIndex);
 
 
 
@@ -539,6 +546,7 @@ private:
 	Color& priv_getInactiveColor();
 	int priv_getIndexOfClosestPaletteColor(const sf::Color& color) const; // returns -1 if the palette is empty
 	std::string priv_read(unsigned int index, const bool unmapCharacters = true);
+	void priv_modifyCellUsingPrintProperties(unsigned int index, const PrintType& printType, const StretchType stretch);
 };
 
 
@@ -601,6 +609,19 @@ enum ConsoleScreen::ColorCommand // colour command
 	Opposite = -2, // use opposite colour (i.e. foreground color for background color and background color for foreground color)
 	Invert = -3, // invert the opposite colour ("main colour = invert" would set main colour to inverted background colour and vice versa)
 	Contrast = -4, // contrast the opposite colour ("main colour = contrast" would set main colour to contrast background colour and vice versa). contrast is black or white based on opposite's luminance
+};
+
+enum ConsoleScreen::TargetBufferCommand
+{
+	Screen = -1, // targets the screen directly
+	First = -2, // targets the first buffer if one is available, otherwise targets the screen
+	Last = -3 // targets the last buffer if one is available, otherwise targets the screen
+};
+
+struct ConsoleScreen::Char
+{
+	char character;
+	explicit Char(char singleCharacter) : character(singleCharacter) { }
 };
 
 struct ConsoleScreen::Fg
