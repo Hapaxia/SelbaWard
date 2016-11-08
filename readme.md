@@ -12,4 +12,7 @@ Contents: **Bitmap Text**, **Console Screen**, **Crosshair**, **Gallery Sprite**
 
 Feedback and suggestions for new objects always welcome...
 
+[Selba Ward thread on the SFML forum][SFMLForumSelbaWard]
+
 [Wiki]: https://github.com/Hapaxia/SelbaWard/wiki
+[SFMLForumSelbaWard]: http://en.sfml-dev.org/forums/index.php?topic=19496.0
