@@ -42,7 +42,7 @@ namespace selbaward
 		namespace Default
 		{
 	
-const enum Colors
+enum Colors
 {
 	Black = 0,
 	DarkBlue,
@@ -66,7 +66,7 @@ const enum Colors
 		namespace Colors2BlackWhite
 		{
 
-const enum Colors
+enum Colors
 {
 	Black = 0,
 	White
@@ -76,7 +76,7 @@ const enum Colors
 		namespace Colors2WhiteBlack
 		{
 
-const enum Colors
+enum Colors
 {
 	White = 0,
 	Black
@@ -86,7 +86,7 @@ const enum Colors
 		namespace Colors16Cga
 		{
 
-const enum Colors
+enum Colors
 {
 	Black = 0,
 	Blue,
@@ -110,7 +110,7 @@ const enum Colors
 		namespace Colors16CgaNonIbm
 		{
 
-const enum Colors
+enum Colors
 {
 	Black = 0,
 	DarkBlue,
@@ -134,7 +134,7 @@ const enum Colors
 		namespace Colors16Windows
 		{
 
-const enum Colors
+enum Colors
 {
 	Black = 0,
 	DarkRed,
@@ -158,7 +158,7 @@ const enum Colors
 		namespace Colors16Mac
 		{
 
-const enum Colors
+enum Colors
 {
 	White = 0,
 	Yellow,
@@ -182,7 +182,7 @@ const enum Colors
 		namespace Colors16ZxSpectrum
 		{
 
-const enum Colors
+enum Colors
 {
 	Black = 0,
 	DarkBlue,
@@ -206,7 +206,7 @@ const enum Colors
 		namespace Colors16Html
 		{
 
-const enum Colors
+enum Colors
 {
 	Black = 0,
 	Silver,
@@ -230,7 +230,7 @@ const enum Colors
 		namespace Colors216Web
 		{
 
-const enum Colors
+enum Colors
 {
 	x000 = 0,
 	x003,
