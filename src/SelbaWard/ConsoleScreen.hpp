@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Console Screen v2.2.0
+// SW Console Screen v2.3.0
 class ConsoleScreen : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -117,7 +117,7 @@ public:
 	struct Color
 	{
 		long int id;
-		explicit Color() : id(0) { }
+		Color() : id(0) { }
 		Color(long int newId) : id(newId) { }
 		explicit Color(ColorCommand command) : id(static_cast<long int>(command)) { }
 	};
@@ -125,7 +125,7 @@ public:
 	{
 		Color foreground;
 		Color background;
-		explicit ColorPair() : foreground(1), background(0) { }
+		ColorPair() : foreground(1), background(0) { }
 		ColorPair(Color fg, Color bg) : foreground(fg), background(bg) { }
 	};
 	struct CellAttributes
@@ -134,7 +134,7 @@ public:
 		bool bright;
 		bool flipX;
 		bool flipY;
-		explicit CellAttributes() : inverse(false), bright(true), flipX(false), flipY(false) { }
+		CellAttributes() : inverse(false), bright(true), flipX(false), flipY(false) { }
 		explicit CellAttributes(const bool newInverse, const bool newBright, const bool newFlipX, const bool newFlipY) : inverse(newInverse), bright(newBright), flipX(newFlipX), flipY(newFlipY) { }
 		//explicit CellAttributes(const unsigned int attributeMask = Affect::Bright)
 		explicit CellAttributes(const unsigned int attributeMask)
@@ -267,12 +267,12 @@ public:
 	void print(const Location& location, const std::string& string);
 
 	// stack printing (over- and under-printing)
-	void addOverAt(const Location& location, char character);
-	void addOverAt(const Location& location, const std::string& string);
-	void addOverAt(const Location& location, const Cell& cell);
-	void addUnderAt(const Location& location, char character);
-	void addUnderAt(const Location& location, const std::string& string);
-	void addUnderAt(const Location& location, const Cell& cell);
+	void addOverAt(const Location& location, char character, sf::Vector2f offset = { 0.f, 0.f });
+	void addOverAt(const Location& location, const std::string& string, sf::Vector2f offset = { 0.f, 0.f });
+	void addOverAt(const Location& location, const Cell& cell, sf::Vector2f offset = { 0.f, 0.f });
+	void addUnderAt(const Location& location, char character, sf::Vector2f offset = { 0.f, 0.f });
+	void addUnderAt(const Location& location, const std::string& string, sf::Vector2f offset = { 0.f, 0.f });
+	void addUnderAt(const Location& location, const Cell& cell, sf::Vector2f offset = { 0.f, 0.f });
 	void clearOversAt(const Location& location);
 	void clearUndersAt(const Location& location);
 	void clearStackAt(const Location& location);
@@ -390,6 +390,7 @@ public:
 	Cell peek(unsigned int index) const;
 	Cell& cell(unsigned int index);
 	Cell& bufferCell(unsigned int bufferIndex, unsigned int cellIndex);
+	
 
 
 
@@ -411,9 +412,10 @@ public:
 
 
 private:
-	struct CellAt
+	struct StackCell
 	{
 		unsigned int index;
+		sf::Vector2f offset;
 		Cell cell;
 	};
 
@@ -466,9 +468,9 @@ private:
 	Cells m_cells;
 	sf::Vector2u m_mode;
 
-	// under- and over-drawing definition
-	std::vector<CellAt> m_overCells;
-	std::vector<CellAt> m_underCells;
+	// stack (under- and over-drawing) definition
+	std::vector<StackCell> m_overCells;
+	std::vector<StackCell> m_underCells;
 
 	// buffers
 	struct Buffer
@@ -522,14 +524,13 @@ private:
 	void priv_clearCell(unsigned int index, bool overwriteColor, bool overwriteBackgroundColor);
 	void priv_clearCell(unsigned int index, const Color& backgroundColor, bool overwriteColor);
 	void priv_clearCell(unsigned int index, const Color& color, const Color& backgroundColor);
-	void priv_paintCell(unsigned int index, const Color& color, const Color& backgroundColor);
 	void priv_setCursorIndex(unsigned int index);
 	void priv_moveCursorToBeginningOfLine();
 	void priv_moveCursorUp();
 	void priv_moveCursorDown();
 	void priv_moveCursorLeft();
 	void priv_moveCursorRight();
-	void priv_testCursorForScroll();
+	bool priv_testCursorForScroll();
 	void priv_scroll();
 	void priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const sf::IntRect& selectionRectangle);
 	void priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i& offset);
@@ -597,13 +598,13 @@ enum class ConsoleScreen::Direction
 	Down
 };
 
-enum ConsoleScreen::Direct
+enum ConsoleScreen::Direct : int
 {
 	Begin,
 	End
 };
 
-enum ConsoleScreen::ColorCommand // colour command
+enum ConsoleScreen::ColorCommand : int // colour command
 {
 	Unused = -1, // unused. returns a Color created from this ColorCommand if no Color can be determined such as when an exception is thrown from a method that returns a Color but exceptions are switched off
 	Opposite = -2, // use opposite colour (i.e. foreground color for background color and background color for foreground color)
@@ -611,7 +612,7 @@ enum ConsoleScreen::ColorCommand // colour command
 	Contrast = -4, // contrast the opposite colour ("main colour = contrast" would set main colour to contrast background colour and vice versa). contrast is black or white based on opposite's luminance
 };
 
-enum ConsoleScreen::TargetBufferCommand
+enum ConsoleScreen::TargetBufferCommand : int
 {
 	Screen = -1, // targets the screen directly
 	First = -2, // targets the first buffer if one is available, otherwise targets the screen
