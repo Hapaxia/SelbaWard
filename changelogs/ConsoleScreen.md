@@ -1,6 +1,18 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.3.0] - 2016-11-08
+### Added
+- Ability to position stack cells off-grid
+
+### Changed
+- Cursor adjusts to double-height to match stretch type
+- Cursor movements now take into account double-printing
+
+### Fixed
+- Double-height printing scrolls double automatically
+- Some cross-platform compilation bugs
+
 ## [2.2.0] - 2016-11-05
 ### Added
 - New "Character" type to allow single characters to be streamed
@@ -116,6 +128,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[2.3.0]: https://github.com/Hapaxia/SelbaWard/commit/28c6a75a2d2604e40ccd1f0b3c05b78cc0af22dc
 [2.2.0]: https://github.com/Hapaxia/SelbaWard/commit/289487af9a34aede3f6c2dd1f2697e208c43538f
 [2.1.1]: https://github.com/Hapaxia/SelbaWard/commit/fb7a2babede652359015497a2dc494dddde1d824
 [2.1.0]: https://github.com/Hapaxia/SelbaWard/commit/d4f771265a3ba6b90b88b59d7b41c8bc835c8db3
