@@ -701,9 +701,9 @@ void ConsoleScreen::setMode(sf::Vector2u mode)
 	m_cells.resize(m_mode.x * m_mode.y, defaultCell);
 	m_display.resize(m_cells.size() * 4);
 	m_backgroundDisplay = m_display;
-	m_buffers.clear();
 
 	clear(Color(0));
+	clearStack();
 }
 
 void ConsoleScreen::setTexture(const sf::Texture& texture)
