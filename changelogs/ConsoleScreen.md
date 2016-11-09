@@ -1,6 +1,13 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.3.1] - 2016-11-09
+### Changed
+- Buffers are no longer removed when mode is changed
+
+### Fixed
+- Stack is now removed when mode is changed
+
 ## [2.3.0] - 2016-11-08
 ### Added
 - Ability to position stack cells off-grid
@@ -128,6 +135,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[2.3.1]: https://github.com/Hapaxia/SelbaWard/commit/04d9c8337dbe8522659c3c94e2ffbdfafb42e66f
 [2.3.0]: https://github.com/Hapaxia/SelbaWard/commit/28c6a75a2d2604e40ccd1f0b3c05b78cc0af22dc
 [2.2.0]: https://github.com/Hapaxia/SelbaWard/commit/289487af9a34aede3f6c2dd1f2697e208c43538f
 [2.1.1]: https://github.com/Hapaxia/SelbaWard/commit/fb7a2babede652359015497a2dc494dddde1d824
