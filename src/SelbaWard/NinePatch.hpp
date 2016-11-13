@@ -39,7 +39,7 @@
 namespace selbaward
 {
 
-// SW Nine Patch v1.2.0
+// SW Nine Patch v1.3.0
 class NinePatch : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -47,6 +47,8 @@ public:
 	void setTexture(const sf::Texture& texture, bool resetSize = true);
 	void setSize(sf::Vector2f size);
 	void resetSize();
+	void setColor(const sf::Color& color);
+	sf::Color getColor() const;
 	sf::Vector2f getSize() const;
 	sf::FloatRect getLocalBounds() const;
 	sf::FloatRect getGlobalBounds() const;

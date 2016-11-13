@@ -182,6 +182,17 @@ void NinePatch::resetSize()
 	setSize(m_trimmedSize);
 }
 
+void NinePatch::setColor(const sf::Color& color)
+{
+	for (auto& vertex : m_vertices)
+		vertex.color = color;
+}
+
+sf::Color NinePatch::getColor() const
+{
+	return m_vertices[0].color;
+}
+
 sf::FloatRect NinePatch::getLocalBounds() const
 {
 	return{ { 0.f, 0.f }, m_size };
