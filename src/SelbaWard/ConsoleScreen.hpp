@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Console Screen v2.3.1
+// SW Console Screen v2.3.2
 class ConsoleScreen : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -136,7 +136,6 @@ public:
 		bool flipY;
 		CellAttributes() : inverse(false), bright(true), flipX(false), flipY(false) { }
 		explicit CellAttributes(const bool newInverse, const bool newBright, const bool newFlipX, const bool newFlipY) : inverse(newInverse), bright(newBright), flipX(newFlipX), flipY(newFlipY) { }
-		//explicit CellAttributes(const unsigned int attributeMask = Affect::Bright)
 		explicit CellAttributes(const unsigned int attributeMask)
 			: inverse((attributeMask & Affect::Inverse) == Affect::Inverse)
 			, bright((attributeMask & Affect::Bright) == Affect::Bright)
@@ -628,13 +627,13 @@ struct ConsoleScreen::Char
 struct ConsoleScreen::Fg
 {
 	Color color;
-	explicit Fg(Color foregroundColor) : color(foregroundColor) { }
+	Fg(Color foregroundColor) : color(foregroundColor) { }
 };
 
 struct ConsoleScreen::Bg
 {
 	Color color;
-	explicit Bg(Color backgroundColor) : color(backgroundColor) { }
+	Bg(Color backgroundColor) : color(backgroundColor) { }
 };
 
 struct ConsoleScreen::MovementControl

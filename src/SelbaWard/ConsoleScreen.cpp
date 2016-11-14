@@ -1873,7 +1873,7 @@ void ConsoleScreen::fill(Cell cell)
 	if (m_cells.size() == 0)
 	{
 		if (m_do.throwExceptions)
-			throw Exception(exceptionPrefix + "Cannot fill cells.\nNo cells exist.");
+			throw Exception(exceptionPrefix + "Cannot fill screen.\nNo cells exist.");
 		return;
 	}
 
@@ -1894,13 +1894,7 @@ void ConsoleScreen::clear(const ColorPair colors)
 	if (m_cells.size() == 0)
 	{
 		if (m_do.throwExceptions)
-			throw Exception(exceptionPrefix + "Cannot clear cell.\nNo cells exist.");
-		return;
-	}
-
-	if (colors.background.id < 0)
-	{
-		clear(static_cast<ColorCommand>(colors.background.id));
+			throw Exception(exceptionPrefix + "Cannot clear screen.\nNo cells exist.");
 		return;
 	}
 
