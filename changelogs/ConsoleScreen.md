@@ -1,6 +1,14 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.3.2] - 2016-11-14
+### Changed
+- Altered error message in exception thrown by failed clear/fill
+
+### Fixed
+- Clearing colour pair now doesn't skip foreground if background is a command
+- Implicit/explicit constructors for Fg and Bg types
+
 ## [2.3.1] - 2016-11-09
 ### Changed
 - Buffers are no longer removed when mode is changed
@@ -135,6 +143,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[2.3.2]: https://github.com/Hapaxia/SelbaWard/commit/832048d2e87544425c42bbfdc4e837b4c32dbe67
 [2.3.1]: https://github.com/Hapaxia/SelbaWard/commit/04d9c8337dbe8522659c3c94e2ffbdfafb42e66f
 [2.3.0]: https://github.com/Hapaxia/SelbaWard/commit/28c6a75a2d2604e40ccd1f0b3c05b78cc0af22dc
 [2.2.0]: https://github.com/Hapaxia/SelbaWard/commit/289487af9a34aede3f6c2dd1f2697e208c43538f
