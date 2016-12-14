@@ -39,16 +39,16 @@
 namespace selbaward
 {
 
-// Gallery Sprite v1.0.0
+// Gallery Sprite v1.1.0
 class GallerySprite : public sf::Drawable, public sf::Transformable
 {
 public:
 	struct Exhibit
 	{
-		sf::IntRect rectangle;
+		sf::FloatRect rectangle;
 		sf::Vector2f anchor;
 
-		Exhibit(const sf::IntRect& newRectangle = { 0, 0, 0, 0 }, const sf::Vector2f& newAnchor = { 0u, 0u }) : rectangle(newRectangle), anchor(newAnchor) { }
+		Exhibit(const sf::FloatRect& newRectangle = { 0.f, 0.f, 0.f, 0.f }, const sf::Vector2f& newAnchor = { 0u, 0u }) : rectangle(newRectangle), anchor(newAnchor) { }
 	};
 
 	GallerySprite();
@@ -70,9 +70,9 @@ public:
 	void setExhibit(unsigned int exhibitNumber, const Exhibit& exhibit);
 	Exhibit getExhibit(unsigned int exhibitNumber) const;
 	Exhibit getExhibit() const;
-	void setRect(unsigned int exhibitNumber, const sf::IntRect& rect);
-	sf::IntRect getRect(unsigned int exhibitNumber) const;
-	sf::IntRect getRect() const;
+	void setRect(unsigned int exhibitNumber, const sf::FloatRect& rect);
+	sf::FloatRect getRect(unsigned int exhibitNumber) const;
+	sf::FloatRect getRect() const;
 	void setAnchor(unsigned int exhibitNumber, const sf::Vector2f& anchor);
 	sf::Vector2f getAnchor(unsigned int exhibitNumber) const;
 	sf::Vector2f getAnchor() const;
