@@ -50,9 +50,9 @@ namespace selbaward
 
 Line::Line()
 	: m_vertices(sf::Lines, 2)
-	, m_rectangle()
+	, m_quad(sf::Quads, 4)
 	, m_thickness(0.f)
-	, m_color(sf::Color::White)
+	//, m_color(sf::Color::White)
 	, m_texture(nullptr)
 	, m_textureRect()
 {
@@ -71,7 +71,7 @@ void Line::setPoint(const unsigned int index, const sf::Vector2f position)
 	m_vertices[index].position = position;
 
 	if (isThick())
-		updateRectangle();
+		updateQuad();
 }
 
 void Line::setPoints(const sf::Vector2f startPosition, const sf::Vector2f endPosition)
@@ -80,7 +80,7 @@ void Line::setPoints(const sf::Vector2f startPosition, const sf::Vector2f endPos
 	m_vertices[1].position = endPosition;
 
 	if (isThick())
-		updateRectangle();
+		updateQuad();
 }
 
 sf::Vector2f Line::getPoint(const unsigned int index) const
@@ -93,22 +93,65 @@ sf::Vector2f Line::getPoint(const unsigned int index) const
 sf::FloatRect Line::getLocalBounds() const
 {
 	sf::FloatRect box;
-	box.left = std::min(m_vertices[0].position.x, m_vertices[1].position.x);
-	box.top = std::min(m_vertices[0].position.y, m_vertices[1].position.y);
-	box.width = std::max(m_vertices[0].position.x, m_vertices[1].position.x) - box.left;
-	box.height = std::max(m_vertices[0].position.y, m_vertices[1].position.y) - box.top;
+	if (isThick())
+	{
+		float minX, maxX, minY, maxY;
+		minX = maxX = m_quad[0].position.x;
+		minY = maxY = m_quad[0].position.y;
+		for (unsigned int v{ 1u }; v < 4; ++v)
+		{
+			minX = std::min(minX, m_quad[v].position.x);
+			maxX = std::max(maxX, m_quad[v].position.x);
+			minY = std::min(minY, m_quad[v].position.y);
+			maxY = std::max(maxY, m_quad[v].position.y);
+		}
+		box.left = minX;
+		box.top = minY;
+		box.width = maxX - minX;
+		box.height = maxY - minY;
+	}
+	else
+	{
+		box.left = std::min(m_vertices[0].position.x, m_vertices[1].position.x);
+		box.top = std::min(m_vertices[0].position.y, m_vertices[1].position.y);
+		box.width = std::max(m_vertices[0].position.x, m_vertices[1].position.x) - box.left;
+		box.height = std::max(m_vertices[0].position.y, m_vertices[1].position.y) - box.top;
+	}
 	return box;
 }
 
 sf::FloatRect Line::getGlobalBounds() const
 {
-	const sf::Vector2f transformedStartPosition{ getTransform().transformPoint(m_vertices[0].position) };
-	const sf::Vector2f transformedEndPosition{ getTransform().transformPoint(m_vertices[1].position) };
 	sf::FloatRect box;
-	box.left = std::min(transformedStartPosition.x, transformedEndPosition.x);
-	box.top = std::min(transformedStartPosition.y, transformedEndPosition.y);
-	box.width = std::max(transformedStartPosition.x, transformedEndPosition.x) - box.left;
-	box.height = std::max(transformedStartPosition.y, transformedEndPosition.y) - box.top;
+	if (isThick())
+	{
+		const sf::Transform transform{ getTransform() };
+		const sf::Vector2f transformedPosition0{ transform.transformPoint(m_quad[0].position) };
+		float minX, maxX, minY, maxY;
+		minX = maxX = transformedPosition0.x;
+		minY = maxY = transformedPosition0.y;
+		for (unsigned int v{ 1u }; v < 4; ++v)
+		{
+			const sf::Vector2f transformedPosition{ transform.transformPoint(m_quad[v].position) };
+			minX = std::min(minX, transformedPosition.x);
+			maxX = std::max(maxX, transformedPosition.x);
+			minY = std::min(minY, transformedPosition.y);
+			maxY = std::max(maxY, transformedPosition.y);
+		}
+		box.left = minX;
+		box.top = minY;
+		box.width = maxX - minX;
+		box.height = maxY - minY;
+	}
+	else
+	{
+		const sf::Vector2f transformedStartPosition{ getTransform().transformPoint(m_vertices[0].position) };
+		const sf::Vector2f transformedEndPosition{ getTransform().transformPoint(m_vertices[1].position) };
+		box.left = std::min(transformedStartPosition.x, transformedEndPosition.x);
+		box.top = std::min(transformedStartPosition.y, transformedEndPosition.y);
+		box.width = std::max(transformedStartPosition.x, transformedEndPosition.x) - box.left;
+		box.height = std::max(transformedStartPosition.y, transformedEndPosition.y) - box.top;
+	}
 	return box;
 }
 
@@ -122,19 +165,27 @@ Line::PointIndex Line::getEndIndex() const
 	return End;
 }
 
+sf::Color Line::getColor() const
+{
+	return m_vertices[0].color;
+}
+
 void Line::setColor(const sf::Color& color)
 {
-	m_color = color;
+	//m_color = color;
 	m_vertices[0].color = color;
 	m_vertices[1].color = color;
-	m_rectangle.setFillColor(m_color);
+	m_quad[0].color = color;
+	m_quad[1].color = color;
+	m_quad[2].color = color;
+	m_quad[3].color = color;
 }
 
 void Line::setTexture(const sf::Texture& texture)
 {
 	m_texture = &texture;
-	m_textureRect = { { 0, 0 }, sf::Vector2i(texture.getSize()) };
-	updateRectangle();
+	m_textureRect = { { 0.f, 0.f }, sf::Vector2f(texture.getSize()) };
+	updateQuad();
 }
 
 void Line::setTexture()
@@ -147,13 +198,13 @@ const sf::Texture& Line::getTexture() const
 	return *m_texture;
 }
 
-void Line::setTextureRect(const sf::IntRect& textureRect)
+void Line::setTextureRect(const sf::FloatRect& textureRect)
 {
 	m_textureRect = textureRect;
-	updateRectangle();
+	updateQuad();
 }
 
-sf::IntRect Line::getTextureRect() const
+sf::FloatRect Line::getTextureRect() const
 {
 	return m_textureRect;
 }
@@ -170,7 +221,7 @@ void Line::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	{
 		if (m_texture != nullptr)
 			states.texture = m_texture;
-		target.draw(m_rectangle, states);
+		target.draw(m_quad, states);
 	}
 	else
 		target.draw(m_vertices, states);
@@ -181,17 +232,23 @@ bool Line::isThick() const
 	return (m_thickness >= thicknessEpsilon || m_thickness <= -thicknessEpsilon);
 }
 
-void Line::updateRectangle()
+void Line::updateQuad()
 {
 	const sf::Vector2f lineVector{ m_vertices[0].position - m_vertices[1].position };
 	const float lineLength{ std::sqrt(lineVector.x * lineVector.x + lineVector.y * lineVector.y) };
-	m_rectangle.setSize({ m_thickness, lineLength });
-	m_rectangle.setOrigin({ m_thickness / 2.f, 0.f });
-	const float angle{ 90.f + std::atan2(lineVector.y, lineVector.x) * 180.f / pi };
-	m_rectangle.setRotation(angle);
-	m_rectangle.setPosition(m_vertices[0].position);
-	m_rectangle.setTexture(m_texture);
-	m_rectangle.setTextureRect(m_textureRect);
+	const sf::Vector2f unitVector{ lineVector / lineLength };
+	const sf::Vector2f unitNormalVector{ unitVector.y, -unitVector.x };
+	const sf::Vector2f normalVector{ unitNormalVector * m_thickness / 2.f };
+
+	m_quad[0].position = m_vertices[0].position - normalVector;
+	m_quad[1].position = m_vertices[1].position - normalVector;
+	m_quad[2].position = m_vertices[1].position + normalVector;
+	m_quad[3].position = m_vertices[0].position + normalVector;
+
+	m_quad[0].texCoords = { m_textureRect.left, m_textureRect.top };
+	m_quad[1].texCoords = { m_textureRect.left + m_textureRect.width, m_textureRect.top };
+	m_quad[2].texCoords = { m_textureRect.left + m_textureRect.width, m_textureRect.top + m_textureRect.height };
+	m_quad[3].texCoords = { m_textureRect.left, m_textureRect.top + m_textureRect.height };
 }
 
 } // selbaward

@@ -35,13 +35,13 @@
 
 #include "Common.hpp"
 
-#include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/Graphics/Texture.hpp>
 
 namespace selbaward
 {
 
-// SW Line v1.1.2
+// SW Line v1.2.0
 class Line : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -58,18 +58,19 @@ public:
 	void setPoint(unsigned int index, sf::Vector2f position);
 	void setPoints(sf::Vector2f startPosition, sf::Vector2f endPosition);
 	sf::Vector2f getPoint(unsigned int index) const;
-	sf::FloatRect getLocalBounds() const; // currently get bounds of only the points, not the corners of a line with thickness (basically, thickness is ignored)
-	sf::FloatRect getGlobalBounds() const; // currently get bounds of only the points, not the corners of a line with thickness (basically, thickness is ignored)
+	sf::FloatRect getLocalBounds() const;
+	sf::FloatRect getGlobalBounds() const;
 	PointIndex getStartIndex() const;
 	PointIndex getEndIndex() const;
+	sf::Color getColor() const;
 	template <class T>
 	void setThickness(T thickness);
 	void setColor(const sf::Color& color);
 	void setTexture(const sf::Texture& texture);
 	void setTexture();
 	const sf::Texture& getTexture() const;
-	void setTextureRect(const sf::IntRect& textureRect);
-	sf::IntRect getTextureRect() const;
+	void setTextureRect(const sf::FloatRect& textureRect);
+	sf::FloatRect getTextureRect() const;
 
 
 
@@ -79,15 +80,14 @@ public:
 
 private:
 	sf::VertexArray m_vertices;
-	float m_thickness; // 0 to draw as line, 1+ to be drawn as a rectangle (using a quad) (currently using a rectangle shape instead)
-	sf::Color m_color;
-	sf::RectangleShape m_rectangle;
+	sf::VertexArray m_quad;
+	float m_thickness; // 0 to draw as line, any value above thicknessEpsilon or below negative thicknessEpsilon to be drawn as a rectangle (using a quad) (currently using a rectangle shape instead)
 	const sf::Texture* m_texture;
-	sf::IntRect m_textureRect;
+	sf::FloatRect m_textureRect;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 	bool isThick() const;
-	void updateRectangle();
+	void updateQuad();
 };
 
 template <class T>
@@ -105,7 +105,7 @@ inline void Line::setThickness(const T thickness)
 	m_thickness = static_cast<float>(thickness);
 
 	if (isThick())
-		updateRectangle();
+		updateQuad();
 }
 
 } // selbaward
