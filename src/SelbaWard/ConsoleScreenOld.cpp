@@ -72,9 +72,9 @@ inline float linearInterpolation(const float start, const float end, const float
 
 inline void makeColorUnBright(sf::Color& color)
 {
-	color.r = static_cast<unsigned int>(unBrightAttributeMultiplier * color.r);
-	color.g = static_cast<unsigned int>(unBrightAttributeMultiplier * color.g);
-	color.b = static_cast<unsigned int>(unBrightAttributeMultiplier * color.b);
+	color.r = static_cast<sf::Uint8>(unBrightAttributeMultiplier * color.r);
+	color.g = static_cast<sf::Uint8>(unBrightAttributeMultiplier * color.g);
+	color.b = static_cast<sf::Uint8>(unBrightAttributeMultiplier * color.b);
 }
 
 inline void swapColors(sf::Color& a, sf::Color& b)
@@ -90,7 +90,7 @@ inline sf::Color sepiaColor(const float alpha)
 	const unsigned int r{ static_cast<unsigned int>(linearInterpolation(0.f, 344.505f, alpha)) };
 	const unsigned int g{ static_cast<unsigned int>(linearInterpolation(0.f, 306.765f, alpha)) };
 	const unsigned int b{ static_cast<unsigned int>(linearInterpolation(0.f, 238.935f, alpha)) };
-	return sf::Color((r > 255 ? 255 : r), (g > 255 ? 255 : g), (b > 255 ? 255 : b));
+	return sf::Color((r > 255 ? 255 : static_cast<sf::Uint8>(r)), (g > 255 ? 255 : static_cast<sf::Uint8>(g)), (b > 255 ? 255 : static_cast<sf::Uint8>(b)));
 }
 
 inline float relativeLuminance(const sf::Color& color)
@@ -155,13 +155,13 @@ void addPalette2ColorWhiteBlack(std::vector<sf::Color>& palette)
 
 void addPalette16ColorGreenscale(std::vector<sf::Color>& palette)
 {
-	for (unsigned int i{ 0 }; i < 16; ++i)
+	for (sf::Uint8 i{ 0 }; i < 16; ++i)
 		addColorToPalette(palette, sf::Color(0, i * 17, 0));
 }
 
 void addPalette16ColorGrayscale(std::vector<sf::Color>& palette)
 {
-	for (unsigned int i{ 0 }; i < 16; ++i)
+	for (sf::Uint8 i{ 0 }; i < 16; ++i)
 		addColorToPalette(palette, sf::Color(i * 17, i * 17, i * 17));
 }
 
@@ -259,12 +259,12 @@ inline void addPalette16ColorCgaNonIbm(std::vector<sf::Color>& palette)
 
 void addPalette216ColorWebSafe(std::vector<sf::Color>& palette)
 {
-	for (unsigned int g{ 1 }; g <= 6; ++g)
+	for (sf::Uint8 g{ 0 }; g < 6; ++g)
 	{
-		for (unsigned int r{ 1 }; r <= 6; ++r)
+		for (sf::Uint8 r{ 0 }; r < 6; ++r)
 		{
-			for (unsigned int b{ 1 }; b <= 6; ++b)
-				addColorToPalette(palette, sf::Color(255 / r, 255 / g, 255 / b));
+			for (sf::Uint8 b{ 0 }; b < 6; ++b)
+				addColorToPalette(palette, sf::Color(r * 51, g * 51, b * 51));
 		}
 	}
 }
@@ -272,13 +272,13 @@ void addPalette216ColorWebSafe(std::vector<sf::Color>& palette)
 void addPalette256ColorGreenscale(std::vector<sf::Color>& palette)
 {
 	for (unsigned int i{ 0 }; i < 256; ++i)
-		addColorToPalette(palette, sf::Color(0, i, 0));
+		addColorToPalette(palette, sf::Color(0, static_cast<sf::Uint8>(i), 0));
 }
 
 void addPalette256ColorGrayscale(std::vector<sf::Color>& palette)
 {
 	for (unsigned int i{ 0 }; i < 256; ++i)
-		addColorToPalette(palette, sf::Color(i, i, i));
+		addColorToPalette(palette, sf::Color(static_cast<sf::Uint8>(i), static_cast<sf::Uint8>(i), static_cast<sf::Uint8>(i)));
 }
 
 void addPalette256ColorSepia(std::vector<sf::Color>& palette)
@@ -1143,7 +1143,7 @@ std::string ConsoleScreenV1::read(const unsigned int length, const bool unmapCha
 			break;;
 
 		const unsigned int currentIndex{ m_cursor.index };
-		string += (unmapCharacters ? priv_getCharacterFromCellValue(m_cells[currentIndex].value) : m_cells[currentIndex].value);
+		string += (unmapCharacters ? priv_getCharacterFromCellValue(m_cells[currentIndex].value) : static_cast<char>(m_cells[currentIndex].value));
 		priv_moveCursorRight();
 	}
 
@@ -1164,7 +1164,7 @@ std::string ConsoleScreenV1::readAt(const sf::Vector2u location, const unsigned 
 
 	for (unsigned int i{ 0u }; i < length; ++i)
 	{
-		string += (unmapCharacters ? priv_getCharacterFromCellValue(m_cells[index].value) : m_cells[index].value);
+		string += (unmapCharacters ? priv_getCharacterFromCellValue(m_cells[index].value) : static_cast<char>(m_cells[index].value));
 		++index;
 		if (!priv_isCellIndexInRange(index))
 			break;
