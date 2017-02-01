@@ -31,6 +31,7 @@
 #define SELBAWARD_HPP
 
 #include "SelbaWard/BitmapText.hpp"
+#include "SelbaWard/ConsoleScreen.hpp"
 #include "SelbaWard/ConsoleScreenOld.hpp"
 #include "SelbaWard/Crosshair.hpp"
 #include "SelbaWard/GallerySprite.hpp"
