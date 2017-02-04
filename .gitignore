@@ -7,10 +7,33 @@
 *.userosscache
 *.sln.docstates
 
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.props
+*.vc.db
+*.vc.vc.opendb
+
+licence for header.txt
+
+# wip folders
+
+
+# private folders
+extlibs/
+test/
+test_*/
+temp/
+temp_*/
+temp_storage/
+PropertySheets/
+
 # Build results
 [Dd]ebug/
+[Dd]ebug Static/
 [Dd]ebugPublic/
 [Rr]elease/
+[Rr]elease Static/
 [Rr]eleases/
 x64/
 x86/
