@@ -38,6 +38,9 @@ namespace
 {
 
 const std::string exceptionPrefix = "Spline: ";
+constexpr float thicknessEpsilon{ 0.001f };
+constexpr float pi{ 3.141592653f };
+const sf::PrimitiveType thickPrimitiveType{ sf::PrimitiveType::TriangleStrip };
 
 inline sf::Vector2f linearInterpolation(const sf::Vector2f start, const sf::Vector2f end, const float alpha)
 {
@@ -59,9 +62,14 @@ inline sf::Vector2f bezierInterpolation(const sf::Vector2f start, const sf::Vect
 	};
 }
 
+inline float dot(const sf::Vector2f a, const sf::Vector2f b)
+{
+	return a.x * b.x + a.y * b.y;
+}
+
 inline float vectorLength(const sf::Vector2f vector)
 {
-	return std::sqrt(vector.x * vector.x + vector.y * vector.y);
+	return std::sqrt(dot(vector, vector));
 }
 
 inline void copyAngle(const sf::Vector2f source, sf::Vector2f destination)
@@ -79,7 +87,8 @@ Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPositio
 	, m_vertices(vertexCount, Vertex(initialPosition))
 	, m_color(sf::Color::White)
 	, m_sfmlVertices()
-	, m_primitiveType(sf::PrimitiveType::LinesStrip)
+	, m_sfmlThickVertices()
+	, m_primitiveType(sf::PrimitiveType::LineStrip)
 	, m_interpolationSteps(0u)
 	, m_handlesVertices()
 	, m_showHandles(false)
@@ -113,9 +122,10 @@ float Spline::getInterpolatedLength() const
 
 void Spline::update()
 {
-	if (m_vertices.size() == 0)
+	if (m_vertices.size() < 2)
 	{
 		m_sfmlVertices.clear();
+		m_sfmlThickVertices.clear();
 		m_handlesVertices.clear();
 		return;
 	}
@@ -124,9 +134,9 @@ void Spline::update()
 	m_sfmlVertices.resize(((m_vertices.size() - 1) * pointsPerVertex) + 1);
 
 	m_handlesVertices.resize((m_vertices.size()) * 4);
-	std::vector<sf::Vertex>::iterator itHandle = m_handlesVertices.begin();
+	std::vector<sf::Vertex>::iterator itHandle{ m_handlesVertices.begin() };
 
-	for (std::vector<Vertex>::iterator begin = m_vertices.begin(), end = m_vertices.end(), it = begin; it != end; ++it)
+	for (std::vector<Vertex>::iterator begin{ m_vertices.begin() }, end{ m_vertices.end() }, it{ begin }; it != end; ++it)
 	{
 		itHandle->color = sf::Color(255, 255, 128, 32);
 		itHandle++->position = it->position;
@@ -137,7 +147,7 @@ void Spline::update()
 		itHandle->color = sf::Color(0, 255, 0, 128);
 		itHandle++->position = it->position + it->frontHandle;
 
-		std::vector<sf::Vertex>::iterator itSfml = m_sfmlVertices.begin() + (it - begin) * pointsPerVertex;
+		std::vector<sf::Vertex>::iterator itSfml{ m_sfmlVertices.begin() + (it - begin) * pointsPerVertex };
 		if (it != end - 1)
 		{
 			for (unsigned int i{ 0u }; i < pointsPerVertex; ++i)
@@ -156,6 +166,42 @@ void Spline::update()
 			itSfml->color = m_color;
 		}
 	}
+
+	if (priv_isThick())
+	{
+		const float halfWidth{ m_thickness / 2.f };
+		m_sfmlThickVertices.resize(m_sfmlVertices.size() * 2); // required number of vertices for a triangle strip (two triangles between each pair of points)
+
+		sf::Vector2f backwardNormal;
+		std::vector<sf::Vertex>::iterator itThick{ m_sfmlThickVertices.begin() };
+		for (std::vector<sf::Vertex>::iterator begin{ m_sfmlVertices.begin() }, end{ m_sfmlVertices.end() }, it{ begin }; it != end; ++it)
+		{
+			if (it != end - 1)
+			{
+				const sf::Vector2f forwardLine{ (it + 1)->position - it->position };
+				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
+				const sf::Vector2f forwardNormalUnit{ forwardUnit.y, -forwardUnit.x };
+				const sf::Vector2f forwardNormal{ forwardNormalUnit * halfWidth };
+				sf::Vector2f actualNormal{ forwardNormal };
+				if (it != begin)
+				{
+					const sf::Vector2f sumNormals{ backwardNormal + forwardNormal };
+					const sf::Vector2f sumNormalsUnit{ sumNormals / vectorLength(sumNormals) };
+					actualNormal = (sumNormalsUnit / dot(forwardNormalUnit, sumNormalsUnit)) * halfWidth;
+				}
+				backwardNormal = forwardNormal;
+				itThick++->position = it->position + actualNormal;
+				itThick++->position = it->position - actualNormal;
+			}
+			else
+			{
+				itThick++->position = it->position + backwardNormal;
+				itThick++->position = it->position - backwardNormal;
+			}
+		}
+	}
+	else
+		m_sfmlThickVertices.clear();
 }
 
 void Spline::reserveVertices(const unsigned int numberOfVertices)
@@ -165,6 +211,7 @@ void Spline::reserveVertices(const unsigned int numberOfVertices)
 
 	m_vertices.reserve(numberOfVertices);
 	m_sfmlVertices.reserve((numberOfVertices - 1) * m_interpolationSteps + 1);
+	m_sfmlThickVertices.reserve(m_sfmlVertices.size() * 2);
 	m_handlesVertices.reserve(numberOfVertices * 4);
 }
 
@@ -376,6 +423,11 @@ void Spline::setHandlesVisible(const bool handlesVisible)
 	m_showHandles = handlesVisible;
 }
 
+float Spline::getThickness() const
+{
+	return priv_isThick() ? m_thickness : 0.f;
+}
+
 void Spline::setColor(const sf::Color color)
 {
 	m_color = color;
@@ -386,19 +438,19 @@ void Spline::setInterpolationSteps(const unsigned int interpolationSteps)
 	m_interpolationSteps = interpolationSteps;
 }
 
-void Spline::setHandleAngleLockEnabled(const bool enableHandleAngleLock)
+void Spline::setHandleAngleLock(const bool handleAngleLock)
 {
-	m_lockHandleAngle = enableHandleAngleLock;
+	m_lockHandleAngle = handleAngleLock;
 }
 
-void Spline::setHandleMirrorLockEnabled(const bool enableHandleMirrorLock)
+void Spline::setHandleMirrorLock(const bool handleMirrorLock)
 {
-	m_lockHandleMirror = enableHandleMirrorLock;
+	m_lockHandleMirror = handleMirrorLock;
 }
 
-void Spline::setBezierInterpolationEnabled(const bool enableBezierInterpolation)
+void Spline::setBezierInterpolation(const bool bezierInterpolation)
 {
-	m_useBezier = enableBezierInterpolation;
+	m_useBezier = bezierInterpolation;
 }
 
 void Spline::setPrimitiveType(const sf::PrimitiveType primitiveType)
@@ -412,8 +464,13 @@ void Spline::setPrimitiveType(const sf::PrimitiveType primitiveType)
 
 void Spline::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	states.texture = NULL;
-	if (m_sfmlVertices.size() > 0)
+	states.texture = nullptr;
+	if (priv_isThick())
+	{
+		if (m_sfmlThickVertices.size() > 0)
+			target.draw(&m_sfmlThickVertices.front(), m_sfmlThickVertices.size(), thickPrimitiveType, states);
+	}
+	else if (m_sfmlVertices.size() > 0)
 		target.draw(&m_sfmlVertices.front(), m_sfmlVertices.size(), m_primitiveType, states);
 	if (m_showHandles && m_handlesVertices.size() > 1)
 		target.draw(&m_handlesVertices.front(), m_handlesVertices.size(), sf::PrimitiveType::Lines, states);
@@ -433,6 +490,11 @@ bool Spline::priv_testVertexIndex(const unsigned int vertexIndex, const std::str
 		return false;
 	}
 	return true;
+}
+
+bool Spline::priv_isThick() const
+{
+	return (m_thickness >= thicknessEpsilon || m_thickness <= -thicknessEpsilon);
 }
 
 } // namespace selbaward

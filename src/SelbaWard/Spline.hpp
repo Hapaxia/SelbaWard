@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.0.1
+// SW Spline v1.1.0
 class Spline : public sf::Drawable
 {
 public:
@@ -70,11 +70,11 @@ public:
 	void addVertex(sf::Vector2f position = { 0.f, 0.f });
 	void addVertex(unsigned int index, sf::Vector2f position = { 0.f, 0.f }); // inserts the new vertex before the vertex at the specified index
 	void removeVertex(unsigned int index);
-	void removeVertices(unsigned int index, unsigned int numberOfVertices = 0u); // if numberOfvertices is zero (the default), removes all vertices from specified index until the end
+	void removeVertices(unsigned int index, unsigned int numberOfVertices = 0u); // if numberOfVertices is zero (the default), removes all vertices from specified index until the end
 	void reverseVertices();
 	
 	void setPosition(unsigned int index, sf::Vector2f position = { 0.f, 0.f });
-	void setPositions(unsigned int index, unsigned int numberOfVertices = 0u, sf::Vector2f position = { 0.f, 0.f }); // if numberOfvertices is zero (the default), sets positions of all vertices from specified index until the end
+	void setPositions(unsigned int index, unsigned int numberOfVertices = 0u, sf::Vector2f position = { 0.f, 0.f }); // if numberOfVertices is zero (the default), sets positions of all vertices from specified index until the end
 	void setPositions(const std::vector<sf::Vector2f>& positions, unsigned int index = 0u);
 	sf::Vector2f getPosition(unsigned int index) const;
 
@@ -84,12 +84,16 @@ public:
 	void setBackHandle(unsigned int index, sf::Vector2f offset);
 	sf::Vector2f getBackHandle(unsigned int index) const;
 
-	void resetHandles(unsigned int index = 0u, unsigned int numberOfVertices = 0u); // if numberOfvertices is zero (the default), reset handles for all vertices from specified index until the end. if no index is specified, all handles are reset
+	void resetHandles(unsigned int index = 0u, unsigned int numberOfVertices = 0u); // if numberOfVertices is zero (the default), reset handles for all vertices from specified index until the end. if no index is specified, all handles are reset
 
 	void smoothHandles();
 
 	void setHandlesVisible(bool handlesVisible = true);
 	bool getHandlesVisible() const;
+
+	template <class T>
+	void setThickness(T thickness);
+	float getThickness() const;
 
 	void setColor(sf::Color color);
 	sf::Color getColor() const;
@@ -97,11 +101,11 @@ public:
 	void setInterpolationSteps(unsigned int interpolationSteps);
 	unsigned int getInterpolationSteps() const;
 
-	void setHandleMirrorLockEnabled(bool enableHandleMirrorLock = true);
-	void setHandleAngleLockEnabled(bool enableHandleAngleLock = true);
+	void setHandleMirrorLock(bool handleMirrorLock = true);
+	void setHandleAngleLock(bool handleAngleLock = true);
 
-	void setBezierInterpolationEnabled(bool enableBezierInterpolation = true);
-	bool getBezierInterpolationEnabled() const;
+	void setBezierInterpolation(bool bezierInterpolation = true);
+	bool getBezierInterpolation() const;
 
 	void setPrimitiveType(sf::PrimitiveType primitiveType);
 	sf::PrimitiveType getPrimitiveType() const;
@@ -111,8 +115,10 @@ private:
 
 	std::vector<Vertex> m_vertices;
 	sf::Color m_color;
+	float m_thickness;
 
 	std::vector<sf::Vertex> m_sfmlVertices;
+	std::vector<sf::Vertex> m_sfmlThickVertices;
 	sf::PrimitiveType m_primitiveType;
 	unsigned int m_interpolationSteps;
 	bool m_useBezier;
@@ -125,7 +131,14 @@ private:
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 	bool priv_isValidVertexIndex(unsigned int vertexIndex) const;
 	bool priv_testVertexIndex(unsigned int vertexIndex, const std::string& exceptionMessage) const;
+	bool priv_isThick() const;
 };
+
+template <class T>
+inline void Spline::setThickness(const T thickness)
+{
+	m_thickness = static_cast<float>(thickness);
+}
 
 inline Spline::Vertex& Spline::operator[] (const unsigned int index)
 {
@@ -162,7 +175,7 @@ inline sf::PrimitiveType Spline::getPrimitiveType() const
 	return m_primitiveType;
 }
 
-inline bool Spline::getBezierInterpolationEnabled() const
+inline bool Spline::getBezierInterpolation() const
 {
 	return m_useBezier;
 }
