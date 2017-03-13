@@ -39,7 +39,7 @@
 namespace selbaward
 {
 
-// Gallery Sprite v1.1.0
+// Gallery Sprite v1.1.1
 class GallerySprite : public sf::Drawable, public sf::Transformable
 {
 public:

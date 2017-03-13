@@ -38,7 +38,11 @@ namespace selbaward
 SpinningCard::SpinningCard(const sf::Sprite& sprite) :
 m_pi(3.14159f),
 m_depth(0.2f),
-m_vertices(sf::TrianglesFan, 6)
+#ifdef USE_SFML_PRE_2_4
+m_vertices(sf::PrimitiveType::TrianglesFan, 6)
+#else // USE_SFML_PRE_2_4
+m_vertices(sf::PrimitiveType::TriangleFan, 6)
+#endif // USE_SFML_PRE_2_4
 {
 	// copy sprite's origin, position, rotation and scale in an attempt to look like the sprite
 	setOrigin(sprite.getOrigin());

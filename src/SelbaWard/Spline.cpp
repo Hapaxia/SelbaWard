@@ -40,7 +40,11 @@ namespace
 const std::string exceptionPrefix = "Spline: ";
 constexpr float thicknessEpsilon{ 0.001f };
 constexpr float pi{ 3.141592653f };
+#ifdef USE_SFML_PRE_2_4
+const sf::PrimitiveType thickPrimitiveType{ sf::PrimitiveType::TrianglesStrip };
+#else // USE_SFML_PRE_2_4
 const sf::PrimitiveType thickPrimitiveType{ sf::PrimitiveType::TriangleStrip };
+#endif // USE_SFML_PRE_2_4
 
 inline sf::Vector2f linearInterpolation(const sf::Vector2f start, const sf::Vector2f end, const float alpha)
 {
@@ -88,7 +92,11 @@ Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPositio
 	, m_color(sf::Color::White)
 	, m_sfmlVertices()
 	, m_sfmlThickVertices()
+#ifdef USE_SFML_PRE_2_4
+	, m_primitiveType(sf::PrimitiveType::LinesStrip)
+#else // USE_SFML_PRE_2_4
 	, m_primitiveType(sf::PrimitiveType::LineStrip)
+#endif // USE_SFML_PRE_2_4
 	, m_interpolationSteps(0u)
 	, m_handlesVertices()
 	, m_showHandles(false)

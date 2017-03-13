@@ -74,4 +74,10 @@ namespace sw = selbaward; // create shortcut namespace
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
 
+#if (SFML_VERSION_MAJOR == 2)
+	#if (SFML_VERSION_MINOR < 4)
+		#define USE_SFML_PRE_2_4
+	#endif
+#endif
+
 #endif // SELBAWARD_COMMON_HPP

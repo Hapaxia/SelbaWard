@@ -35,7 +35,11 @@
 namespace
 {
 
+#ifdef USE_SFML_PRE_2_4
 const sf::PrimitiveType primitiveType{ sf::PrimitiveType::TrianglesStrip };
+#else // USE_SFML_PRE_2_4
+const sf::PrimitiveType primitiveType{ sf::PrimitiveType::TriangleStrip };
+#endif // USE_SFML_PRE_2_4
 const unsigned int numberOfVertices{ 4u };
 
 } // namespace

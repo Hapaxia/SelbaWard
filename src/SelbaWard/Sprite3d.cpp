@@ -484,7 +484,11 @@ void Sprite3d::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		else
 			states.texture = m_pTexture;
 
+#ifdef USE_SFML_PRE_2_4
 		target.draw(&m_vertices[0], m_vertices.size(), sf::PrimitiveType::TrianglesStrip, states);
+#else // USE_SFML_PRE_2_4
+		target.draw(&m_vertices[0], m_vertices.size(), sf::PrimitiveType::TriangleStrip, states);
+#endif // USE_SFML_PRE_2_4
 	}
 }
 
