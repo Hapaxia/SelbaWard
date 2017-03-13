@@ -193,7 +193,7 @@ void Sprite3d::setBackTexture(const sf::Texture& texture, const bool resetOffset
 		m_backTextureOffset = sf::Vector2i(0, 0);
 }
 
-void Sprite3d::setBackFlipEnabled(const bool flipBack)
+void Sprite3d::setFlipBack(const bool flipBack)
 {
 	m_flipBack = flipBack;
 }
@@ -213,7 +213,7 @@ const sf::Texture* Sprite3d::getBackTexture() const
 	return m_pBackTexture;
 }
 
-bool Sprite3d::getBackFlipEnabled() const
+bool Sprite3d::getFlipBack() const
 {
 	return m_flipBack;
 }
@@ -377,9 +377,9 @@ void Sprite3d::reserveMeshDensity(const unsigned int meshDensity)
 	m_subdividedMeshDensity = currentSubdividedMeshDensity;
 }
 
-void Sprite3d::setDynamicSubdivisionEnabled(const bool enabled)
+void Sprite3d::setDynamicSubdivision(const bool dynamicSubdivision)
 {
-	m_useDynamicSubdivision = enabled;
+	m_useDynamicSubdivision = dynamicSubdivision;
 }
 
 void Sprite3d::setDynamicSubdivisionRange(unsigned int maximum, unsigned int minimum)
@@ -395,7 +395,7 @@ void Sprite3d::setDynamicSubdivisionRange(unsigned int maximum, unsigned int min
 	reserveMeshDensity(m_maxSubdivision);
 }
 
-bool Sprite3d::getDynamicSubdivisionEnabled() const
+bool Sprite3d::getDynamicSubdivision() const
 {
 	return m_useDynamicSubdivision;
 }

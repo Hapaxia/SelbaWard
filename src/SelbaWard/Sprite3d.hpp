@@ -44,7 +44,7 @@
 namespace selbaward
 {
 
-// Sprite3d version 1.1.3
+// Sprite3d version 1.2.0
 class Sprite3d : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -78,12 +78,12 @@ public:
 
 	// back face
 	const sf::Texture* getBackTexture() const;
-	bool getBackFlipEnabled() const;
+	bool getFlipBack() const;
 	sf::Vector2i getTextureOffset() const;
 	sf::Vector2i getBackTextureOffset() const;
 
 	void setBackTexture(const sf::Texture& texture, bool resetOffset = false);
-	void setBackFlipEnabled(bool flipBack = true);
+	void setFlipBack(bool flipBack = true);
 	void setTextureOffset(sf::Vector2i textureOffset = { 0, 0 });
 	void setBackTextureOffset(sf::Vector2i backTextureOffset = { 0, 0 });
 
@@ -114,11 +114,11 @@ public:
 	unsigned int getMeshDensity() const;
 	unsigned int getSubdividedMeshDensity() const;
 	unsigned int getSubdivision() const;
-	bool getDynamicSubdivisionEnabled() const;
+	bool getDynamicSubdivision() const;
 
 	void reserveMeshDensity(unsigned int meshDensity); // allow an expected maximum mesh density to be reserved in advance
 	void setMeshDensity(unsigned int meshDensity);
-	void setDynamicSubdivisionEnabled(bool enabled = true);
+	void setDynamicSubdivision(bool enabled = true);
 	void setDynamicSubdivisionRange(unsigned int maximum, unsigned int minimum = 0u);
 	void setSubdivision(const unsigned int subdivision) const; // required to be const to allow dynamic subdivision
 	void setNumberOfPoints(unsigned int numberOfPoints); // provided for convenience (sets number of points before any subdivision)
