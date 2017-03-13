@@ -2,7 +2,7 @@
 //
 //  Selba Ward - Sprite 3D *EXAMPLE*
 //
-//  by Hapax (https://github.com/Hapaxia)
+//  by Hapaxia (https://github.com/Hapaxia)
 //
 //
 //    Keys:
@@ -72,7 +72,7 @@ int main()
 	sw::Sprite3d sprite3d(frontTexture, backTexture);
 	sprite3d.setOrigin(sf::Vector2f(sprite3d.getLocalBounds().width, sprite3d.getLocalBounds().height) / 2.f);
 	sprite3d.setPosition(sf::Vector2f(window.getSize().x * 0.25f, window.getSize().y / 2.f));
-	//sprite3d.setBackFlipEnabled();
+	//sprite3d.setFlipBack();
 	//sprite3d.setMeshDensity(3); // = 5x5 points = 4x4 quads
 	//sprite3d.setNumberOfPoints(25); // 5x5
 	//sprite3d.setNumberOfQuads(16); // 4x4
@@ -151,11 +151,11 @@ int main()
 
 				// toggle dynamic subdivision
 				else if (event.key.code == sf::Keyboard::Return)
-					sprite3d.setDynamicSubdivisionEnabled(!sprite3d.getDynamicSubdivisionEnabled());
+					sprite3d.setDynamicSubdivision(!sprite3d.getDynamicSubdivision());
 
 				// toggle back face is flipped state
 				else if (event.key.code == sf::Keyboard::B)
-					sprite3d.setBackFlipEnabled(!sprite3d.getBackFlipEnabled());
+					sprite3d.setFlipBack(!sprite3d.getFlipBack());
 
 				// toggle bounds rectangles
 				else if (event.key.code == sf::Keyboard::F9)
@@ -172,7 +172,7 @@ int main()
 				// reset the mesh to minimal (also turns off dynamic subdivision)
 				else if (event.key.code == sf::Keyboard::F8)
 				{
-					sprite3d.setDynamicSubdivisionEnabled(false);
+					sprite3d.setDynamicSubdivision(false);
 					sprite3d.minimalMesh();
 				}
 
@@ -232,7 +232,7 @@ int main()
 			"\nSubdivision Level: " + std::to_string(sprite3d.getSubdivision()) +
 			"\nSubdivided Mesh Density: " + std::to_string(sprite3d.getSubdividedMeshDensity()) + " (" + std::to_string(sprite3d.getSubdividedMeshDensity() + 2) + "x" + std::to_string(sprite3d.getSubdividedMeshDensity() + 2) + " = " + std::to_string((sprite3d.getSubdividedMeshDensity() + 2) * (sprite3d.getSubdividedMeshDensity() + 2)) + " points)" +
 			"\nMesh Density: " + std::to_string(sprite3d.getMeshDensity()) + " (" + std::to_string(sprite3d.getMeshDensity() + 2) + "x" + std::to_string(sprite3d.getMeshDensity() + 2) + " = " + std::to_string((sprite3d.getMeshDensity() + 2) * (sprite3d.getMeshDensity() + 2)) + " points)" +
-			"\nDynamic Subdivision enabled: " + (sprite3d.getDynamicSubdivisionEnabled() ? "true" : "false") +
+			"\nDynamic Subdivision enabled: " + (sprite3d.getDynamicSubdivision() ? "true" : "false") +
 			"\nMost Extreme Angle: " + std::to_string(sprite3d.getMostExtremeAngle()) +
 			"\nDepth: " + std::to_string(sprite3d.getDepth()));
 

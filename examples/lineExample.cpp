@@ -2,7 +2,7 @@
 //
 //  Selba Ward - Line *EXAMPLE*
 //
-//  by Hapax (https://github.com/Hapaxia)
+//  by Hapaxia (https://github.com/Hapaxia)
 //
 //
 //    Controls:

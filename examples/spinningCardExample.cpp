@@ -2,7 +2,7 @@
 //
 //  Selba Ward - Spinning Card *EXAMPLE*
 //
-//  by Hapax (https://github.com/Hapaxia)
+//  by Hapaxia (https://github.com/Hapaxia)
 //
 //
 //    Keys:

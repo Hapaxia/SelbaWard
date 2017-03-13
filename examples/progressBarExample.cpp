@@ -2,7 +2,7 @@
 //
 //  Selba Ward - Progress Bar *EXAMPLE*
 //
-//  by Hapax (https://github.com/Hapaxia)
+//  by Hapaxia (https://github.com/Hapaxia)
 //
 //
 //    Keys:

@@ -2,7 +2,7 @@
 //
 //  Selba Ward - Sprite 3D *EXAMPLE* (Card Fan Animation)
 //
-//  by Hapax (https://github.com/Hapaxia)
+//  by Hapaxia (https://github.com/Hapaxia)
 //
 //
 //    Keys:
@@ -55,7 +55,7 @@ int main()
 
 	for (auto& card : cards)
 	{
-		card.setBackFlipEnabled();
+		card.setFlipBack();
 		card.setDepth(30.f);
 		card.setColor(sf::Color::White);
 		card.setSubdivision(2);

@@ -2,7 +2,7 @@
 //
 //  Selba Ward - Spline *EXAMPLE*
 //
-//  by Hapax (https://github.com/Hapaxia)
+//  by Hapaxia (https://github.com/Hapaxia)
 //
 //
 //  Draw a spline in the window by moving the mouse.
@@ -12,6 +12,7 @@
 //
 //  Escape key          Quit
 //  Mouse movement      Draw
+//  Mouse wheel         Adjust thickness
 //  F1 key              Toggle pause
 //  Space key           Toggle bezier/linear curve mode
 //  Tab key             Toggle primitive type
@@ -49,7 +50,7 @@ int main()
 				if (event.key.code == sf::Keyboard::F1) // toggle pause
 					isPaused = !isPaused;
 				else if (event.key.code == sf::Keyboard::Space) // toggle bezier/linear curve mode
-					spline.setBezierInterpolationEnabled(!spline.getBezierInterpolationEnabled());
+					spline.setBezierInterpolation(!spline.getBezierInterpolation());
 				else if (event.key.code == sf::Keyboard::Tab) // toggle primitive type
 				{
 					if (spline.getPrimitiveType() == sf::PrimitiveType::LinesStrip)
@@ -57,6 +58,11 @@ int main()
 					else
 						spline.setPrimitiveType(sf::PrimitiveType::LinesStrip);
 				}
+			}
+			else if (event.type == sf::Event::MouseWheelScrolled)
+			{
+				const float thickness{ spline.getThickness() + event.mouseWheelScroll.delta };
+				spline.setThickness((thickness < 0) ? 0.f : thickness);
 			}
 		}
 

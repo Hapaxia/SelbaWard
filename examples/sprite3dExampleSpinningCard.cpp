@@ -2,7 +2,7 @@
 //
 //  Selba Ward - Sprite 3D *EXAMPLE* (similar to Spinning Card example)
 //
-//  by Hapax (https://github.com/Hapaxia)
+//  by Hapaxia (https://github.com/Hapaxia)
 //
 //
 //    Keys:
@@ -42,7 +42,7 @@ int main()
 	card.setRotation(10);
 	card.setSubdivision(2);
 	card.setDepth(30.f);
-	card.setBackFlipEnabled(); // correct 'back' face as that it where the face of the card is
+	card.setFlipBack(); // correct 'back' face as that it where the face of the card is
 	//card.setColor(sf::Color::Green);
 
 	// set up static cards
