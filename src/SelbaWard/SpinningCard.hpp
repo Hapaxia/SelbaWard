@@ -3,7 +3,7 @@
 // Selba Ward (https://github.com/Hapaxia/SelbaWard)
 // --
 //
-// SpinningCard
+// Spinning Card
 //
 // Copyright(c) 2014-2017 M.J.Silk
 //
