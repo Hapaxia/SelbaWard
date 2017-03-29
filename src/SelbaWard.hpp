@@ -37,6 +37,7 @@
 #include "SelbaWard/GallerySprite.hpp"
 #include "SelbaWard/Line.hpp"
 #include "SelbaWard/NinePatch.hpp"
+#include "SelbaWard/PaletteEnums.hpp"
 #include "SelbaWard/PieChart.hpp"
 #include "SelbaWard/ProgressBar.hpp"
 #include "SelbaWard/Ring.hpp"
