@@ -34,6 +34,7 @@
 #include "SelbaWard/ConsoleScreen.hpp"
 #include "SelbaWard/ConsoleScreenOld.hpp"
 #include "SelbaWard/Crosshair.hpp"
+#include "SelbaWard/ElasticSprite.hpp"
 #include "SelbaWard/GallerySprite.hpp"
 #include "SelbaWard/Line.hpp"
 #include "SelbaWard/NinePatch.hpp"
