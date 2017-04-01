@@ -106,7 +106,7 @@ ElasticSprite::ElasticSprite()
 ElasticSprite::ElasticSprite(const sf::Texture& texture)
 	: ElasticSprite()
 {
-	setTexture(texture);
+	setTexture(texture, true);
 }
 
 ElasticSprite::ElasticSprite(const sf::Texture& texture, const sf::FloatRect textureRect)
