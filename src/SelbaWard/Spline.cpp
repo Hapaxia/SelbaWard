@@ -90,6 +90,7 @@ Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPositio
 	: m_throwExceptions(true)
 	, m_vertices(vertexCount, Vertex(initialPosition))
 	, m_color(sf::Color::White)
+	, m_thickness(0.f)
 	, m_sfmlVertices()
 	, m_sfmlThickVertices()
 #ifdef USE_SFML_PRE_2_4

@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.1.1
+// SW Spline v1.1.2
 class Spline : public sf::Drawable
 {
 public:
