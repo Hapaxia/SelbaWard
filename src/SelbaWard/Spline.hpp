@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.1.2
+// SW Spline v1.2.0
 class Spline : public sf::Drawable
 {
 public:
@@ -52,9 +52,13 @@ public:
 	};
 
 	Spline(unsigned int vertexCount = 0u, sf::Vector2f initialPosition = { 0.f, 0.f });
+	Spline(std::initializer_list<sf::Vector2f> list); // pass vertices' positions (sf::Vector2f) to the constructor (sets size automatically)
 	void update();
 
 	Vertex& operator[] (unsigned int index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
+
+	void setClosed(bool isClosed);
+	bool getClosed() const;
 
 	unsigned int getVertexCount() const;
 	unsigned int getLastVertexIndex() const;
@@ -110,8 +114,13 @@ public:
 	void setPrimitiveType(sf::PrimitiveType primitiveType);
 	sf::PrimitiveType getPrimitiveType() const;
 
+	sf::Vector2f getInterpolatedPosition(unsigned int interpolationOffset, unsigned int index = 0u) const; // index is control vertex offset
+	unsigned int getInterpolatedPositionCount() const;
+
 private:
 	bool m_throwExceptions;
+
+	bool m_isClosed;
 
 	std::vector<Vertex> m_vertices;
 	sf::Color m_color;
@@ -132,6 +141,7 @@ private:
 	bool priv_isValidVertexIndex(unsigned int vertexIndex) const;
 	bool priv_testVertexIndex(unsigned int vertexIndex, const std::string& exceptionMessage) const;
 	bool priv_isThick() const;
+	unsigned int priv_getNumberOfPointsPerVertex() const;
 };
 
 template <class T>
@@ -143,6 +153,11 @@ inline void Spline::setThickness(const T thickness)
 inline Spline::Vertex& Spline::operator[] (const unsigned int index)
 {
 	return m_vertices[index];
+}
+
+inline bool Spline::getClosed() const
+{
+	return m_isClosed;
 }
 
 inline unsigned int Spline::getVertexCount() const
