@@ -37,9 +37,12 @@ namespace
 
 const sf::Vector2f trimAmount{ 1.f, 1.f };
 
-void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTexture, sf::Vector2f& topLeft, sf::Vector2f& bottomRight, sf::Vector2f& contentTopLeft, sf::Vector2f& contentBottomRight)
+void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTexture, const sf::IntRect textureRectangle, sf::Vector2f& topLeft, sf::Vector2f& bottomRight, sf::Vector2f& contentTopLeft, sf::Vector2f& contentBottomRight)
 {
-	sf::Image image{ pTexture->copyToImage() };
+	sf::Image textureImage{ pTexture->copyToImage() };
+	sf::Image image;
+	image.create(textureRectangle.width, textureRectangle.height);
+	image.copy(textureImage, 0, 0, textureRectangle);
 
 	// scale positions
 	topLeft = { 0.f, 0.f };
@@ -147,6 +150,7 @@ NinePatch::NinePatch()
 	: m_primitiveType(sf::PrimitiveType::Quads)
 	, m_vertices(36, sf::Vertex({ 0.f, 0.f }))
 	, m_texture(nullptr)
+	, m_textureRectangle({ 0, 0, 3, 3 })
 	, m_trimmedSize({ 0.f, 0.f })
 	, m_size({ 0.f, 0.f })
 	, m_scaleTopLeft({ 0.f, 0.f })
@@ -156,13 +160,16 @@ NinePatch::NinePatch()
 {
 }
 
-void NinePatch::setTexture(const sf::Texture& texture, bool resetSize)
+void NinePatch::setTexture(const sf::Texture& texture, const bool resetSize, const bool resetRect)
 {
 	m_texture = &texture;
-	m_trimmedSize = sf::Vector2f(m_texture->getSize()) - trimAmount * 2.f;
+	if (resetRect)
+		m_textureRectangle = { { 0, 0 }, sf::Vector2i(m_texture->getSize()) };
+	//m_trimmedSize = sf::Vector2f(m_texture->getSize()) - trimAmount * 2.f;
+	m_trimmedSize = sf::Vector2f{ static_cast<float>(m_textureRectangle.width), static_cast<float>(m_textureRectangle.height) } -trimAmount * 2.f;
 	if (resetSize)
 		m_size = m_trimmedSize;
-	extractScalePositionsAndContentAreaFromTexture(m_texture, m_scaleTopLeft, m_scaleBottomRight, m_contentTopLeft, m_contentBottomRight);
+	extractScalePositionsAndContentAreaFromTexture(m_texture, m_textureRectangle, m_scaleTopLeft, m_scaleBottomRight, m_contentTopLeft, m_contentBottomRight);
 	priv_updateVertices();
 }
 
@@ -180,6 +187,17 @@ void NinePatch::setSize(sf::Vector2f size)
 void NinePatch::resetSize()
 {
 	setSize(m_trimmedSize);
+}
+
+void NinePatch::setTextureRect(const sf::IntRect textureRectangle)
+{
+	m_textureRectangle = textureRectangle;
+	m_trimmedSize = sf::Vector2f{ static_cast<float>(m_textureRectangle.width), static_cast<float>(m_textureRectangle.height) } -trimAmount * 2.f;
+	if (m_texture != nullptr)
+	{
+		extractScalePositionsAndContentAreaFromTexture(m_texture, m_textureRectangle, m_scaleTopLeft, m_scaleBottomRight, m_contentTopLeft, m_contentBottomRight);
+		priv_updateVertices();
+	}
 }
 
 void NinePatch::setColor(const sf::Color& color)
@@ -203,10 +221,20 @@ sf::FloatRect NinePatch::getGlobalBounds() const
 	return getTransform().transformRect(getLocalBounds());
 }
 
-sf::FloatRect NinePatch::getContentArea() const
+sf::FloatRect NinePatch::getLocalContentArea() const
 {
 	const sf::Vector2f topLeft{ priv_getResultingPositionOfTextureCoord(m_contentTopLeft) };
-	return getTransform().transformRect({ topLeft, priv_getResultingPositionOfTextureCoord(m_contentBottomRight) - topLeft + sf::Vector2f(1.f, 1.f) });
+	return{ topLeft, priv_getResultingPositionOfTextureCoord(m_contentBottomRight) - topLeft + sf::Vector2f(1.f, 1.f) };
+}
+
+sf::FloatRect NinePatch::getGlobalContentArea() const
+{
+	return getTransform().transformRect(getLocalContentArea());
+}
+
+bool NinePatch::isPointInsideTransformedContentArea(const sf::Vector2f point) const
+{
+	return getLocalContentArea().contains(getInverseTransform().transformPoint(point));
 }
 
 
@@ -332,9 +360,10 @@ void NinePatch::priv_updateVerticesTexCoords()
 	m_vertices[34].texCoords = textureBottomRight;
 	m_vertices[35].texCoords = { m_scaleBottomRight.x, textureBottomRight.y };
 
-	// offset trim
+	// offset trim and texture rectangle
+	const sf::Vector2f textureRectangleOffset{ static_cast<float>(m_textureRectangle.left), static_cast<float>(m_textureRectangle.top) };
 	for (auto& vertex : m_vertices)
-		vertex.texCoords += trimAmount;
+		vertex.texCoords += textureRectangleOffset + trimAmount;
 }
 
 sf::Vector2f NinePatch::priv_getResultingPositionOfTextureCoord(sf::Vector2f textureCoord) const

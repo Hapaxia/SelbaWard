@@ -35,24 +35,28 @@
 
 #include "Common.hpp"
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/Rect.hpp>
 
 namespace selbaward
 {
 
-// SW Nine Patch v1.3.0
+// SW Nine Patch v1.4.0
 class NinePatch : public sf::Drawable, public sf::Transformable
 {
 public:
 	NinePatch();
-	void setTexture(const sf::Texture& texture, bool resetSize = true);
+	void setTexture(const sf::Texture& texture, bool resetSize = true, bool resetRect = true);
 	void setSize(sf::Vector2f size);
 	void resetSize();
+	void setTextureRect(sf::IntRect textureRectangle);
 	void setColor(const sf::Color& color);
 	sf::Color getColor() const;
 	sf::Vector2f getSize() const;
 	sf::FloatRect getLocalBounds() const;
 	sf::FloatRect getGlobalBounds() const;
-	sf::FloatRect getContentArea() const; // final area. note that this takes into account all transformations so any rotation may make the return value much less useful
+	sf::FloatRect getLocalContentArea() const;
+	sf::FloatRect getGlobalContentArea() const; // final area. note that this takes into account all transformations so any rotation may make the return value much less useful
+	bool isPointInsideTransformedContentArea(sf::Vector2f point) const;
 
 private:
 	const sf::PrimitiveType m_primitiveType;
@@ -64,6 +68,7 @@ private:
 	sf::Vector2f m_scaleBottomRight;
 	sf::Vector2f m_contentTopLeft;
 	sf::Vector2f m_contentBottomRight;
+	sf::IntRect m_textureRectangle;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 	void priv_updateVertices();
