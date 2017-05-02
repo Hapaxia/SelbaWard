@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.2.0
+// SW Spline v1.3.0
 class Spline : public sf::Drawable
 {
 public:
@@ -47,8 +47,10 @@ public:
 		sf::Vector2f position;
 		sf::Vector2f frontHandle; // offset from position
 		sf::Vector2f backHandle; // offset from position
-		Vertex() {}
-		Vertex(sf::Vector2f newPosition) : position(newPosition) {}
+		float thickness;
+		sf::Color color;
+		Vertex() : thickness(1.f), color(sf::Color::White) {}
+		Vertex(sf::Vector2f newPosition) : position(newPosition), thickness(1.f), color(sf::Color::White) {}
 	};
 
 	Spline(unsigned int vertexCount = 0u, sf::Vector2f initialPosition = { 0.f, 0.f });
@@ -98,9 +100,14 @@ public:
 	template <class T>
 	void setThickness(T thickness);
 	float getThickness() const;
+	template <class T>
+	void setThickness(unsigned int index, T thickness);
+	float getThickness(unsigned int index) const;
 
 	void setColor(sf::Color color);
 	sf::Color getColor() const;
+	void setColor(unsigned int index, sf::Color color);
+	sf::Color getColor(unsigned int index) const;
 
 	void setInterpolationSteps(unsigned int interpolationSteps);
 	unsigned int getInterpolationSteps() const;
@@ -115,7 +122,12 @@ public:
 	sf::PrimitiveType getPrimitiveType() const;
 
 	sf::Vector2f getInterpolatedPosition(unsigned int interpolationOffset, unsigned int index = 0u) const; // index is control vertex offset
+	sf::Vector2f getInterpolatedPositionTangent(unsigned int interpolationOffset, unsigned int index = 0u) const; // index is control vertex offset
+	sf::Vector2f getInterpolatedPositionNormal(unsigned int interpolationOffset, unsigned int index = 0u) const; // index is control vertex offset
+	float getInterpolatedPositionThickness(unsigned int interpolationOffset, unsigned int index = 0u) const; // index is control vertex offset
+	float getInterpolatedPositionThicknessCorrectionScale(unsigned int interpolationOffset, unsigned int index = 0u) const; // index is control vertex offset
 	unsigned int getInterpolatedPositionCount() const;
+
 
 private:
 	bool m_throwExceptions;
@@ -126,6 +138,7 @@ private:
 	sf::Color m_color;
 	float m_thickness;
 
+	std::vector<sf::Vector2f> m_sfmlVerticesUnitTangents;
 	std::vector<sf::Vertex> m_sfmlVertices;
 	std::vector<sf::Vertex> m_sfmlThickVertices;
 	sf::PrimitiveType m_primitiveType;
@@ -142,12 +155,29 @@ private:
 	bool priv_testVertexIndex(unsigned int vertexIndex, const std::string& exceptionMessage) const;
 	bool priv_isThick() const;
 	unsigned int priv_getNumberOfPointsPerVertex() const;
+	unsigned int priv_getInterpolatedIndex(const unsigned int interpolationOffset, const unsigned int index) const;
 };
 
 template <class T>
 inline void Spline::setThickness(const T thickness)
 {
 	m_thickness = static_cast<float>(thickness);
+}
+
+inline float Spline::getThickness() const
+{
+	return m_thickness;
+}
+
+template <class T>
+inline void Spline::setThickness(const unsigned int index, const T thickness)
+{
+	m_vertices[index].thickness = static_cast<float>(thickness);
+}
+
+inline float Spline::getThickness(const unsigned int index) const
+{
+	return m_vertices[index].thickness;
 }
 
 inline Spline::Vertex& Spline::operator[] (const unsigned int index)
@@ -178,6 +208,11 @@ inline bool Spline::getHandlesVisible() const
 inline sf::Color Spline::getColor() const
 {
 	return m_color;
+}
+
+inline sf::Color Spline::getColor(const unsigned int index) const
+{
+	return m_vertices[index].color;
 }
 
 inline unsigned int Spline::getInterpolationSteps() const
