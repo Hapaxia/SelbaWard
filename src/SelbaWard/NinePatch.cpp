@@ -244,7 +244,7 @@ bool NinePatch::isPointInsideTransformedContentArea(const sf::Vector2f point) co
 void NinePatch::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.texture = m_texture;
-	states.transform = getTransform();
+	states.transform *= getTransform();
 	target.draw(&m_vertices.front(), 36, m_primitiveType, states);
 }
 

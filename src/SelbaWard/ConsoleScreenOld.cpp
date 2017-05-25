@@ -1946,7 +1946,7 @@ ConsoleScreenV1::Cell ConsoleScreenV1::peek(const unsigned int index) const
 
 void ConsoleScreenV1::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	states.transform = getTransform();
+	states.transform *= getTransform();
 
 	if (m_do.showBackround && m_backgroundDisplay.size() > 0)
 	{

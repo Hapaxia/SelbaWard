@@ -197,7 +197,7 @@ sf::Vector2f ProgressBar::getAnchorProgressBottom() const
 // PRIVATE
 void ProgressBar::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	states.transform = getTransform();
+	states.transform *= getTransform();
 	if (m_showBackground)
 		target.draw(m_backgroundAndFrame, states);
 	if (m_showBar)

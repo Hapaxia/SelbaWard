@@ -208,7 +208,7 @@ float Ring::getSectorOffset() const
 void Ring::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.texture = m_texture;
-	states.transform = getTransform();
+	states.transform *= getTransform();
 
 	if (m_vertices.size() > 0)
 		target.draw(&m_vertices.front(), m_vertices.size(), m_primitiveType, states);
