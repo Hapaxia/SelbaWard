@@ -132,7 +132,7 @@ void Starfield::setColor(const sf::Color color)
 
 void Starfield::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	states.transform = getTransform();
+	states.transform *= getTransform();
 	const unsigned int size{ m_vertices.size() };
 	if (size > 0)
 		target.draw(&m_vertices.front(), size, m_primitiveType, states);

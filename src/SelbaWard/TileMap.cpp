@@ -252,7 +252,7 @@ void TileMap::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	}
 
 	states.texture = &m_renderTexture.getTexture();
-	states.transform = getTransform();
+	states.transform *= getTransform();
 
 	target.draw(&m_render.front(), 4, sf::PrimitiveType::Quads, states); // final render is always 4 vertices & quad
 }

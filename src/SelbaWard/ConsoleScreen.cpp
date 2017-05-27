@@ -2619,7 +2619,7 @@ ConsoleScreen::Cell& ConsoleScreen::bufferCell(const unsigned int bufferIndex, c
 
 void ConsoleScreen::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	states.transform = getTransform();
+	states.transform *= getTransform();
 
 	if (m_do.showBackround && m_backgroundDisplay.size() > 0)
 	{

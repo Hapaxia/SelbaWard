@@ -250,7 +250,7 @@ void GallerySprite::operator-=(const unsigned int exhibits)
 void GallerySprite::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.texture = m_pTexture;
-	states.transform = getTransform();
+	states.transform *= getTransform();
 	target.draw(&m_vertices.front(), numberOfVertices, primitiveType, states);
 }
 
