@@ -275,7 +275,7 @@ sf::FloatRect ElasticSprite::getBaseLocalBounds() const
 sf::FloatRect ElasticSprite::getGlobalBounds() const
 {
 	if (m_requiresVerticesUpdate)
-		priv_updateVertices();
+		priv_updateVertices(sf::Transform::Identity);
 
 	sf::Vector2f topLeft{ m_vertices[0].position };
 	sf::Vector2f bottomRight{ topLeft };
@@ -307,7 +307,7 @@ sf::FloatRect ElasticSprite::getBaseGlobalBounds() const
 void ElasticSprite::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	if (m_requiresVerticesUpdate)
-		priv_updateVertices();
+		priv_updateVertices(states.transform);
 
 	if (!m_useShader)
 		states.texture = m_pTexture;
@@ -340,11 +340,11 @@ void ElasticSprite::draw(sf::RenderTarget& target, sf::RenderStates states) cons
 	target.draw(m_vertices.data(), m_vertices.size(), primitiveType, states);
 }
 
-void ElasticSprite::priv_updateVertices() const
+void ElasticSprite::priv_updateVertices(sf::Transform transform) const
 {
 	m_requiresVerticesUpdate = false;
 
-	const sf::Transform transform{ getTransform() };
+	transform *= getTransform();
 
 	for (unsigned int i{ 0u }; i < 4; ++i)
 		m_vertices[i].position = transform.transformPoint(m_offsets[i] + priv_getVertexBasePosition(i));

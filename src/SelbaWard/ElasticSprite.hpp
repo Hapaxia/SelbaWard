@@ -49,7 +49,7 @@ class Vector2;
 namespace selbaward
 {
 
-// SW Elastic Sprite v1.0.1
+// SW Elastic Sprite v1.0.2
 class ElasticSprite : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -96,7 +96,7 @@ private:
 	bool m_useShader;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-	void priv_updateVertices()  const;
+	void priv_updateVertices(sf::Transform Transform)  const;
 	sf::Vector2f priv_getVertexBasePosition(const unsigned int vertexIndex) const;
 };
 
