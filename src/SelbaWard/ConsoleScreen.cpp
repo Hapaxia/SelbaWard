@@ -507,7 +507,7 @@ ConsoleScreen& ConsoleScreen::operator<<(const CursorCommand& cursorCommand)
 {
 	PrintProperties& printProperties{ priv_getCurrentPrintProperties() };
 	const unsigned int currentIndex{ printProperties.index };
-	unsigned int maxIndex{ m_cells.size() - 1 };
+	unsigned int maxIndex{ static_cast<unsigned int>(m_cells.size()) - 1 };
 	if (printProperties.stretch == StretchType::Both)
 		maxIndex = (static_cast<int>(maxIndex) - m_mode.x) < 0 ? 0u : maxIndex - m_mode.x;
 	const unsigned int rowIndexOffset{ printProperties.stretch == StretchType::Both ? m_mode.x * 2 : m_mode.x };
@@ -1707,7 +1707,7 @@ void ConsoleScreen::scrollRight(const unsigned int amount)
 	{
 		for (unsigned int i{ 0 }; i < m_cells.size(); ++i)
 		{
-			const unsigned int cell{ m_cells.size() - i - 1 };
+			const unsigned int cell{ static_cast<unsigned int>(m_cells.size()) - i - 1 };
 			if (i % m_mode.x == 0)
 				rightCell = m_cells[cell];
 			if (cell % m_mode.x == 0)
@@ -2291,7 +2291,7 @@ void ConsoleScreen::removeAllBuffers()
 
 unsigned int ConsoleScreen::addBuffer(const sf::Vector2u size)
 {
-	const unsigned int newBufferIndex{ m_buffers.size() };
+	const unsigned int newBufferIndex{ static_cast<unsigned int>(m_buffers.size()) };
 	m_buffers.emplace_back();
 	resizeBuffer(m_buffers.size() - 1, size);
 	return newBufferIndex;
@@ -2317,7 +2317,7 @@ void ConsoleScreen::resizeBuffer(const unsigned int index, const sf::Vector2u si
 		return;
 	}
 
-	const unsigned int currentBufferHeight{ buffer.cells.size() / buffer.width };
+	const unsigned int currentBufferHeight{ static_cast<unsigned int>(buffer.cells.size()) / buffer.width };
 
 	if (size.x < buffer.width)
 	{
@@ -3152,7 +3152,7 @@ int ConsoleScreen::priv_getIndexOfClosestPaletteColor(const sf::Color& color) co
 	int index{ -1 }; // returns -1 if the palette is empty
 	int currentDistance{ 195076 }; // 195076 = 255 * 255 * 3 + 1 (one further than the maximum possible distance)
 
-	const unsigned int numberOfColorsInPalette{ m_palette.size() };
+	const unsigned int numberOfColorsInPalette{ static_cast<unsigned int>(m_palette.size()) };
 	for (unsigned int i{ 0u }; i < numberOfColorsInPalette; ++i)
 	{
 		const int r{ static_cast<int>(m_palette[i].r) - color.r };

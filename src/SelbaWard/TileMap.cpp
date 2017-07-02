@@ -324,7 +324,7 @@ void TileMap::priv_updateRender() const
 	}
 
 	m_renderTexture.clear(sf::Color::Transparent);
-	const unsigned int numberOfVertices{ m_vertices.size() };
+	const unsigned int numberOfVertices{ static_cast<unsigned int>(m_vertices.size()) };
 	if (numberOfVertices > 0)
 		m_renderTexture.draw(&m_vertices.front(), numberOfVertices, m_primitiveType, m_texture);
 	m_renderTexture.display();

@@ -1511,7 +1511,7 @@ void ConsoleScreenV1::scrollRight(const unsigned int amount)
 	{
 		for (unsigned int i{ 0 }; i < m_cells.size(); ++i)
 		{
-			const unsigned int cell{ m_cells.size() - i - 1 };
+			const unsigned int cell{ static_cast<unsigned int>(m_cells.size()) - i - 1 };
 			if (i % m_mode.x == 0)
 				rightCell = m_cells[cell];
 			if (cell % m_mode.x == 0)

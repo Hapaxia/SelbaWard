@@ -395,7 +395,7 @@ void Spline::setPositions(const unsigned int index, unsigned int numberOfVertice
 
 void Spline::setPositions(const std::vector<sf::Vector2f>& positions, unsigned int index)
 {
-	const unsigned int numberOfVertices{ positions.size() };
+	const unsigned int numberOfVertices{ static_cast<unsigned int>(positions.size()) };
 	if ((numberOfVertices < 1) || (!priv_testVertexIndex(index, "Cannot set vertices' positions")) || ((numberOfVertices > 1) && (!priv_testVertexIndex(index + numberOfVertices - 1, "Cannot set vertices' positions"))))
 		return;
 
