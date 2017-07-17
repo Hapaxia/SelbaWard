@@ -35,31 +35,31 @@
 namespace selbaward
 {
 
-BitmapText::BitmapText() :
-m_pBitmapFont(nullptr),
-m_vertices(sf::Quads),
-m_string(),
-m_color(sf::Color::White),
-m_tracking(1)
+BitmapText::BitmapText()
+	: m_pBitmapFont(nullptr)
+	, m_vertices(sf::Quads)
+	, m_string()
+	, m_color(sf::Color::White)
+	, m_tracking(1)
 {
 }
-
-/*
-void BitmapText::update()
-{
-	updateVertices();
-}
-*/
 
 void BitmapText::setBitmapFont(const BitmapFont& bitmapFont)
 {
 	m_pBitmapFont = &bitmapFont;
+	priv_updateVertices();
+}
+
+void BitmapText::setBitmapFont()
+{
+	m_pBitmapFont = nullptr;
+	priv_updateVertices();
 }
 
 void BitmapText::setString(const std::string& string)
 {
 	m_string = string;
-	updateVertices();
+	priv_updateVertices();
 }
 
 const std::string BitmapText::getString() const
@@ -70,7 +70,7 @@ const std::string BitmapText::getString() const
 void BitmapText::setTracking(int tracking)
 {
 	m_tracking = tracking;
-	updateVertices();
+	priv_updateVertices();
 }
 
 const int BitmapText::getTracking() const
@@ -81,7 +81,7 @@ const int BitmapText::getTracking() const
 void BitmapText::setColor(const sf::Color& color)
 {
 	m_color = color;
-	updateVertices();
+	priv_updateColor();
 }
 
 const sf::Color BitmapText::getColor() const
@@ -115,17 +115,27 @@ sf::FloatRect BitmapText::getLocalBounds() const
 }
 
 
+
 // PRIVATE
 
 void BitmapText::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
+	if (m_vertices.getVertexCount() == 0)
+		return;
+
 	states.transform *= getTransform();
 	states.texture = m_pBitmapFont->getTexture();
 	target.draw(m_vertices, states);
 }
 
-void BitmapText::updateVertices()
+void BitmapText::priv_updateVertices()
 {
+	if (m_pBitmapFont == nullptr)
+	{
+		m_vertices.clear();
+		m_bounds = { 0.f, 0.f, 0.f, 0.f };
+	}
+
 	m_vertices.resize(m_string.length() * 4);
 
 	sf::Vector2f penPosition{ 0.f, 0.f };
@@ -169,13 +179,18 @@ void BitmapText::updateVertices()
 		maxY = std::max(maxY, m_vertices[character * 4 + 2].position.y);
 	}
 
-	for (unsigned int v{ 0 }; v < m_vertices.getVertexCount(); ++v)
-		m_vertices[v].color = m_color;
+	priv_updateColor();
 
 	m_bounds.left = minX;
 	m_bounds.top = minY;
 	m_bounds.width = maxX - minX;
 	m_bounds.height = maxY - minY;
+}
+
+void BitmapText::priv_updateColor()
+{
+	for (unsigned int v{ 0 }; v < m_vertices.getVertexCount(); ++v)
+		m_vertices[v].color = m_color;
 }
 
 } // namespace selbaward

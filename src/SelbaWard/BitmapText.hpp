@@ -40,13 +40,13 @@
 namespace selbaward
 {
 
-// SW Bitmap Text v1.1.0
+// SW Bitmap Text v1.1.1
 class BitmapText : public sf::Drawable, public sf::Transformable
 {
 public:
 	BitmapText();
-	//void update();
 	void setBitmapFont(const BitmapFont& bitmapFont);
+	void setBitmapFont();
 	void setString(const std::string& string = "");
 	const std::string getString() const;
 	void setTracking(int tracking);
@@ -68,7 +68,8 @@ private:
 	sf::FloatRect m_bounds;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-	void updateVertices();
+	void priv_updateVertices();
+	void priv_updateColor();
 };
 
 } // namespace selbaward
