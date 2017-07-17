@@ -32,19 +32,25 @@
 
 #include "BitmapFont.hpp"
 
+namespace
+{
+
+const std::string exceptionPrefix = "Bitmap Font: ";
+
+} // namespace
 namespace selbaward
 {
 
-BitmapFont::BitmapFont() :
-m_throwExceptions(true),
-m_useExternalTexture(false),
-m_texture(),
-m_mExternalTexture(nullptr),
-m_numberOfTilesPerRow(1),
-m_tileSize({ 0, 0 }),
-m_defaultTextureRect(),
-m_kernings(),
-m_glyphs(256) // create 256 glyphs to cover the base ascii set
+BitmapFont::BitmapFont()
+	: m_throwExceptions(true)
+	, m_useExternalTexture(false)
+	, m_texture()
+	, m_mExternalTexture(nullptr)
+	, m_numberOfTilesPerRow(1)
+	, m_tileSize({ 0, 0 })
+	, m_defaultTextureRect()
+	, m_kernings()
+	, m_glyphs(256) // create 256 glyphs to cover the base ascii set
 {
 	setAllGlyphsToDefault();
 }
@@ -66,18 +72,18 @@ void BitmapFont::loadTexture(const std::string& filename)
 	m_useExternalTexture = false;
 }
 
-void BitmapFont::setSmooth(bool smooth)
+void BitmapFont::setSmooth(const bool smooth)
 {
 	if (!m_useExternalTexture)
 		m_texture.setSmooth(smooth);
 }
 
-void BitmapFont::setNumberOfTilesPerRow(unsigned int numberOfTilesPerRow)
+void BitmapFont::setNumberOfTilesPerRow(const unsigned int numberOfTilesPerRow)
 {
 	m_numberOfTilesPerRow = numberOfTilesPerRow;
 }
 
-void BitmapFont::setThrowExceptions(bool throwExceptions)
+void BitmapFont::setThrowExceptions(const bool throwExceptions)
 {
 	m_throwExceptions = throwExceptions;
 }
@@ -99,9 +105,9 @@ void BitmapFont::setDefaultTextureRect(const sf::IntRect& defaultTextureRect)
 	m_defaultTextureRect = defaultTextureRect;
 }
 
-void BitmapFont::setTextureRect(const sf::IntRect& textureRect, unsigned int glyphIndex)
+void BitmapFont::setTextureRect(const sf::IntRect& textureRect, const unsigned int glyphIndex)
 {
-	if (!isGlyphIndexValid(glyphIndex))
+	if (!priv_isGlyphIndexValid(glyphIndex))
 	{
 		if (m_throwExceptions)
 			throw Exception(exceptionPrefix + "cannot set texture rect - glyph index (" + std::to_string(glyphIndex) + ") out of range.");
@@ -115,15 +121,15 @@ void BitmapFont::setTextureRect(const sf::IntRect& textureRect, unsigned int gly
 	m_glyphs[glyphIndex].startX = 0;
 }
 
-void BitmapFont::setTextureRects(const std::vector<sf::IntRect>& textureRects, unsigned int initialGlyphIndex)
+void BitmapFont::setTextureRects(const std::vector<sf::IntRect>& textureRects, const unsigned int initialGlyphIndex)
 {
 	for (unsigned int i{ 0 }; i < textureRects.size(); ++i)
 		setTextureRect(textureRects[i], initialGlyphIndex + i);
 }
 
-void BitmapFont::clearTextureRect(unsigned int glyphIndex)
+void BitmapFont::clearTextureRect(const unsigned int glyphIndex)
 {
-	if (!isGlyphIndexValid(glyphIndex))
+	if (!priv_isGlyphIndexValid(glyphIndex))
 	{
 		if (m_throwExceptions)
 			throw Exception(exceptionPrefix + "cannot clear texture rect - glyph index (" + std::to_string(glyphIndex) + ") out of range.");
@@ -144,9 +150,9 @@ void BitmapFont::clearAllTextureRects()
 
 
 
-void BitmapFont::setGlyphToDefault(unsigned int glyphIndex)
+void BitmapFont::setGlyphToDefault(const unsigned int glyphIndex)
 {
-	if (!isGlyphIndexValid(glyphIndex))
+	if (!priv_isGlyphIndexValid(glyphIndex))
 	{
 		if (m_throwExceptions)
 			throw Exception(exceptionPrefix + "cannot set glyph to default - glyph index (" + std::to_string(glyphIndex) + ") out of range.");
@@ -160,7 +166,7 @@ void BitmapFont::setGlyphToDefault(unsigned int glyphIndex)
 	m_glyphs[glyphIndex].startX = 0;
 }
 
-void BitmapFont::setGlyphsToDefault(unsigned int numberOfGlyphs, unsigned int initialGlyphIndex)
+void BitmapFont::setGlyphsToDefault(const unsigned int numberOfGlyphs, const unsigned int initialGlyphIndex)
 {
 	for (unsigned int i{ 0 }; i < numberOfGlyphs; ++i)
 		setGlyphToDefault(initialGlyphIndex + i);
@@ -179,9 +185,9 @@ void BitmapFont::setAllGlyphsToDefault()
 
 
 
-void BitmapFont::setBaseline(int baseline, unsigned int glyphIndex)
+void BitmapFont::setBaseline(const int baseline, const unsigned int glyphIndex)
 {
-	if (!isGlyphIndexValid(glyphIndex))
+	if (!priv_isGlyphIndexValid(glyphIndex))
 	{
 		if (m_throwExceptions)
 			throw Exception(exceptionPrefix + "cannot set glyph baseline - glyph index (" + std::to_string(glyphIndex) + ") out of range.");
@@ -191,9 +197,9 @@ void BitmapFont::setBaseline(int baseline, unsigned int glyphIndex)
 	m_glyphs[glyphIndex].baseline = baseline;
 }
 
-void BitmapFont::setWidth(int width, unsigned int glyphIndex)
+void BitmapFont::setWidth(const int width, const unsigned int glyphIndex)
 {
-	if (!isGlyphIndexValid(glyphIndex))
+	if (!priv_isGlyphIndexValid(glyphIndex))
 	{
 		if (m_throwExceptions)
 			throw Exception(exceptionPrefix + "cannot set glyph width - glyph index (" + std::to_string(glyphIndex) + ") out of range.");
@@ -203,9 +209,9 @@ void BitmapFont::setWidth(int width, unsigned int glyphIndex)
 	m_glyphs[glyphIndex].width = width;
 }
 
-void BitmapFont::setStartX(int startX, unsigned int glyphIndex)
+void BitmapFont::setStartX(const int startX, const unsigned int glyphIndex)
 {
-	if (!isGlyphIndexValid(glyphIndex))
+	if (!priv_isGlyphIndexValid(glyphIndex))
 	{
 		if (m_throwExceptions)
 			throw Exception(exceptionPrefix + "cannot set glyph start x - glyph index (" + std::to_string(glyphIndex) + ") out of range.");
@@ -215,78 +221,86 @@ void BitmapFont::setStartX(int startX, unsigned int glyphIndex)
 	m_glyphs[glyphIndex].startX = startX;
 }
 
-void BitmapFont::setBaselines(int baseline, unsigned int numberOfGlyphs, unsigned int initialGlyphIndex)
+void BitmapFont::setBaselines(const int baseline, const unsigned int numberOfGlyphs, const unsigned int initialGlyphIndex)
 {
 	for (unsigned int i{ 0 }; i < numberOfGlyphs; ++i)
 		setBaseline(baseline, initialGlyphIndex + i);
 }
 
-void BitmapFont::setWidths(int width, unsigned int numberOfGlyphs, unsigned int initialGlyphIndex)
+void BitmapFont::setWidths(const int width, const unsigned int numberOfGlyphs, const unsigned int initialGlyphIndex)
 {
 	for (unsigned int i{ 0 }; i < numberOfGlyphs; ++i)
 		setWidth(width, initialGlyphIndex + i);
 }
 
-void BitmapFont::setStartXs(int startX, unsigned int numberOfGlyphs, unsigned int initialGlyphIndex)
+void BitmapFont::setStartXs(const int startX, const unsigned int numberOfGlyphs, const unsigned int initialGlyphIndex)
 {
 	for (unsigned int i{ 0 }; i < numberOfGlyphs; ++i)
 		setStartX(startX, initialGlyphIndex + i);
 }
 
-void BitmapFont::setBaselines(const std::vector<int>& baselines, unsigned int initialGlyphIndex)
+void BitmapFont::setBaselines(const std::vector<int>& baselines, const unsigned int initialGlyphIndex)
 {
 	for (unsigned int i{ 0 }; i < baselines.size(); ++i)
 		setBaseline(baselines[i], initialGlyphIndex + i);
 }
 
-void BitmapFont::setWidths(const std::vector<int>& widths, unsigned int initialGlyphIndex)
+void BitmapFont::setWidths(const std::vector<int>& widths, const unsigned int initialGlyphIndex)
 {
 	for (unsigned int i{ 0 }; i < widths.size(); ++i)
 		setWidth(widths[i], initialGlyphIndex + i);
 }
 
-void BitmapFont::setStartXs(const std::vector<int>& startXs, unsigned int initialGlyphIndex)
+void BitmapFont::setStartXs(const std::vector<int>& startXs, const unsigned int initialGlyphIndex)
 {
 	for (unsigned int i{ 0 }; i < startXs.size(); ++i)
 		setStartX(startXs[i], initialGlyphIndex + i);
 }
 
-/*
-void BitmapFont::setBaseline(int baseline, const std::vector<unsigned int>& glyphs)
-{
-	for (auto& glyph : glyphs)
-		setBaseline(baseline, glyph);
-}
-*/
-
-void BitmapFont::setBaseline(int baseline, const std::string& glyphs)
+void BitmapFont::setBaseline(const int baseline, const std::string& glyphs)
 {
 	for (auto& glyph : glyphs)
 		setBaseline(baseline, glyph);
 }
 
-void BitmapFont::setWidth(int width, const std::string& glyphs)
+void BitmapFont::setWidth(const int width, const std::string& glyphs)
 {
 	for (auto& glyph : glyphs)
 		setWidth(width, glyph);
 }
 
-void BitmapFont::setStartX(int startX, const std::string& glyphs)
+void BitmapFont::setStartX(const int startX, const std::string& glyphs)
 {
 	for (auto& glyph : glyphs)
 		setStartX(startX, glyph);
 }
 
-void BitmapFont::setKerning(int kerning, const std::string& glyphs)
+void BitmapFont::setKerning(const int kerning, const std::string& glyphs)
 {
-	if (glyphs.size() != 2)
+	if (glyphs.size() < 2)
 	{
 		if (m_throwExceptions)
-			throw Exception(exceptionPrefix + "cannot set kerning - glyph pair not valid.");
+			throw Exception(exceptionPrefix + "cannot set kerning - glyph pair not specified.");
 		return;
 	}
 
-	m_kernings[glyphs] = kerning;
+	for (std::size_t i{ 0u }; i < glyphs.size(); i += 2)
+	{
+		std::string glyphPair{ glyphs.substr(i, 2) };
+		if (glyphPair.size() != 2)
+		{
+			if (m_throwExceptions)
+				throw Exception(exceptionPrefix + "cannot set kerning - final glyph pair is missing second glyph.");
+			return;
+		}
+		priv_setKerning(kerning, glyphPair);
+	}
+}
+
+void BitmapFont::setKerning(const int kerning, const std::vector<std::string>& glyphPairs)
+{
+	for (auto& glyphPair : glyphPairs)
+		priv_setKerning(kerning, glyphPair);
 }
 
 const sf::Texture* BitmapFont::getTexture() const
@@ -297,17 +311,17 @@ const sf::Texture* BitmapFont::getTexture() const
 		return &m_texture;
 }
 
-const BitmapFont::Glyph BitmapFont::getGlyph(unsigned int glyphIndex) const
+const BitmapFont::Glyph BitmapFont::getGlyph(const unsigned int glyphIndex) const
 {
-	if (!isGlyphIndexValid(glyphIndex))
+	if (!priv_isGlyphIndexValid(glyphIndex))
 	{
 		if (m_throwExceptions)
 			throw Exception(exceptionPrefix + "cannot get glyph - glyph index out of range.");
-		return getGlyphWithDefaultTextureRect();
+		return priv_getGlyphWithDefaultTextureRect();
 	}
 
 	if (m_glyphs[glyphIndex].useDefaultTextureRect)
-		return getGlyphWithDefaultTextureRect(glyphIndex);
+		return priv_getGlyphWithDefaultTextureRect(glyphIndex);
 	else
 		return m_glyphs[glyphIndex];
 }
@@ -317,9 +331,9 @@ const unsigned int BitmapFont::getNumberOfGlyphs() const
 	return m_glyphs.size();
 }
 
-const int BitmapFont::getKerning(const std::string& glyphs) const
+const int BitmapFont::getKerning(const std::string& glyphPair) const
 {
-	if (glyphs.size() != 2)
+	if (glyphPair.size() != 2)
 	{
 		if (m_throwExceptions)
 			throw Exception(exceptionPrefix + "cannot get kerning - glyph pair not valid.");
@@ -327,11 +341,11 @@ const int BitmapFont::getKerning(const std::string& glyphs) const
 	}
 
 	std::map<std::string, int>::iterator it;
-	it = m_kernings.find(glyphs);
+	it = m_kernings.find(glyphPair);
 	if (it == m_kernings.end())
 		return 0;
 	
-	return m_kernings[glyphs];
+	return m_kernings[glyphPair];
 }
 
 
@@ -340,7 +354,7 @@ const int BitmapFont::getKerning(const std::string& glyphs) const
 
 // PRIVATE
 
-const bool BitmapFont::isGlyphIndexValid(unsigned int glyphIndex) const
+const bool BitmapFont::priv_isGlyphIndexValid(const unsigned int glyphIndex) const
 {
 	if (glyphIndex < m_glyphs.size())
 		return true;
@@ -350,9 +364,9 @@ const bool BitmapFont::isGlyphIndexValid(unsigned int glyphIndex) const
 		return false;
 }
 
-const BitmapFont::Glyph BitmapFont::getGlyphWithDefaultTextureRect(unsigned int glyphIndex) const
+const BitmapFont::Glyph BitmapFont::priv_getGlyphWithDefaultTextureRect(unsigned int glyphIndex) const
 {
-	if (!isGlyphIndexValid(glyphIndex))
+	if (!priv_isGlyphIndexValid(glyphIndex))
 	{
 		if (m_throwExceptions)
 			throw Exception(exceptionPrefix + "cannot get default glyph - glyph index (" + std::to_string(glyphIndex) + ") out of range.");
@@ -371,6 +385,18 @@ const BitmapFont::Glyph BitmapFont::getGlyphWithDefaultTextureRect(unsigned int 
 	defaultGlyph.baseline = m_glyphs[glyphIndex].baseline;
 	defaultGlyph.startX = m_glyphs[glyphIndex].startX;
 	return defaultGlyph;
+}
+
+void BitmapFont::priv_setKerning(const int kerning, const std::string& glyphPair)
+{
+	if (glyphPair.size() != 2)
+	{
+		if (m_throwExceptions)
+			throw Exception(exceptionPrefix + "cannot set kerning - glyph pair not valid.");
+		return;
+	}
+
+	m_kernings[glyphPair] = kerning;
 }
 
 } // namespace selbaward

@@ -41,17 +41,14 @@
 namespace selbaward
 {
 
-// SW Bitmap Font v1.0.0
+// SW Bitmap Font v1.1.0
 class BitmapFont
 {
 public:
-	const std::string exceptionPrefix = "Bitmap Font: ";
-
 	struct Glyph
 	{
 		bool useDefaultTextureRect = true;
 		sf::IntRect textureRect;
-		//int width; // negative numbers represent counting from full texture rect width e.g. -1 is full width, -2 is 1 less than full width.
 		int width; // zero and below represent counting from full texture rect width e.g. 0 is full width, -1 is 1 less than full width.
 		int baseline; // negative numbers represent counting from bottom e.g. -1 is bottom line, -2 is 1 above bottom.
 		int startX; // negative numbers represent actual negative values
@@ -63,7 +60,7 @@ public:
 	const sf::Texture* getTexture() const;
 	const Glyph getGlyph(unsigned int glyphIndex = 0) const;
 	const unsigned int getNumberOfGlyphs() const;
-	const int getKerning(const std::string& glyphs) const;
+	const int getKerning(const std::string& glyphPair) const;
 
 	// texture setup
 	void setExternalTexture(const sf::Texture& externalTexture);
@@ -93,20 +90,25 @@ public:
 	void setBaselines(const std::vector<int>& baselines, unsigned int initialGlyphIndex = 0);
 	void setWidths(const std::vector<int>& widths, unsigned int initialGlyphIndex = 0);
 	void setStartXs(const std::vector<int>& startXs, unsigned int initialGlyphIndex = 0);
-	//void setBaseline(int baseline, const std::vector<unsigned int>& glyphs);
 	void setBaseline(int baseline, const std::string& glyphs);
 	void setWidth(int width, const std::string& glyphs);
 	void setStartX(int startX, const std::string& glyphs);
 
 	// kerning pairs setup
-	void setKerning(int kerning, const std::string& glyphs); // string must have length of 2
+	void setKerning(int kerning, const std::string& glyphPairs); // string length should be a multiple of 2
+	void setKerning(int kerning, const std::vector<std::string>& glyphPairs); // vector of character pairs (each string must have length of 2)
 
 	// general setup
 	void setThrowExceptions(bool throwExceptions = true);
 	const bool getThrowExceptions() const;
 
+
+
+
+
+
+
 private:
-	//const std::string m_throwPrefix;
 	bool m_throwExceptions;
 	bool m_useExternalTexture;
 	sf::Texture m_texture;
@@ -117,8 +119,9 @@ private:
 	mutable std::map<std::string, int> m_kernings;
 	std::vector<Glyph> m_glyphs;
 
-	const bool isGlyphIndexValid(unsigned int glyphIndex) const;
-	const Glyph getGlyphWithDefaultTextureRect(unsigned int glyphIndex = 0) const;
+	const bool priv_isGlyphIndexValid(unsigned int glyphIndex) const;
+	const Glyph priv_getGlyphWithDefaultTextureRect(unsigned int glyphIndex = 0) const;
+	void priv_setKerning(int kerning, const std::string& glyphs); // string must have length of 2
 };
 
 } // namespace selbaward
