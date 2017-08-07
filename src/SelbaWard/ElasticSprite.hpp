@@ -39,9 +39,9 @@ namespace sf
 {
 
 class Texture;
-template <class T>
+template <class>
 class Rect;
-template <class T>
+template <class>
 class Vector2;
 
 } // namespace sf
@@ -49,7 +49,7 @@ class Vector2;
 namespace selbaward
 {
 
-// SW Elastic Sprite v1.0.2
+// SW Elastic Sprite v1.1.0
 class ElasticSprite : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -65,6 +65,11 @@ public:
 
 	bool setUseShader(bool useShader); // returns the actual state of "use shader" (may be different from parameter if setUseShader fails)
 	bool getUseShader() const;
+
+	void activateBilinearInterpolation();
+	bool isActiveBilinearInterpolation() const;
+	void activatePerspectiveInterpolation();
+	bool isActivePerspectiveInterpolation() const;
 
 	void setColor(sf::Color color);
 	void setVertexColor(unsigned int vertexIndex, sf::Color color);
@@ -90,10 +95,12 @@ public:
 private:
 	mutable bool m_requiresVerticesUpdate;
 	mutable std::vector<sf::Vertex> m_vertices;
+	mutable std::vector<float> m_weights;
 	std::vector<sf::Vector2f> m_offsets;
 	const sf::Texture* m_pTexture;
 	sf::FloatRect m_textureRect;
 	bool m_useShader;
+	bool m_usePerspectiveInterpolation;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 	void priv_updateVertices(sf::Transform Transform)  const;
