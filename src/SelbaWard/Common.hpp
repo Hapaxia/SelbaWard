@@ -33,10 +33,10 @@
 #include <exception>
 #include <string>
 
-#ifdef _MSC_VER
-#define NOEXCEPT
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
+#define SELBAWARD_NOEXCEPT
 #else
-#define NOEXCEPT noexcept
+#define SELBAWARD_NOEXCEPT noexcept
 #endif
 
 namespace selbaward
@@ -49,7 +49,7 @@ public:
 		m_errorMessage("[Selba Ward] " + errorMessage)
 	{
 	}
-	virtual const char* what() const NOEXCEPT override
+	virtual const char* what() const SELBAWARD_NOEXCEPT override
 	{
 		return m_errorMessage.c_str();
 	}
