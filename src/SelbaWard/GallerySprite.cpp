@@ -115,7 +115,7 @@ void GallerySprite::setScaleFromTargetSize(const sf::Vector2f& targetSize, const
 
 unsigned int GallerySprite::getNumberOfExhibits() const
 {
-	return m_exhibits.size();
+	return static_cast<unsigned int>(m_exhibits.size());
 }
 
 void GallerySprite::set(const unsigned int exhibitNumber)
@@ -132,7 +132,7 @@ unsigned int GallerySprite::get() const
 unsigned int GallerySprite::addExhibit(const Exhibit& exhibit)
 {
 	m_exhibits.emplace_back(exhibit);
-	return m_exhibits.size();
+	return static_cast<unsigned int>(m_exhibits.size());
 }
 
 void GallerySprite::setExhibit(const unsigned int exhibitNumber, const Exhibit& exhibit)

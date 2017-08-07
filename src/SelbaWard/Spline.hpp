@@ -192,12 +192,12 @@ inline bool Spline::getClosed() const
 
 inline unsigned int Spline::getVertexCount() const
 {
-	return m_vertices.size();
+	return static_cast<unsigned int>(m_vertices.size());
 }
 
 inline unsigned int Spline::getLastVertexIndex() const
 {
-	return m_vertices.size() - 1u;
+	return static_cast<unsigned int>(m_vertices.size()) - 1u;
 }
 
 inline bool Spline::getHandlesVisible() const

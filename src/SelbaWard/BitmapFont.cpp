@@ -174,7 +174,7 @@ void BitmapFont::setGlyphsToDefault(const unsigned int numberOfGlyphs, const uns
 
 void BitmapFont::setAllGlyphsToDefault()
 {
-	setGlyphsToDefault(m_glyphs.size());
+	setGlyphsToDefault(static_cast<unsigned int>(m_glyphs.size()));
 }
 
 
@@ -328,7 +328,7 @@ const BitmapFont::Glyph BitmapFont::getGlyph(const unsigned int glyphIndex) cons
 
 const unsigned int BitmapFont::getNumberOfGlyphs() const
 {
-	return m_glyphs.size();
+	return static_cast<unsigned int>(m_glyphs.size());
 }
 
 const int BitmapFont::getKerning(const std::string& glyphPair) const

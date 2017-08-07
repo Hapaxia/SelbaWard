@@ -136,7 +136,7 @@ Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPositio
 }
 
 Spline::Spline(std::initializer_list<sf::Vector2f> list)
-	: Spline(list.size())
+	: Spline(static_cast<unsigned int>(list.size()))
 {
 	unsigned int index{ 0u };
 	for (auto& position : list)
@@ -387,7 +387,7 @@ void Spline::setPositions(const unsigned int index, unsigned int numberOfVertice
 		return;
 
 	if (numberOfVertices == 0)
-		numberOfVertices = m_vertices.size() - index;
+		numberOfVertices = static_cast<unsigned int>(m_vertices.size()) - index;
 
 	for (unsigned int v{ 0u }; v < numberOfVertices; ++v)
 		m_vertices[index + v].position = position;
@@ -460,7 +460,7 @@ void Spline::resetHandles(const unsigned int index, unsigned int numberOfVertice
 		return;
 
 	if (numberOfVertices == 0)
-		numberOfVertices = m_vertices.size() - index;
+		numberOfVertices = static_cast<unsigned int>(m_vertices.size()) - index;
 
 	for (unsigned int v{ 0u }; v < numberOfVertices; ++v)
 	{
@@ -553,7 +553,7 @@ sf::Vector2f Spline::getInterpolatedPosition(const unsigned int interpolationOff
 
 unsigned int Spline::getInterpolatedPositionCount() const
 {
-	return ((m_isClosed) ? (m_vertices.size() * priv_getNumberOfPointsPerVertex()) : ((m_vertices.size() - 1u) * priv_getNumberOfPointsPerVertex() + 1u));
+	return ((m_isClosed) ? (static_cast<unsigned int>(m_vertices.size()) * priv_getNumberOfPointsPerVertex()) : ((static_cast<unsigned int>(m_vertices.size()) - 1u) * priv_getNumberOfPointsPerVertex() + 1u));
 }
 
 sf::Vector2f Spline::getInterpolatedPositionTangent(const unsigned int interpolationOffset, const unsigned int index) const

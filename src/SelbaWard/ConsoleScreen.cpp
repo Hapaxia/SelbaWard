@@ -402,7 +402,7 @@ ConsoleScreen& ConsoleScreen::operator<<(const sf::Color& newColor)
 	if (m_is.rgbMode)
 		return *this << Color(newColor.r * 65536L + newColor.g * 256L + newColor.b);
 
-	Color color(m_palette.size());
+	Color color(static_cast<unsigned long int>(m_palette.size()));
 	if (m_do.addNewColorToPalette)
 		addColorToPalette(newColor);
 	else
@@ -486,7 +486,7 @@ ConsoleScreen& ConsoleScreen::operator<<(const MovementControl& movementControl)
 	if (!priv_isCellIndexInRange(printProperties.index))
 	{
 		if (m_is.directPrinting)
-			printProperties.index = m_cells.size() - 1;
+			printProperties.index = static_cast<unsigned int>(m_cells.size()) - 1u;
 		else
 			priv_testCursorForScroll();
 	}
@@ -869,7 +869,7 @@ sf::Vector2u ConsoleScreen::getMode() const
 
 unsigned int ConsoleScreen::getNumberOfCells() const
 {
-	return m_cells.size();
+	return static_cast<unsigned int>(m_cells.size());
 }
 
 sf::Vector2u ConsoleScreen::getNumberOfTilesInTexture2d() const
@@ -1011,7 +1011,7 @@ void ConsoleScreen::print(const char character)
 	if (!m_is.directPrinting)
 		priv_testCursorForScroll();
 	else if (!priv_isCellIndexInRange(printProperties.index))
-		printProperties.index = m_cells.size() - 1;
+		printProperties.index = static_cast<unsigned int>(m_cells.size()) - 1u;
 
 	if (m_do.updateAutomatically)
 	{
@@ -1244,7 +1244,7 @@ void ConsoleScreen::pasteOver(const sf::Vector2i offset)
 		return;
 	}
 
-	pasteOver(m_buffers.size() - 1, offset);
+	pasteOver(static_cast<unsigned int>(m_buffers.size()) - 1u, offset);
 }
 
 void ConsoleScreen::pasteUnder(const sf::Vector2i offset)
@@ -1256,7 +1256,7 @@ void ConsoleScreen::pasteUnder(const sf::Vector2i offset)
 		return;
 	}
 
-	pasteUnder(m_buffers.size() - 1, offset);
+	pasteUnder(static_cast<unsigned int>(m_buffers.size()) - 1u, offset);
 }
 
 void ConsoleScreen::pasteOver(const unsigned int index, const sf::Vector2i offset)
@@ -1927,7 +1927,7 @@ void ConsoleScreen::crash()
 	{
 		cell = { randomByte(), ColorPair(priv_getRandomColor(), priv_getRandomColor()) };
 	}
-	m_cursorPrintProperties.index = m_cells.size() - 1;
+	m_cursorPrintProperties.index = static_cast<unsigned int>(m_cells.size()) - 1u;
 
 	if (m_do.updateAutomatically)
 		update();
@@ -2091,7 +2091,7 @@ void ConsoleScreen::setPaletteSize(const unsigned long int size)
 
 unsigned long int ConsoleScreen::getPaletteSize() const
 {
-	return m_is.rgbMode ? 16777216L : m_palette.size();
+	return m_is.rgbMode ? 16777216L : static_cast<unsigned long int>(m_palette.size());
 }
 
 void ConsoleScreen::removePaletteColor(const Color color)
@@ -2123,7 +2123,7 @@ void ConsoleScreen::cyclePaletteUp(const long amount)
 	if (m_palette.size() < 2)
 		return;
 
-	cyclePaletteUp(amount, 0, m_palette.size() - 1);
+	cyclePaletteUp(amount, 0, static_cast<unsigned long int>(m_palette.size()) - 1u);
 }
 
 void ConsoleScreen::cyclePaletteDown(const long amount)
@@ -2131,7 +2131,7 @@ void ConsoleScreen::cyclePaletteDown(const long amount)
 	if (m_palette.size() < 2)
 		return;
 
-	cyclePaletteDown(amount, 0, m_palette.size() - 1);
+	cyclePaletteDown(amount, 0, static_cast<unsigned long int>(m_palette.size()) - 1u);
 }
 
 void ConsoleScreen::cyclePaletteUp(long amount, Color firstColor, Color lastColor)
@@ -2145,7 +2145,7 @@ void ConsoleScreen::cyclePaletteUp(long amount, Color firstColor, Color lastColo
 	if (firstColor.id < 0)
 		firstColor = 0;
 	if (lastColor.id > static_cast<long>(m_palette.size() - 1))
-		lastColor = m_palette.size() - 1;
+		lastColor = static_cast<unsigned long int>(m_palette.size()) - 1u;
 
 	const long rangeSize{ lastColor.id - firstColor.id + 1 };
 	amount %= rangeSize;
@@ -2176,7 +2176,7 @@ void ConsoleScreen::cyclePaletteDown(long amount, Color firstColor, Color lastCo
 	if (firstColor.id < 0)
 		firstColor = 0;
 	if (lastColor.id > static_cast<long>(m_palette.size() - 1))
-		lastColor = m_palette.size() - 1;
+		lastColor = static_cast<unsigned long int>(m_palette.size()) - 1u;
 
 	const long rangeSize{ lastColor.id - firstColor.id + 1 };
 	amount %= rangeSize;
@@ -2199,7 +2199,7 @@ void ConsoleScreen::cyclePaletteDown(long amount, Color firstColor, Color lastCo
 unsigned int ConsoleScreen::copy()
 {
 	m_buffers.push_back({ m_mode.x, m_cells });
-	return m_buffers.size() - 1;
+	return static_cast<unsigned int>(m_buffers.size()) - 1u;
 }
 
 void ConsoleScreen::copy(const unsigned int index)
@@ -2221,7 +2221,7 @@ unsigned int ConsoleScreen::copy(const sf::IntRect selectionRectangle)
 {
 	m_buffers.emplace_back();
 	priv_copyToBufferFromSelectionRectangle(m_buffers.back(), selectionRectangle);
-	return m_buffers.size() - 1;
+	return static_cast<unsigned int>(m_buffers.size()) - 1u;
 }
 
 void ConsoleScreen::copy(const unsigned int index, const sf::IntRect selectionRectangle)
@@ -2293,7 +2293,7 @@ unsigned int ConsoleScreen::addBuffer(const sf::Vector2u size)
 {
 	const unsigned int newBufferIndex{ static_cast<unsigned int>(m_buffers.size()) };
 	m_buffers.emplace_back();
-	resizeBuffer(m_buffers.size() - 1, size);
+	resizeBuffer(static_cast<unsigned int>(m_buffers.size()) - 1u, size);
 	return newBufferIndex;
 }
 
@@ -2375,7 +2375,7 @@ void ConsoleScreen::resizeBuffer(const unsigned int index, const sf::Vector2u si
 
 unsigned int ConsoleScreen::getNumberOfBuffers() const
 {
-	return m_buffers.size();
+	return static_cast<unsigned int>(m_buffers.size());
 }
 
 sf::Vector2u ConsoleScreen::getSizeOfBuffer(const unsigned int index) const
@@ -2388,7 +2388,7 @@ sf::Vector2u ConsoleScreen::getSizeOfBuffer(const unsigned int index) const
 	}
 
 	const Buffer& buffer{ m_buffers[index] };
-	return sf::Vector2u(buffer.cells.size() % buffer.width, buffer.cells.size() / buffer.width);
+	return sf::Vector2u(static_cast<unsigned int>(buffer.cells.size()) % buffer.width, static_cast<unsigned int>(buffer.cells.size()) / buffer.width);
 }
 
 void ConsoleScreen::setMappedCharacter(const char character, const unsigned int value)
@@ -2941,7 +2941,7 @@ bool ConsoleScreen::priv_testCursorForScroll()
 		}
 		else
 		{
-			m_cursorPrintProperties.index = m_cells.size() - 1;
+			m_cursorPrintProperties.index = static_cast<unsigned int>(m_cells.size()) - 1u;
 			if (m_do.updateAutomatically)
 				update();
 		}
@@ -3068,7 +3068,7 @@ char ConsoleScreen::priv_getCharacterFromCellValue(const unsigned int cellValue)
 
 ConsoleScreen::Color ConsoleScreen::priv_getRandomColor() const
 {
-	return Color(std::uniform_int_distribution<unsigned long int>(0u, m_is.rgbMode ? 16777215L : m_palette.size() - 1u)(randomGenerator));
+	return Color(std::uniform_int_distribution<unsigned long int>(0u, m_is.rgbMode ? 16777215L : static_cast<unsigned long int>(m_palette.size()) - 1u)(randomGenerator));
 }
 
 ConsoleScreen::PrintProperties& ConsoleScreen::priv_getCurrentPrintProperties()
