@@ -37,10 +37,15 @@
 
 #include <unordered_map>
 
+namespace sf
+{
+	class Texture;
+}
+
 namespace selbaward
 {
 
-// SW Console Screen v2.3.2
+// SW Console Screen v2.4.0
 class ConsoleScreen : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -53,6 +58,7 @@ public:
 	enum Direct : int;
 	enum TargetBufferCommand : int;
 	struct Char;
+	struct Number;
 	struct Fg;
 	struct Bg;
 	struct MovementControl;
@@ -92,23 +98,25 @@ public:
 		Direct,
 		Current
 	};
+
 	enum Affect
 	{
-		None = 0,
-		Value = 1,
-		FgColor = 2,
-		BgColor = 4,
-		Stretch = 8,
-		Inverse = 16,
-		Bright = 32,
-		FlipX = 64,
-		FlipY = 128,
-		Print = Value | FgColor | Stretch,
+		None    = 0x00,
+		Value   = 0x01,
+		FgColor = 0x02,
+		BgColor = 0x04,
+		Stretch = 0x08,
+		Inverse = 0x10,
+		Dark    = 0x20,
+		FlipX   = 0x40,
+		FlipY   = 0x80,
+		Print   = Value | FgColor | Stretch,
 		Default = Print | BgColor,
-		Attribs = Inverse | Bright | FlipX | FlipY,
-		Paint = FgColor | BgColor,
-		All = 255
+		Attribs = Inverse | Dark | FlipX | FlipY,
+		Paint   = FgColor | BgColor,
+		All     = 0xFF
 	};
+
 	enum ColorType
 	{
 		Foreground,
@@ -131,14 +139,14 @@ public:
 	struct CellAttributes
 	{
 		bool inverse;
-		bool bright;
+		bool dark;
 		bool flipX;
 		bool flipY;
-		CellAttributes() : inverse(false), bright(true), flipX(false), flipY(false) { }
-		explicit CellAttributes(const bool newInverse, const bool newBright, const bool newFlipX, const bool newFlipY) : inverse(newInverse), bright(newBright), flipX(newFlipX), flipY(newFlipY) { }
+		CellAttributes() : inverse(false), dark(false), flipX(false), flipY(false) { }
+		explicit CellAttributes(const bool newInverse, const bool newDark, const bool newFlipX, const bool newFlipY) : inverse(newInverse), dark(newDark), flipX(newFlipX), flipY(newFlipY) { }
 		explicit CellAttributes(const unsigned int attributeMask)
 			: inverse((attributeMask & Affect::Inverse) == Affect::Inverse)
-			, bright((attributeMask & Affect::Bright) == Affect::Bright)
+			, dark((attributeMask & Affect::Dark) == Affect::Dark)
 			, flipX((attributeMask & Affect::FlipX) == Affect::FlipX)
 			, flipY((attributeMask & Affect::FlipY) == Affect::FlipY)
 		{ }
@@ -177,13 +185,20 @@ public:
 	unsigned int getNumberOfCells() const;
 	sf::Vector2u getNumberOfTilesInTexture2d() const;
 	unsigned int getNumberOfTilesInTexture() const;
+	void setClearValue(unsigned int clearValue = 0u);
+	unsigned int getClearValue() const;
+	void setClearChar(char clearChar);
+	char getClearChar() const;
+	void setDarkAttributeMultiplier(float darkAttributeMultiplier = 0.5f);
+	float getDarkAttributeMultiplier() const;
 
 	// texture
 	void setTexture(const sf::Texture& texture);
 	void setTexture();
+	void setTexture(const sf::Texture& texture, unsigned int numberOfTextureTilesPerRow, sf::Vector2u tileSize = { 8u, 8u }, sf::Vector2u textureOffset = { 0u, 0u });
 	void setTextureOffset(sf::Vector2u textureOffset = { 0u, 0u });
 	void setTextureTileSize(sf::Vector2u tileSize = { 8u, 8u });
-	void setNumberOfTextureTilesPerRow(unsigned int numberOfTextureTilesPerRow = 1);
+	void setNumberOfTextureTilesPerRow(unsigned int numberOfTextureTilesPerRow = 16u);
 
 	// switches
 	void setThrowExceptions(bool exceptions);
@@ -211,6 +226,8 @@ public:
 	sf::Vector2f getPerfectSize() const;
 	sf::FloatRect getLocalBounds() const;
 	sf::FloatRect getGlobalBounds() const;
+	sf::Vector2f getLocationAtCoord(sf::Vector2f coord) const;
+	sf::Vector2f getCoordOfLocation(sf::Vector2f location) const;
 
 	// global
 	void update();
@@ -224,11 +241,12 @@ public:
 	// stream
 	ConsoleScreen& operator<<(const std::string& string);
 	ConsoleScreen& operator<<(const Char& csChar);
+	ConsoleScreen& operator<<(const Number& csNumber);
 	ConsoleScreen& operator<<(const Direct& direct);
 	ConsoleScreen& operator<<(const Location& location);
 	ConsoleScreen& operator<<(const Offset& offset);
 	ConsoleScreen& operator<<(const Affect& affect);
-	ConsoleScreen& operator<<(unsigned int affectMask);
+	ConsoleScreen& operator<<(const unsigned int affectMask);
 	ConsoleScreen& operator<<(const ColorType& colorType);
 	ConsoleScreen& operator<<(const Color& color);
 	ConsoleScreen& operator<<(const sf::Color& newColor); // action depends on action flag. either adds this colour to the palette or finds the closest match in the palette. either way, sets the colour to the resulting palette id.
@@ -256,6 +274,7 @@ public:
 	ColorPair getColors(PrintType printType = PrintType::Current);
 	StretchType getStretchType(PrintType printType = PrintType::Current);
 	CellAttributes getCellAttributes(PrintType printType = PrintType::Current);
+	unsigned int getCellAttributesBitmask(PrintType = PrintType::Current);
 	unsigned int getAffectBitmask(PrintType printType = PrintType::Current);
 	ColorType getColorType(PrintType printType = PrintType::Current);
 
@@ -342,10 +361,10 @@ public:
 	void setPaletteSize(unsigned long int size);
 	unsigned long int getPaletteSize() const;
 	void removePaletteColor(Color color);
-	void cyclePaletteUp(long amount = 1);
-	void cyclePaletteDown(long amount = 1);
-	void cyclePaletteUp(long amount, Color firstColor, Color lastColor); // first colour and last colour of range to cycle
-	void cyclePaletteDown(long amount, Color firstColor, Color lastColor); // first colour and last colour of range to cycle
+	void cyclePaletteUp(long int amount = 1);
+	void cyclePaletteDown(long int amount = 1);
+	void cyclePaletteUp(Color firstColor, Color lastColor, long int amount = 1); // first colour and last colour of range to cycle
+	void cyclePaletteDown(Color firstColor, Color lastColor, long int amount = 1); // first colour and last colour of range to cycle
 
 	// buffers/clipboards/"screenshots"/captures
 	unsigned int copy(); // returns index of buffer
@@ -497,6 +516,10 @@ private:
 	// character map for cursor commands (character mapped to a cursor command)
 	std::unordered_map<char, CursorCommand> m_characterMapCursorCommand;
 
+	// general setup values
+	unsigned int m_clearValue; // value to use when clearing a cell
+	float m_darkAttributeMultiplier; // sf::Color is multiplied by this amount when the cell's dark attribute is enabled
+
 	// visual representation
 	std::vector<sf::Vertex> m_display;
 	std::vector<sf::Vertex> m_backgroundDisplay;
@@ -547,6 +570,7 @@ private:
 	int priv_getIndexOfClosestPaletteColor(const sf::Color& color) const; // returns -1 if the palette is empty
 	std::string priv_read(unsigned int index, const bool unmapCharacters = true);
 	void priv_modifyCellUsingPrintProperties(unsigned int index, const PrintType& printType, const StretchType stretch);
+	void priv_makeColorDark(sf::Color& color);
 };
 
 
@@ -573,6 +597,7 @@ enum class ConsoleScreen::Palette
 	Default, // basic 16-colour palette
 	Colors2BlackWhite,
 	Colors2WhiteBlack,
+	Colors8Rgb,
 	Colors16Greenscale,
 	Colors16Grayscale,
 	Colors16Sepia,
@@ -624,6 +649,13 @@ struct ConsoleScreen::Char
 	explicit Char(char singleCharacter) : character(singleCharacter) { }
 };
 
+struct ConsoleScreen::Number
+{
+	std::string numberAsString;
+	template <class T>
+	explicit Number(T number) : numberAsString(std::to_string(number)) { }
+};
+
 struct ConsoleScreen::Fg
 {
 	Color color;
@@ -668,6 +700,332 @@ struct ConsoleScreen::Wipe
 	std::string string;
 	explicit Wipe(const unsigned int length) : string(length, ' ') { }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// INLINE METHODS
+inline void ConsoleScreen::setClearValue(const unsigned int clearValue)
+{
+	m_clearValue = clearValue;
+}
+
+inline unsigned int ConsoleScreen::getClearValue() const
+{
+	return m_clearValue;
+}
+
+inline void ConsoleScreen::setClearChar(const char clearChar)
+{
+	setClearValue(priv_getCellValueFromCharacter(clearChar));
+}
+
+inline char ConsoleScreen::getClearChar() const
+{
+	return priv_getCharacterFromCellValue(getClearValue());
+}
+
+inline void ConsoleScreen::setTexture(const sf::Texture& texture)
+{
+	m_texture = &texture;
+}
+
+inline void ConsoleScreen::setTexture()
+{
+	m_texture = nullptr;
+}
+
+inline void ConsoleScreen::setTexture(const sf::Texture& texture, const unsigned int numberOfTextureTilesPerRow, const sf::Vector2u tileSize, const sf::Vector2u textureOffset)
+{
+	setTexture(texture);
+	setNumberOfTextureTilesPerRow(numberOfTextureTilesPerRow);
+	setTextureTileSize(tileSize);
+	setTextureOffset(textureOffset);
+}
+
+inline void ConsoleScreen::setDarkAttributeMultiplier(const float darkAttributeMultiplier)
+{
+	m_darkAttributeMultiplier = darkAttributeMultiplier;
+}
+
+inline float ConsoleScreen::getDarkAttributeMultiplier() const
+{
+	return m_darkAttributeMultiplier;
+}
+
+inline void ConsoleScreen::setThrowExceptions(const bool throwExceptions)
+{
+	m_do.throwExceptions = throwExceptions;
+}
+
+inline void ConsoleScreen::setUpdateAutomatically(const bool updateAutomatically)
+{
+	m_do.updateAutomatically = updateAutomatically;
+}
+
+inline void ConsoleScreen::setShowBackground(const bool showBackground)
+{
+	m_do.showBackround = showBackground;
+}
+
+inline void ConsoleScreen::setScrollAutomatically(const bool scrollAutomatically)
+{
+	m_do.scrollAutomatically = scrollAutomatically;
+}
+
+inline void ConsoleScreen::setWrapOnManualScroll(const bool wrapOnManualScroll)
+{
+	m_do.wrapOnManualScroll = wrapOnManualScroll;
+}
+
+inline void ConsoleScreen::setAddNewColorToPalette(const bool addNewColorToPalette)
+{
+	m_do.addNewColorToPalette = addNewColorToPalette;
+}
+
+inline sf::Vector2f ConsoleScreen::getSize() const
+{
+	return m_size;
+}
+
+inline sf::Vector2f ConsoleScreen::getPerfectSize() const
+{
+	return{ static_cast<float>(m_tileSize.x * m_mode.x), static_cast<float>(m_tileSize.y * m_mode.y) };
+}
+
+inline sf::FloatRect ConsoleScreen::getLocalBounds() const
+{
+	return{ { 0.f, 0.f }, m_size };
+}
+
+inline sf::FloatRect ConsoleScreen::getGlobalBounds() const
+{
+	return getTransform().transformRect(getLocalBounds());
+}
+
+inline sf::Vector2u ConsoleScreen::getMode() const
+{
+	return m_mode;
+}
+
+inline unsigned int ConsoleScreen::getNumberOfCells() const
+{
+	return static_cast<unsigned int>(m_cells.size());
+}
+
+inline bool ConsoleScreen::getThrowExceptions() const
+{
+	return m_do.throwExceptions;
+}
+
+inline bool ConsoleScreen::getUpdateAutomatically() const
+{
+	return m_do.updateAutomatically;
+}
+
+inline bool ConsoleScreen::getShowCursor() const
+{
+	return m_cursor.visible;
+}
+
+inline bool ConsoleScreen::getInvertCursor() const
+{
+	return m_cursor.inverse;
+}
+
+inline bool ConsoleScreen::getUseCursorColor() const
+{
+	return m_cursor.useOwnColour;
+}
+
+inline bool ConsoleScreen::getShowBackground() const
+{
+	return m_do.showBackround;
+}
+
+inline bool ConsoleScreen::getScrollAutomatically() const
+{
+	return m_do.scrollAutomatically;
+}
+
+inline bool ConsoleScreen::getWrapOnManualScroll() const
+{
+	return m_do.wrapOnManualScroll;
+}
+
+inline bool ConsoleScreen::getAddNewColorToPalette() const
+{
+	return m_do.addNewColorToPalette;
+}
+
+inline void ConsoleScreen::setCursorColor(const Color& color)
+{
+	m_cursor.color = color;
+}
+
+inline int ConsoleScreen::getCursorValue() const
+{
+	return m_cursor.value;
+}
+
+inline char ConsoleScreen::getCursorChar(const bool mapCharacter) const
+{
+	return mapCharacter ? priv_getCharacterFromCellValue(m_cursor.value) : static_cast<char>(m_cursor.value);
+}
+
+inline ConsoleScreen::Color ConsoleScreen::getCursorColor() const
+{
+	return m_cursor.color;
+}
+
+inline void ConsoleScreen::resetPrintProperties(const PrintType printType)
+{
+	priv_getPrintProperties(printType) = m_defaultPrintProperties;
+}
+
+inline ConsoleScreen::Location ConsoleScreen::getLocation(const PrintType printType)
+{
+	return priv_cellLocation(priv_getPrintProperties(printType).index);
+}
+
+inline unsigned int ConsoleScreen::getIndex(const PrintType printType)
+{
+	return priv_getPrintProperties(printType).index;
+}
+
+inline ConsoleScreen::ColorPair ConsoleScreen::getColors(const PrintType printType)
+{
+	return priv_getPrintProperties(printType).colors;
+}
+
+inline ConsoleScreen::StretchType ConsoleScreen::getStretchType(const PrintType printType)
+{
+	return priv_getPrintProperties(printType).stretch;
+}
+
+inline ConsoleScreen::CellAttributes ConsoleScreen::getCellAttributes(const PrintType printType)
+{
+	return priv_getPrintProperties(printType).attributes;
+}
+
+inline unsigned int ConsoleScreen::getAffectBitmask(const PrintType printType)
+{
+	return priv_getPrintProperties(printType).affectBitmask;
+}
+
+inline ConsoleScreen::ColorType ConsoleScreen::getColorType(const PrintType printType)
+{
+	return priv_getPrintProperties(printType).colorType;
+}
+
+inline void ConsoleScreen::setCursorTab(const unsigned int tabSize)
+{
+	m_tabSize = tabSize;
+}
+
+inline unsigned int ConsoleScreen::getCursorTab() const
+{
+	return m_tabSize;
+}
+
+inline void ConsoleScreen::addColorToPalette(const sf::Color color)
+{
+	m_palette.emplace_back(color);
+}
+
+inline unsigned long int ConsoleScreen::getPaletteSize() const
+{
+	return m_is.rgbMode ? 16777216L : static_cast<unsigned long int>(m_palette.size());
+}
+
+inline void ConsoleScreen::removeAllBuffers()
+{
+	m_buffers.clear();
+}
+
+inline unsigned int ConsoleScreen::getNumberOfBuffers() const
+{
+	return static_cast<unsigned int>(m_buffers.size());
+}
+
+inline void ConsoleScreen::setMappedCharacter(const char character, const unsigned int value)
+{
+	m_characterMap[character] = value;
+}
+
+inline void ConsoleScreen::setMappedCharacters(const std::string& characters, unsigned int initialValue)
+{
+	for (auto& character : characters)
+		setMappedCharacter(character, initialValue++);
+}
+
+inline void ConsoleScreen::removeMappedCharacter(const char character)
+{
+	m_characterMap.erase(character);
+}
+
+inline void ConsoleScreen::removeMappedCharacters(const std::string& characters)
+{
+	for (auto& character : characters)
+		removeMappedCharacter(character);
+}
+
+inline bool ConsoleScreen::getIsMappedCharacter(const char character) const
+{
+	return m_characterMap.find(character) != m_characterMap.end();
+}
+
+inline unsigned int ConsoleScreen::getMappedCharacter(const char character) const
+{
+	return m_characterMap.at(character);
+}
+
+inline void ConsoleScreen::setMappedCursorCommandCharacter(const char character, const CursorCommand cursorCommand)
+{
+	m_characterMapCursorCommand[character] = cursorCommand;
+}
+
+inline void ConsoleScreen::setMappedCursorCommandCharacters(const std::string& characters, const std::vector<CursorCommand>& cursorCommands)
+{
+	for (unsigned int i{ 0u }; i < characters.size() && i < cursorCommands.size(); ++i)
+		setMappedCursorCommandCharacter(characters[i], cursorCommands[i]);
+}
+
+inline void ConsoleScreen::removeMappedCursorCommandCharacter(const char character)
+{
+	m_characterMapCursorCommand.erase(character);
+}
+
+inline void ConsoleScreen::removeMappedCursorCommandCharacters(const std::string& characters)
+{
+	for (auto& character : characters)
+		removeMappedCursorCommandCharacter(character);
+}
+
+inline bool ConsoleScreen::getIsMappedCursorCommandCharacter(const char character) const
+{
+	return m_characterMapCursorCommand.find(character) != m_characterMapCursorCommand.end();
+}
+
+inline ConsoleScreen::CursorCommand ConsoleScreen::getMappedCursorCommandCharacter(const char character) const
+{
+	return m_characterMapCursorCommand.at(character);
+}
 
 } // namespace selbaward
 

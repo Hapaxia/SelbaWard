@@ -45,10 +45,9 @@ const std::string exceptionPrefix{ "Console Screen: " };
 
 const sf::PrimitiveType primitiveType{ sf::PrimitiveType::Quads };
 
-const selbaward::ConsoleScreen::Color defaultColor(15);
+const selbaward::ConsoleScreen::Color defaultColor(selbaward::ConsoleScreen::ColorCommand::Contrast);
 const selbaward::ConsoleScreen::Color defaultBackgroundColor(0);
-const selbaward::ConsoleScreen::Color defaultCursorColor(15);
-const double unBrightAttributeMultiplier{ 0.5 };
+const selbaward::ConsoleScreen::Color defaultCursorColor(selbaward::ConsoleScreen::ColorCommand::Contrast);
 const selbaward::ConsoleScreen::Cell defaultCell{ 0u, selbaward::ConsoleScreen::ColorPair(), selbaward::ConsoleScreen::StretchType::None, selbaward::ConsoleScreen::CellAttributes() };
 selbaward::ConsoleScreen::Cell fakeCell = defaultCell;
 
@@ -73,11 +72,12 @@ inline float linearInterpolation(const float start, const float end, const float
 	return start * (1 - alpha) + end * alpha;
 }
 
-inline void makeColorUnBright(sf::Color& color)
+inline unsigned int valueFromChar(char character)
 {
-	color.r = static_cast<sf::Uint8>(unBrightAttributeMultiplier * color.r);
-	color.g = static_cast<sf::Uint8>(unBrightAttributeMultiplier * color.g);
-	color.b = static_cast<sf::Uint8>(unBrightAttributeMultiplier * color.b);
+	if (character < 0)
+		return static_cast<unsigned int>(character + 256);
+	else
+		return static_cast<unsigned int>(character);
 }
 
 inline void swapColors(sf::Color& a, sf::Color& b)
@@ -154,6 +154,18 @@ void addPalette2ColorWhiteBlack(std::vector<sf::Color>& palette)
 {
 	addColorToPalette(palette, sf::Color::White);
 	addColorToPalette(palette, sf::Color::Black);
+}
+
+void addPalette8ColorRgb(std::vector<sf::Color>& palette)
+{
+	addColorToPalette(palette, sf::Color(0, 0, 0));
+	addColorToPalette(palette, sf::Color(0, 0, 255));
+	addColorToPalette(palette, sf::Color(255, 0, 0));
+	addColorToPalette(palette, sf::Color(255, 0, 255));
+	addColorToPalette(palette, sf::Color(0, 255, 0));
+	addColorToPalette(palette, sf::Color(0, 255, 255));
+	addColorToPalette(palette, sf::Color(255, 255, 0));
+	addColorToPalette(palette, sf::Color(255, 255, 255));
 }
 
 void addPalette16ColorGreenscale(std::vector<sf::Color>& palette)
@@ -328,6 +340,12 @@ ConsoleScreen& ConsoleScreen::operator<<(const Char& csChar)
 	return *this;
 }
 
+ConsoleScreen& ConsoleScreen::operator<<(const Number& csNumber)
+{
+	print(csNumber.numberAsString);
+	return *this;
+}
+
 ConsoleScreen& ConsoleScreen::operator<<(const Direct& direct)
 {
 	if (direct == Direct::Begin)
@@ -442,8 +460,6 @@ ConsoleScreen& ConsoleScreen::operator<<(const StretchType& stretchType)
 	priv_getCurrentPrintProperties().stretch = stretchType;
 	if (stretchType == Cs::StretchType::Both)
 		priv_testCursorForScroll();
-	if (m_do.updateAutomatically)
-		update();
 	return *this;
 }
 
@@ -677,11 +693,13 @@ ConsoleScreen::ConsoleScreen(const sf::Vector2u mode)
 	, m_texture(nullptr)
 	, m_textureOffset{ 0u, 0u }
 	, m_tileSize{ 8u, 8u }
-	, m_numberOfTilesPerRow{ 8u }
+	, m_numberOfTilesPerRow{ 16u }
 	, m_palette()
 	, m_cursor{ static_cast<int>('_'), defaultCursorColor, true, false, false }
 	, m_tabSize{ 4u }
 	, m_readLength{ 1u }
+	, m_clearValue{ 0u }
+	, m_darkAttributeMultiplier{ 0.5f }
 	, m_characterMap()
 	, m_defaultPrintProperties{ 0u, ColorPair(defaultColor, defaultBackgroundColor), StretchType::None, CellAttributes(), Affect::Default, ColorType::Foreground }
 {
@@ -704,16 +722,6 @@ void ConsoleScreen::setMode(sf::Vector2u mode)
 
 	clear(Color(0));
 	clearStack();
-}
-
-void ConsoleScreen::setTexture(const sf::Texture& texture)
-{
-	m_texture = &texture;
-}
-
-void ConsoleScreen::setTexture()
-{
-	m_texture = nullptr;
 }
 
 void ConsoleScreen::setSize(const sf::Vector2f size)
@@ -755,14 +763,9 @@ void ConsoleScreen::setNumberOfTextureTilesPerRow(const unsigned int numberOfTex
 		update();
 }
 
-void ConsoleScreen::setThrowExceptions(const bool throwExceptions)
+sf::Vector2u ConsoleScreen::getNumberOfTilesInTexture2d() const
 {
-	m_do.throwExceptions = throwExceptions;
-}
-
-void ConsoleScreen::setUpdateAutomatically(const bool updateAutomatically)
-{
-	m_do.updateAutomatically = updateAutomatically;
+	return{ m_numberOfTilesPerRow, m_texture->getSize().y / m_tileSize.y };
 }
 
 void ConsoleScreen::setShowCursor(const bool showCursor)
@@ -801,26 +804,6 @@ void ConsoleScreen::setUseCursorColor(const bool useCursorColor)
 	}
 }
 
-void ConsoleScreen::setShowBackground(const bool showBackground)
-{
-	m_do.showBackround = showBackground;
-}
-
-void ConsoleScreen::setScrollAutomatically(const bool scrollAutomatically)
-{
-	m_do.scrollAutomatically = scrollAutomatically;
-}
-
-void ConsoleScreen::setWrapOnManualScroll(const bool wrapOnManualScroll)
-{
-	m_do.wrapOnManualScroll = wrapOnManualScroll;
-}
-
-void ConsoleScreen::setAddNewColorToPalette(const bool addNewColorToPalette)
-{
-	m_do.addNewColorToPalette = addNewColorToPalette;
-}
-
 void ConsoleScreen::update()
 {
 	if (m_display.size() != (m_mode.x * m_mode.y * 4))
@@ -842,90 +825,22 @@ void ConsoleScreen::update()
 	priv_updateOverCells();
 }
 
-sf::Vector2f ConsoleScreen::getSize() const
+sf::Vector2f ConsoleScreen::getLocationAtCoord(sf::Vector2f coord) const
 {
-	return m_size;
+	coord = getInverseTransform().transformPoint(coord);
+	return{ coord.x * m_mode.x / m_size.x, coord.y * m_mode.y / m_size.y };
 }
 
-sf::Vector2f ConsoleScreen::getPerfectSize() const
+sf::Vector2f ConsoleScreen::getCoordOfLocation(sf::Vector2f location) const
 {
-	return{ static_cast<float>(m_tileSize.x * m_mode.x), static_cast<float>(m_tileSize.y * m_mode.y) };
-}
-
-sf::FloatRect ConsoleScreen::getLocalBounds() const
-{
-	return{ { 0.f, 0.f }, m_size };
-}
-
-sf::FloatRect ConsoleScreen::getGlobalBounds() const
-{
-	return getTransform().transformRect(getLocalBounds());
-}
-
-sf::Vector2u ConsoleScreen::getMode() const
-{
-	return m_mode;
-}
-
-unsigned int ConsoleScreen::getNumberOfCells() const
-{
-	return static_cast<unsigned int>(m_cells.size());
-}
-
-sf::Vector2u ConsoleScreen::getNumberOfTilesInTexture2d() const
-{
-	return{ m_numberOfTilesPerRow, m_texture->getSize().y / m_tileSize.y };
+	location = { location.x * m_size.x / m_mode.x, location.y * m_size.y / m_mode.y };
+	return getTransform().transformPoint(location);
 }
 
 unsigned int ConsoleScreen::getNumberOfTilesInTexture() const
 {
 	const sf::Vector2u numberOfTiles{ getNumberOfTilesInTexture2d() };
 	return numberOfTiles.x * numberOfTiles.y;
-}
-
-bool ConsoleScreen::getThrowExceptions() const
-{
-	return m_do.throwExceptions;
-}
-
-bool ConsoleScreen::getUpdateAutomatically() const
-{
-	return m_do.updateAutomatically;
-}
-
-bool ConsoleScreen::getShowCursor() const
-{
-	return m_cursor.visible;
-}
-
-bool ConsoleScreen::getInvertCursor() const
-{
-	return m_cursor.inverse;
-}
-
-bool ConsoleScreen::getUseCursorColor() const
-{
-	return m_cursor.useOwnColour;
-}
-
-bool ConsoleScreen::getShowBackground() const
-{
-	return m_do.showBackround;
-}
-
-bool ConsoleScreen::getScrollAutomatically() const
-{
-	return m_do.scrollAutomatically;
-}
-
-bool ConsoleScreen::getWrapOnManualScroll() const
-{
-	return m_do.wrapOnManualScroll;
-}
-
-bool ConsoleScreen::getAddNewColorToPalette() const
-{
-	return m_do.addNewColorToPalette;
 }
 
 void ConsoleScreen::setCursor(const int cellValue)
@@ -950,26 +865,6 @@ void ConsoleScreen::setCursor(const char cellCharacter, bool mapCharacter)
 		if (priv_getCurrentPrintProperties().stretch == Cs::StretchType::Both)
 			priv_updateCell(m_cursorPrintProperties.index + m_mode.x);
 	}
-}
-
-void ConsoleScreen::setCursorColor(const Color& color)
-{
-	m_cursor.color = color;
-}
-
-int ConsoleScreen::getCursorValue() const
-{
-	return m_cursor.value;
-}
-
-char ConsoleScreen::getCursorChar(const bool mapCharacter) const
-{
-	return mapCharacter ? priv_getCharacterFromCellValue(m_cursor.value) : static_cast<char>(m_cursor.value);
-}
-
-ConsoleScreen::Color ConsoleScreen::getCursorColor() const
-{
-	return m_cursor.color;
 }
 
 void ConsoleScreen::print(const char character)
@@ -1064,7 +959,7 @@ void ConsoleScreen::addOverAt(const Location& location, const char character, co
 	cell.value = cellValue;
 	cell.colors.foreground = printProperties.colors.foreground.id < 0 ? 0 : printProperties.colors.foreground;
 	cell.attributes.inverse = printProperties.attributes.inverse;
-	cell.attributes.bright = printProperties.attributes.bright;
+	cell.attributes.dark = printProperties.attributes.dark;
 	cell.attributes.flipX = printProperties.attributes.flipX;
 	cell.attributes.flipY = printProperties.attributes.flipY;
 	if (printProperties.stretch == StretchType::Both)
@@ -1134,7 +1029,7 @@ void ConsoleScreen::addUnderAt(const Location& location, const char character, c
 	cell.value = cellValue;
 	cell.colors.foreground = printProperties.colors.foreground.id < 0 ? 0 : printProperties.colors.foreground;
 	cell.attributes.inverse = printProperties.attributes.inverse;
-	cell.attributes.bright = printProperties.attributes.bright;
+	cell.attributes.dark = printProperties.attributes.dark;
 	cell.attributes.flipX = printProperties.attributes.flipX;
 	cell.attributes.flipY = printProperties.attributes.flipY;
 	if (printProperties.stretch == StretchType::Both)
@@ -1309,44 +1204,11 @@ void ConsoleScreen::pasteUnder(const unsigned int index, const sf::Vector2i offs
 		update();
 }
 
-void ConsoleScreen::resetPrintProperties(const PrintType printType)
+unsigned int ConsoleScreen::getCellAttributesBitmask(const PrintType printType)
 {
-	priv_getPrintProperties(printType) = m_defaultPrintProperties;
-}
+	CellAttributes attributes{ getCellAttributes(printType) };
 
-ConsoleScreen::Location ConsoleScreen::getLocation(const PrintType printType)
-{
-	return priv_cellLocation(priv_getPrintProperties(printType).index);
-}
-
-unsigned int ConsoleScreen::getIndex(const PrintType printType)
-{
-	return priv_getPrintProperties(printType).index;
-}
-
-ConsoleScreen::ColorPair ConsoleScreen::getColors(const PrintType printType)
-{
-	return priv_getPrintProperties(printType).colors;
-}
-
-ConsoleScreen::StretchType ConsoleScreen::getStretchType(const PrintType printType)
-{
-	return priv_getPrintProperties(printType).stretch;
-}
-
-ConsoleScreen::CellAttributes ConsoleScreen::getCellAttributes(const PrintType printType)
-{
-	return priv_getPrintProperties(printType).attributes;
-}
-
-unsigned int ConsoleScreen::getAffectBitmask(const PrintType printType)
-{
-	return priv_getPrintProperties(printType).affectBitmask;
-}
-
-ConsoleScreen::ColorType ConsoleScreen::getColorType(const PrintType printType)
-{
-	return priv_getPrintProperties(printType).colorType;
+	return (attributes.inverse ? Affect::Inverse : 0u) | (attributes.dark ? Affect::Dark : 0u) | (attributes.flipX ? Affect::FlipX : 0u) | (attributes.flipY ? Affect::FlipY : 0u);
 }
 
 void ConsoleScreen::clearCellAt(const sf::Vector2u location)
@@ -1485,7 +1347,7 @@ void ConsoleScreen::setAttributesAt(const sf::Vector2u location, const Affect& a
 
 	CellAttributes& cellAttributes{ m_cells[priv_cellIndex(location)].attributes };
 	cellAttributes.inverse = (attributeMask & Affect::Inverse) == Affect::Inverse;
-	cellAttributes.bright = (attributeMask & Affect::Bright) == Affect::Bright;
+	cellAttributes.dark = (attributeMask & Affect::Dark) == Affect::Dark;
 	cellAttributes.flipX = (attributeMask & Affect::FlipX) == Affect::FlipX;
 	cellAttributes.flipY = (attributeMask & Affect::FlipY) == Affect::FlipY;
 
@@ -1505,8 +1367,8 @@ void ConsoleScreen::setAttributesToAt(const sf::Vector2u location, const bool at
 	CellAttributes& cellAttributes{ m_cells[priv_cellIndex(location)].attributes };
 	if ((attributeMask & Affect::Inverse) == Affect::Inverse)
 		cellAttributes.inverse = attributeValue;
-	if ((attributeMask & Affect::Bright) == Affect::Bright)
-		cellAttributes.bright = attributeValue;
+	if ((attributeMask & Affect::Dark) == Affect::Dark)
+		cellAttributes.dark = attributeValue;
 	if ((attributeMask & Affect::FlipX) == Affect::FlipX)
 		cellAttributes.flipX = attributeValue;
 	if ((attributeMask & Affect::FlipY) == Affect::FlipY)
@@ -1600,8 +1462,8 @@ bool ConsoleScreen::getAttributeAt(const sf::Vector2u location, const Affect& at
 	CellAttributes& cellAttributes{ m_cells[priv_cellIndex(location)].attributes };
 	if ((attributeMask & Affect::Inverse) == Affect::Inverse)
 		return cellAttributes.inverse;
-	if ((attributeMask & Affect::Bright) == Affect::Bright)
-		return cellAttributes.bright;
+	if ((attributeMask & Affect::Dark) == Affect::Dark)
+		return cellAttributes.dark;
 	if ((attributeMask & Affect::FlipX) == Affect::FlipX)
 		return cellAttributes.flipX;
 	if ((attributeMask & Affect::FlipY) == Affect::FlipY)
@@ -1933,16 +1795,6 @@ void ConsoleScreen::crash()
 		update();
 }
 
-void ConsoleScreen::setCursorTab(const unsigned int tabSize)
-{
-	m_tabSize = tabSize;
-}
-
-unsigned int ConsoleScreen::getCursorTab() const
-{
-	return m_tabSize;
-}
-
 std::string ConsoleScreen::read()
 {
 	std::string string;
@@ -1982,6 +1834,9 @@ void ConsoleScreen::loadPalette(const Palette palette)
 		break;
 	case Palette::Colors2WhiteBlack:
 		addPalette2ColorWhiteBlack(m_palette);
+		break;
+	case Palette::Colors8Rgb:
+		addPalette8ColorRgb(m_palette);
 		break;
 	case Palette::Colors16Cga:
 		addPalette16ColorCga(m_palette);
@@ -2031,11 +1886,6 @@ void ConsoleScreen::loadPalette(const Palette palette)
 	}
 	if (m_do.updateAutomatically)
 		update();
-}
-
-void ConsoleScreen::addColorToPalette(const sf::Color color)
-{
-	m_palette.emplace_back(color);
 }
 
 void ConsoleScreen::setPaletteColor(const Color color, const sf::Color newColor)
@@ -2089,11 +1939,6 @@ void ConsoleScreen::setPaletteSize(const unsigned long int size)
 	m_palette.resize(size);
 }
 
-unsigned long int ConsoleScreen::getPaletteSize() const
-{
-	return m_is.rgbMode ? 16777216L : static_cast<unsigned long int>(m_palette.size());
-}
-
 void ConsoleScreen::removePaletteColor(const Color color)
 {
 	if (m_is.rgbMode)
@@ -2118,7 +1963,7 @@ void ConsoleScreen::removePaletteColor(const Color color)
 	m_palette.erase(m_palette.begin() + color.id);
 }
 
-void ConsoleScreen::cyclePaletteUp(const long amount)
+void ConsoleScreen::cyclePaletteUp(const long int amount)
 {
 	if (m_palette.size() < 2)
 		return;
@@ -2126,7 +1971,7 @@ void ConsoleScreen::cyclePaletteUp(const long amount)
 	cyclePaletteUp(amount, 0, static_cast<unsigned long int>(m_palette.size()) - 1u);
 }
 
-void ConsoleScreen::cyclePaletteDown(const long amount)
+void ConsoleScreen::cyclePaletteDown(const long int amount)
 {
 	if (m_palette.size() < 2)
 		return;
@@ -2134,7 +1979,7 @@ void ConsoleScreen::cyclePaletteDown(const long amount)
 	cyclePaletteDown(amount, 0, static_cast<unsigned long int>(m_palette.size()) - 1u);
 }
 
-void ConsoleScreen::cyclePaletteUp(long amount, Color firstColor, Color lastColor)
+void ConsoleScreen::cyclePaletteUp(Color firstColor, Color lastColor, long int amount)
 {
 	if (m_palette.size() < 2 || amount < 1)
 		return;
@@ -2165,7 +2010,7 @@ void ConsoleScreen::cyclePaletteUp(long amount, Color firstColor, Color lastColo
 		update();
 }
 
-void ConsoleScreen::cyclePaletteDown(long amount, Color firstColor, Color lastColor)
+void ConsoleScreen::cyclePaletteDown(Color firstColor, Color lastColor, long int amount)
 {
 	if (m_palette.size() < 2 || amount < 1)
 		return;
@@ -2284,11 +2129,6 @@ void ConsoleScreen::removeBuffer(const unsigned int index)
 	m_buffers.erase(m_buffers.begin() + index);
 }
 
-void ConsoleScreen::removeAllBuffers()
-{
-	m_buffers.clear();
-}
-
 unsigned int ConsoleScreen::addBuffer(const sf::Vector2u size)
 {
 	const unsigned int newBufferIndex{ static_cast<unsigned int>(m_buffers.size()) };
@@ -2373,11 +2213,6 @@ void ConsoleScreen::resizeBuffer(const unsigned int index, const sf::Vector2u si
 	}
 }
 
-unsigned int ConsoleScreen::getNumberOfBuffers() const
-{
-	return static_cast<unsigned int>(m_buffers.size());
-}
-
 sf::Vector2u ConsoleScreen::getSizeOfBuffer(const unsigned int index) const
 {
 	if (!priv_isScreenBufferIndexInRange(index))
@@ -2389,70 +2224,6 @@ sf::Vector2u ConsoleScreen::getSizeOfBuffer(const unsigned int index) const
 
 	const Buffer& buffer{ m_buffers[index] };
 	return sf::Vector2u(static_cast<unsigned int>(buffer.cells.size()) % buffer.width, static_cast<unsigned int>(buffer.cells.size()) / buffer.width);
-}
-
-void ConsoleScreen::setMappedCharacter(const char character, const unsigned int value)
-{
-	m_characterMap[character] = value;
-}
-
-void ConsoleScreen::setMappedCharacters(const std::string& characters, unsigned int initialValue)
-{
-	for (auto& character : characters)
-		setMappedCharacter(character, initialValue++);
-}
-
-void ConsoleScreen::removeMappedCharacter(const char character)
-{
-	m_characterMap.erase(character);
-}
-
-void ConsoleScreen::removeMappedCharacters(const std::string& characters)
-{
-	for (auto& character : characters)
-		removeMappedCharacter(character);
-}
-
-bool ConsoleScreen::getIsMappedCharacter(const char character) const
-{
-	return m_characterMap.find(character) != m_characterMap.end();
-}
-
-unsigned int ConsoleScreen::getMappedCharacter(const char character) const
-{
-	return m_characterMap.at(character);
-}
-
-void ConsoleScreen::setMappedCursorCommandCharacter(const char character, const CursorCommand cursorCommand)
-{
-	m_characterMapCursorCommand[character] = cursorCommand;
-}
-
-void ConsoleScreen::setMappedCursorCommandCharacters(const std::string& characters, const std::vector<CursorCommand>& cursorCommands)
-{
-	for (unsigned int i{ 0u }; i < characters.size() && i < cursorCommands.size(); ++i)
-		setMappedCursorCommandCharacter(characters[i], cursorCommands[i]);
-}
-
-void ConsoleScreen::removeMappedCursorCommandCharacter(const char character)
-{
-	m_characterMapCursorCommand.erase(character);
-}
-
-void ConsoleScreen::removeMappedCursorCommandCharacters(const std::string& characters)
-{
-	for (auto& character : characters)
-		removeMappedCursorCommandCharacter(character);
-}
-
-bool ConsoleScreen::getIsMappedCursorCommandCharacter(const char character) const
-{
-	return m_characterMapCursorCommand.find(character) != m_characterMapCursorCommand.end();
-}
-
-ConsoleScreen::CursorCommand ConsoleScreen::getMappedCursorCommandCharacter(const char character) const
-{
-	return m_characterMapCursorCommand.at(character);
 }
 
 void ConsoleScreen::poke(const unsigned int index, const Cell& cell)
@@ -2558,8 +2329,8 @@ void ConsoleScreen::poke(const unsigned int index, const bool attributeValue, co
 	CellAttributes& cellAttributes{ m_cells[index].attributes };
 	if ((attributeMask & Affect::Inverse) == Affect::Inverse)
 		cellAttributes.inverse = attributeValue;
-	if ((attributeMask & Affect::Bright) == Affect::Bright)
-		cellAttributes.bright = attributeValue;
+	if ((attributeMask & Affect::Dark) == Affect::Dark)
+		cellAttributes.dark = attributeValue;
 	if ((attributeMask & Affect::FlipX) == Affect::FlipX)
 		cellAttributes.flipX = attributeValue;
 	if ((attributeMask & Affect::FlipY) == Affect::FlipY)
@@ -2698,11 +2469,11 @@ void ConsoleScreen::priv_setVerticesFromCell(unsigned int index, int baseVertex,
 	else if (cell.attributes.inverse)
 		swapColors(cellColor, backgroundColor);
 
-	if (!cell.attributes.bright)
+	if (cell.attributes.dark)
 	{
-		makeColorUnBright(cellColor);
+		priv_makeColorDark(cellColor);
 		if (mainLayer)
-			makeColorUnBright(backgroundColor);
+			priv_makeColorDark(backgroundColor);
 	}
 
 	const unsigned int cellX{ index % m_mode.x };
@@ -2865,18 +2636,18 @@ void ConsoleScreen::priv_clearCell(const unsigned int index, const bool overwrit
 {
 	const Color color{ overwriteColor ? m_cursorPrintProperties.colors.foreground : m_cells[index].colors.foreground };
 	const Color backgroundColor{ overwriteBackgroundColor ? m_cursorPrintProperties.colors.background : m_cells[index].colors.background };
-	poke(index, { 0, ColorPair(color, backgroundColor), StretchType::None, CellAttributes() });
+	poke(index, { m_clearValue, ColorPair(color, backgroundColor), StretchType::None, CellAttributes() });
 }
 
 void ConsoleScreen::priv_clearCell(const unsigned int index, const Color& backgroundColor, const bool overwriteColor)
 {
 	const Color color{ overwriteColor ? m_cursorPrintProperties.colors.foreground : m_cells[index].colors.foreground };
-	poke(index, { 0, ColorPair(color, backgroundColor), StretchType::None, CellAttributes() });
+	poke(index, { m_clearValue, ColorPair(color, backgroundColor), StretchType::None, CellAttributes() });
 }
 
 void ConsoleScreen::priv_clearCell(const unsigned int index, const Color& color, const Color& backgroundColor)
 {
-	poke(index, { 0, ColorPair(color, backgroundColor), StretchType::None, CellAttributes() });
+	poke(index, { m_clearValue, ColorPair(color, backgroundColor), StretchType::None, CellAttributes() });
 }
 
 void ConsoleScreen::priv_setCursorIndex(const unsigned int index)
@@ -3053,7 +2824,7 @@ unsigned int ConsoleScreen::priv_getCellValueFromCharacter(const char character)
 	if (getIsMappedCharacter(character))
 		return m_characterMap.at(character);
 	else
-		return static_cast<unsigned int>(character);
+		return valueFromChar(character);
 }
 
 char ConsoleScreen::priv_getCharacterFromCellValue(const unsigned int cellValue) const
@@ -3195,14 +2966,21 @@ void ConsoleScreen::priv_modifyCellUsingPrintProperties(const unsigned int index
 		currentCell.colors.background = printProperties.colors.background;
 	if ((printProperties.affectBitmask & Affect::Inverse) == Affect::Inverse)
 		currentCell.attributes.inverse = printProperties.attributes.inverse;
-	if ((printProperties.affectBitmask & Affect::Bright) == Affect::Bright)
-		currentCell.attributes.bright = printProperties.attributes.bright;
+	if ((printProperties.affectBitmask & Affect::Dark) == Affect::Dark)
+		currentCell.attributes.dark = printProperties.attributes.dark;
 	if ((printProperties.affectBitmask & Affect::FlipX) == Affect::FlipX)
 		currentCell.attributes.flipX = printProperties.attributes.flipX;
 	if ((printProperties.affectBitmask & Affect::FlipY) == Affect::FlipY)
 		currentCell.attributes.flipY = printProperties.attributes.flipY;
 	if ((printProperties.affectBitmask & Affect::Stretch) == Affect::Stretch)
 		currentCell.stretch = stretch;
+}
+
+void ConsoleScreen::priv_makeColorDark(sf::Color& color)
+{
+	color.r = static_cast<sf::Uint8>(m_darkAttributeMultiplier * color.r);
+	color.g = static_cast<sf::Uint8>(m_darkAttributeMultiplier * color.g);
+	color.b = static_cast<sf::Uint8>(m_darkAttributeMultiplier * color.b);
 }
 
 } // namespace selbaward
