@@ -83,6 +83,22 @@ enum Colors
 };
 
 		} // namespace Colors2WhiteBlack
+		namespace Colors8Rgb
+		{
+
+enum Colors
+{
+	Black = 0,
+	Blue,
+	Red,
+	Magenta,
+	Green,
+	Cyan,
+	Yellow,
+	White
+};
+
+		} // Colors8Rgb
 		namespace Colors16Cga
 		{
 
