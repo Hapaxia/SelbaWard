@@ -1,6 +1,27 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.4.0] - 2017-09-16
+### Added
+- Ability to get a cell location at a given co-ordinate
+- Ability to get (transformed) co-ordinate of a cell location
+- New "Number" type to allow numbers to be streamed and printed
+- New palette - 8-colour RGB
+- Ability to get cell attributes bitmask
+- Ability to set all textures values in using a single function
+- Ability to set/get clear value (direct value or mapped character)
+- Ability to set/get colour multiplier used for dark attribute (see below)
+
+### Changed
+- Bright attribute is now dark attribute
+- Default value for number of texture tiles per row is now 16
+- Re-arranged cycle palette (range) parameters; amount can now be left at its default of one
+
+### FIXED
+- Values of char above 127 stored in a string are no longer ignored
+- Default foreground/cursor colours are now ColorCommand::Contrast to avoid out-of-range values in smaller palettes
+- Removed unnecessary full updates when changing stretch type
+
 ## [2.3.2] - 2016-11-14
 ### Changed
 - Altered error message in exception thrown by failed clear/fill
@@ -143,6 +164,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[2.4.0]: https://github.com/Hapaxia/SelbaWard/commit/c9bfddc95e48aab6fd9d9a60bb872cfa5304851d
 [2.3.2]: https://github.com/Hapaxia/SelbaWard/commit/832048d2e87544425c42bbfdc4e837b4c32dbe67
 [2.3.1]: https://github.com/Hapaxia/SelbaWard/commit/04d9c8337dbe8522659c3c94e2ffbdfafb42e66f
 [2.3.0]: https://github.com/Hapaxia/SelbaWard/commit/28c6a75a2d2604e40ccd1f0b3c05b78cc0af22dc
