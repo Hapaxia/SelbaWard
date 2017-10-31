@@ -40,15 +40,16 @@
 namespace selbaward
 {
 
-// SW Nine Patch v1.4.0
+// SW Nine Patch v1.4.1
 class NinePatch : public sf::Drawable, public sf::Transformable
 {
 public:
 	NinePatch();
 	void setTexture(const sf::Texture& texture, bool resetSize = true, bool resetRect = true);
+	void setTexture();
 	void setSize(sf::Vector2f size);
 	void resetSize();
-	void setTextureRect(sf::IntRect textureRectangle);
+	void setTextureRect(sf::IntRect textureRectangle, bool resetSize = true);
 	void setColor(const sf::Color& color);
 	sf::Color getColor() const;
 	sf::Vector2f getSize() const;
@@ -80,6 +81,11 @@ private:
 inline sf::Vector2f NinePatch::getSize() const
 {
 	return m_size;
+}
+
+inline void NinePatch::setTexture()
+{
+	m_texture = nullptr;
 }
 
 } // namespace selbaward
