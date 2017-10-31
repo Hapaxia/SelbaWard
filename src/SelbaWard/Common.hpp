@@ -65,7 +65,6 @@ namespace sw = selbaward; // create shortcut namespace
 #endif // SELBAWARD_NO_NAMESPACE_SHORTCUT
 
 #include <vector>
-#include <string>
 
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Transformable.hpp>
