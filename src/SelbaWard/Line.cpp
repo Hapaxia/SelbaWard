@@ -209,6 +209,16 @@ sf::FloatRect Line::getTextureRect() const
 	return m_textureRect;
 }
 
+bool Line::getRounded() const
+{
+	return m_rounded;
+}
+
+void Line::setRounded(bool rounded)
+{
+	m_rounded = rounded;
+}
+
 
 
 // PRIVATE
@@ -222,6 +232,21 @@ void Line::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		if (m_texture != nullptr)
 			states.texture = m_texture;
 		target.draw(m_quad, states);
+
+		if (m_rounded)
+		{
+			const float halfThickness{ m_thickness / 2.f };
+
+			sf::CircleShape circle{ halfThickness };
+			circle.setOrigin(halfThickness, halfThickness);
+			circle.setFillColor(getColor());
+
+			circle.setPosition(getPoint(0));
+			target.draw(circle, states);
+			
+			circle.setPosition(getPoint(1));
+			target.draw(circle, states);
+		}
 	}
 	else
 		target.draw(m_vertices, states);
