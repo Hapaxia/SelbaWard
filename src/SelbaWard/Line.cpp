@@ -55,6 +55,7 @@ Line::Line()
 	//, m_color(sf::Color::White)
 	, m_texture(nullptr)
 	, m_textureRect()
+	, m_rounded(false)
 {
 }
 
