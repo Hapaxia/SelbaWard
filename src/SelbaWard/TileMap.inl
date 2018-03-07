@@ -33,6 +33,8 @@
 #ifndef SELBAWARD_TILEMAP_INL
 #define SELBAWARD_TILEMAP_INL
 
+#include <cmath>
+
 namespace selbaward
 {
 
@@ -64,7 +66,7 @@ void TileMap::update(const T& level, unsigned int width)
 		width = static_cast<unsigned int>(std::sqrt(level.size()));
 
 	const sf::Vector2f actualCamera{ priv_getActualCamera() };
-	const sf::Vector2i levelOffset{ static_cast<int>(floor(actualCamera.x)), static_cast<int>(floor(actualCamera.y)) };
+	const sf::Vector2i levelOffset{ static_cast<int>(std::floor(actualCamera.x)), static_cast<int>(std::floor(actualCamera.y)) };
 	const unsigned int height{ width > 0u ? level.size() / width : 0u };
 
 	for (unsigned int y{ 0 }; y < m_gridSize.y; ++y)
@@ -96,7 +98,7 @@ void TileMap::update(const T* const level, const unsigned int size, unsigned int
 		width = static_cast<unsigned int>(std::sqrt(size));
 
 	const sf::Vector2f actualCamera{ priv_getActualCamera() };
-	const sf::Vector2i levelOffset{ static_cast<int>(floor(actualCamera.x)), static_cast<int>(floor(actualCamera.y)) };
+	const sf::Vector2i levelOffset{ static_cast<int>(std::floor(actualCamera.x)), static_cast<int>(std::floor(actualCamera.y)) };
 	const unsigned int height{ width > 0u ? size / width : 0u };
 
 	for (unsigned int y{ 0 }; y < m_gridSize.y; ++y)

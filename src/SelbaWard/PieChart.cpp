@@ -31,6 +31,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "PieChart.hpp"
+#include <cmath>
 
 namespace
 {
@@ -67,7 +68,7 @@ void PieChart::update()
 	std::vector<unsigned int> numberOfTrianglesRequiredPerSlice;
 	for (auto& slice : slices)
 	{
-		numberOfTrianglesRequiredPerSlice.emplace_back(static_cast<unsigned int>(floor(1.f + slice.size * 50.f)));
+		numberOfTrianglesRequiredPerSlice.emplace_back(static_cast<unsigned int>(std::floor(1.f + slice.size * 50.f)));
 		totalNumberOfTrianglesRequired += numberOfTrianglesRequiredPerSlice.back();
 	}
 	m_vertices.resize(totalNumberOfTrianglesRequired * 3);
@@ -77,13 +78,13 @@ void PieChart::update()
 	{
 		const float startAngle{ currentAngle };
 		const float halfAngleDifference{ 180.f * slices[slice].size };
-		const sf::Vector2f offset{ sf::Vector2f(sin(radiansFromDegrees(startAngle + halfAngleDifference)), -cos(radiansFromDegrees(startAngle + halfAngleDifference))) * slices[slice].explode };
+		const sf::Vector2f offset{ sf::Vector2f(std::sin(radiansFromDegrees(startAngle + halfAngleDifference)), -std::cos(radiansFromDegrees(startAngle + halfAngleDifference))) * slices[slice].explode };
 		for (unsigned int triangle{ 0u }; triangle < numberOfTrianglesRequiredPerSlice[slice]; ++triangle)
 		{
 			m_vertices[currentVertex + 0].position = halfSize + sf::Vector2f(offset.x * halfSize.x, offset.y * halfSize.y);
-			m_vertices[currentVertex + 1].position = halfSize + sf::Vector2f((offset.x + sin(radiansFromDegrees(currentAngle))) * halfSize.x, (offset.y - cos(radiansFromDegrees(currentAngle))) * halfSize.y) * slices[slice].scale;
+			m_vertices[currentVertex + 1].position = halfSize + sf::Vector2f((offset.x + std::sin(radiansFromDegrees(currentAngle))) * halfSize.x, (offset.y - std::cos(radiansFromDegrees(currentAngle))) * halfSize.y) * slices[slice].scale;
 			currentAngle += halfAngleDifference * 2.f / numberOfTrianglesRequiredPerSlice[slice];
-			m_vertices[currentVertex + 2].position = halfSize + sf::Vector2f((offset.x + sin(radiansFromDegrees(currentAngle))) * halfSize.x, (offset.y - cos(radiansFromDegrees(currentAngle))) * halfSize.y) * slices[slice].scale;
+			m_vertices[currentVertex + 2].position = halfSize + sf::Vector2f((offset.x + std::sin(radiansFromDegrees(currentAngle))) * halfSize.x, (offset.y - std::cos(radiansFromDegrees(currentAngle))) * halfSize.y) * slices[slice].scale;
 			m_vertices[currentVertex + 0].color = slices[slice].color;
 			m_vertices[currentVertex + 1].color = slices[slice].color;
 			m_vertices[currentVertex + 2].color = slices[slice].color;

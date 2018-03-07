@@ -33,6 +33,7 @@
 
 
 #include "Sprite3d.hpp"
+#include <cmath>
 
 namespace
 {
@@ -502,10 +503,10 @@ void Sprite3d::updateTransformedPoints() const
 	const float pitchInRadians{ m_pitch * radiansFromDegreesMultiplier };
 	const float yawInRadians{ m_yaw * radiansFromDegreesMultiplier };
 
-	const float cosPitch{ cos(pitchInRadians) };
-	const float sinPitch{ sin(pitchInRadians) };
-	const float cosYaw{ cos(yawInRadians) };
-	const float sinYaw{ sin(yawInRadians) };
+	const float cosPitch{ std::cos(pitchInRadians) };
+	const float sinPitch{ std::sin(pitchInRadians) };
+	const float cosYaw{ std::cos(yawInRadians) };
+	const float sinYaw{ std::sin(yawInRadians) };
 
 	/*******************************************************
 	*          Pitch and Yaw combined matrix               *
