@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project (SelbaWard)
 
-set(BUILD_SHARED_LIBS true "Build shared (dynamic) libs")
-set(BUILD_EXAMPLES false "Build the examples")
+set(BUILD_SHARED_LIBS ON "Build shared (dynamic) libs")
+set(BUILD_EXAMPLES OFF "Build the examples")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/SelbaWard)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
