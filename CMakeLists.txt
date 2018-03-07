@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project (SelbaWard)
 
-set(BUILD_SHARED_LIBS true CACHE BOOL "A flag to build shared (dynamic) libs")
+set(BUILD_SHARED_LIBS true "Build shared (dynamic) libs")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/SelbaWard)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
