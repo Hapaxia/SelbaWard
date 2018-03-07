@@ -24,6 +24,21 @@ add_library(selbaward ${SOURCES})
 set_target_properties(selbaward PROPERTIES CXX_STANDARD 11)
 target_link_libraries(selbaward ${SFML_LIBRARIES})
 
+install(
+	DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include
+	DESTINATION .
+	FILES_MATCHING PATTERN "*.hpp" PATTERN "*.inl")
+
+install(
+	DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include
+	DESTINATION .
+	FILES_MATCHING PATTERN "*.hpp" PATTERN "*.inl")
+
+install(
+        TARGETS selbaward
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+
 if(BUILD_EXAMPLES)
 	file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/examples/resources DESTINATION examples)
 	file(GLOB EXAMPLES_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp)
