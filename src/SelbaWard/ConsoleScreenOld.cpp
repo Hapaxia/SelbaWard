@@ -695,11 +695,11 @@ void ConsoleScreenV1::cursorDown(const unsigned int distance)
 void ConsoleScreenV1::moveCursor(const sf::Vector2i offset)
 {
 	if (offset.x < 0)
-		cursorLeft(abs(offset.x));
+		cursorLeft(-offset.x);
 	else
 		cursorRight(offset.x);
 	if (offset.y < 0)
-		cursorUp(abs(offset.y));
+		cursorUp(-offset.y);
 	else
 		cursorDown(offset.y);
 }

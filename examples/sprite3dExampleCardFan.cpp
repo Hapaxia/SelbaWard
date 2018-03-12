@@ -20,6 +20,7 @@
 #include <SFML/Graphics.hpp>
 #include <SelbaWard/Sprite3d.hpp>
 #include <iostream>
+#include <cmath>
 
 inline float ease(float start, float end, float alpha)
 {
@@ -122,7 +123,7 @@ int main()
 		{
 			for (auto& card : cards)
 				card.setColor(sf::Color(255, 255, 255, static_cast<unsigned char>(opacity * 255)));
-			std::cout << "Opacity is: " << round(opacity * 100) << "%" << std::endl;
+			std::cout << "Opacity is: " << std::round(opacity * 100) << "%" << std::endl;
 			hasOpacityChanged = false;
 		}
 

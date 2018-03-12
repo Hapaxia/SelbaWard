@@ -16,6 +16,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <SelbaWard/Sprite3d.hpp>
+#include <cmath>
 
 int main()
 {
@@ -89,7 +90,7 @@ int main()
 		}
 
 		// update card
-		const float scale{ 1.f + (0.5f * sin(spinAngle * 3.14159f / 360)) }; // smoothly move "out" when spinning
+		const float scale{ 1.f + (0.5f * std::sin(spinAngle * 3.14159f / 360)) }; // smoothly move "out" when spinning
 		card.setScale(scale, scale);
 		if (spinVertically)
 			card.setPitch(spinAngle);

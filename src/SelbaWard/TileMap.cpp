@@ -210,7 +210,7 @@ sf::Vector2i TileMap::getLevelPositionAtCoord(sf::Vector2f coord) const
 {
 	coord = getInverseTransform().transformPoint(coord);
 	const sf::Vector2f actualCamera{ priv_getActualCamera() };
-	return{ static_cast<int>(floor(coord.x * (m_gridSize.x - 1) / m_size.x + actualCamera.x)), static_cast<int>(floor(coord.y * (m_gridSize.y - 1) / m_size.y + actualCamera.y)) };
+	return{ static_cast<int>(std::floor(coord.x * (m_gridSize.x - 1) / m_size.x + actualCamera.x)), static_cast<int>(std::floor(coord.y * (m_gridSize.y - 1) / m_size.y + actualCamera.y)) };
 }
 
 unsigned long int TileMap::getTileAtCoord(const sf::Vector2f coord) const
@@ -295,7 +295,7 @@ void TileMap::priv_updateVertices() const
 	}
 
 	const sf::Vector2f actualCamera{ priv_getActualCamera() };
-	const sf::Vector2f cameraOffset{ trunc((actualCamera.x - floor(actualCamera.x)) * m_textureTileSize.x), trunc((actualCamera.y - floor(actualCamera.y)) * m_textureTileSize.y) };
+	const sf::Vector2f cameraOffset{ std::trunc((actualCamera.x - std::floor(actualCamera.x)) * m_textureTileSize.x), std::trunc((actualCamera.y - std::floor(actualCamera.y)) * m_textureTileSize.y) };
 	for (auto& vertex : m_vertices)
 		vertex.position -= cameraOffset;
 }
@@ -317,8 +317,8 @@ void TileMap::priv_updateRender() const
 		const sf::Vector2f tileSize{ m_size.x / m_gridSize.x, m_size.y / m_gridSize.y };
 		const sf::Vector2f pixelSize{ tileSize.x / m_textureTileSize.x, tileSize.y / m_textureTileSize.y };
 		const sf::Vector2f actualCamera{ priv_getActualCamera() };
-		const sf::Vector2f cameraOffset{ ((actualCamera.x - floor(actualCamera.x)) * m_textureTileSize.x), ((actualCamera.y - floor(actualCamera.y)) * m_textureTileSize.y) };
-		const sf::Vector2f fractionOffset{ round((cameraOffset.x - floor(cameraOffset.x)) * pixelSize.x), round((cameraOffset.y - floor(cameraOffset.y)) * pixelSize.y) };
+		const sf::Vector2f cameraOffset{ ((actualCamera.x - std::floor(actualCamera.x)) * m_textureTileSize.x), ((actualCamera.y - std::floor(actualCamera.y)) * m_textureTileSize.y) };
+		const sf::Vector2f fractionOffset{ std::round((cameraOffset.x - std::floor(cameraOffset.x)) * pixelSize.x), std::round((cameraOffset.y - std::floor(cameraOffset.y)) * pixelSize.y) };
 		for (auto& corner : m_render)
 			corner.position -= fractionOffset;
 	}
@@ -346,8 +346,8 @@ sf::Vector2i TileMap::priv_getGridPositionAtCoord(sf::Vector2f coord) const
 {
 	coord = getInverseTransform().transformPoint(coord);
 	const sf::Vector2f actualCamera{ priv_getActualCamera() };
-	const sf::Vector2f fraction{ actualCamera.x - floor(actualCamera.x), actualCamera.y - floor(actualCamera.y) };
-	return{ static_cast<int>(floor(coord.x * (m_gridSize.x - 1) / m_size.x + fraction.x)), static_cast<int>(floor(coord.y * (m_gridSize.y - 1) / m_size.y + fraction.y)) };
+	const sf::Vector2f fraction{ actualCamera.x - std::floor(actualCamera.x), actualCamera.y - std::floor(actualCamera.y) };
+	return{ static_cast<int>(std::floor(coord.x * (m_gridSize.x - 1) / m_size.x + fraction.x)), static_cast<int>(std::floor(coord.y * (m_gridSize.y - 1) / m_size.y + fraction.y)) };
 }
 
 unsigned int TileMap::priv_getTileAtGridPosition(const sf::Vector2i gridPosition) const

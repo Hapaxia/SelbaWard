@@ -28,6 +28,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <iostream> // for std::cerr
+#include <cmath>
 
 #include <SelbaWard/Sprite3d.hpp>
 
@@ -204,8 +205,8 @@ int main()
 		// update sprites
 		sprite3d.setRotation({ time * 97.f, time * 42.f, time * 51.f });
 
-		//sprite.setScale({ cos(time * 97.f * 3.141592653f / 180.f), cos(time * 42.f * 3.141592653f / 180.f) });
-		sprite.setScale({ cos(time * 42 * 3.141592653f / 180.f), cos(time * 97 * 3.141592653f / 180.f) });
+		//sprite.setScale({ std::cos(time * 97.f * 3.141592653f / 180.f), std::cos(time * 42.f * 3.141592653f / 180.f) });
+		sprite.setScale({ std::cos(time * 42 * 3.141592653f / 180.f), std::cos(time * 97 * 3.141592653f / 180.f) });
 		sprite.setRotation(time * 51.f);
 		// other sprite3d rotations for testing
 		//sprite3d.setRotation(time * 60.f);

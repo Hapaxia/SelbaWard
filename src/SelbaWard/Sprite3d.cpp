@@ -34,6 +34,8 @@
 
 #include "Sprite3d.hpp"
 
+#include <cmath>
+
 namespace
 {
 
@@ -48,7 +50,7 @@ inline float mod(const float numerator, float denominator)
 	if (denominator > -0.000001f && denominator < 0.000001f)
 		denominator = 0.000001f;
 
-	return numerator - (trunc(numerator / denominator) * denominator);
+	return numerator - (std::trunc(numerator / denominator) * denominator);
 }
 
 inline float min(const float a, const float b)
@@ -420,7 +422,7 @@ unsigned int Sprite3d::getSubdivision() const
 
 void Sprite3d::setNumberOfPoints(const unsigned int numberOfPoints)
 {
-	const unsigned int root{ static_cast<unsigned int>(sqrt(numberOfPoints)) };
+	const unsigned int root{ static_cast<unsigned int>(std::sqrt(numberOfPoints)) };
 	if (root > 2)
 		setMeshDensity(root - 2);
 	else
@@ -429,7 +431,7 @@ void Sprite3d::setNumberOfPoints(const unsigned int numberOfPoints)
 
 void Sprite3d::setNumberOfQuads(const unsigned int numberOfQuads)
 {
-	const unsigned int root{ static_cast<unsigned int>(sqrt(numberOfQuads)) };
+	const unsigned int root{ static_cast<unsigned int>(std::sqrt(numberOfQuads)) };
 	if (root > 1)
 		setMeshDensity(root - 1);
 	else
@@ -502,10 +504,10 @@ void Sprite3d::updateTransformedPoints() const
 	const float pitchInRadians{ m_pitch * radiansFromDegreesMultiplier };
 	const float yawInRadians{ m_yaw * radiansFromDegreesMultiplier };
 
-	const float cosPitch{ cos(pitchInRadians) };
-	const float sinPitch{ sin(pitchInRadians) };
-	const float cosYaw{ cos(yawInRadians) };
-	const float sinYaw{ sin(yawInRadians) };
+	const float cosPitch{ std::cos(pitchInRadians) };
+	const float sinPitch{ std::sin(pitchInRadians) };
+	const float cosYaw{ std::cos(yawInRadians) };
+	const float sinYaw{ std::sin(yawInRadians) };
 
 	/*******************************************************
 	*          Pitch and Yaw combined matrix               *
