@@ -16,6 +16,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <SelbaWard/SpinningCard.hpp>
+#include <cmath>
 
 int main()
 {
@@ -103,7 +104,7 @@ int main()
 			}
 
 			// smoothly move "out" when spinning
-			const float scale{ 1.f + (0.5f * sin(spinAngle * 3.14159f / 360)) };
+			const float scale{ 1.f + (0.5f * std::sin(spinAngle * 3.14159f / 360)) };
 			cardFace.setScale(scale, scale);
 			cardBack.setScale(scale, scale);
 		}
