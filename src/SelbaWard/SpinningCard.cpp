@@ -32,6 +32,8 @@
 
 #include "SpinningCard.hpp"
 
+#include <cmath>
+
 namespace selbaward
 {
 
@@ -93,10 +95,10 @@ void SpinningCard::spinRadians(float angleInRadians)
 {
 	angleInRadians -= m_pi / 2;
 	m_vertices[0].position = sf::Vector2f(m_initial.left + m_initial.width / 2, m_initial.top + m_initial.height / 2);
-	m_vertices[1].position = sf::Vector2f(m_initial.left + (sin(angleInRadians) + 1) * m_initial.width / 2, m_initial.top - cos(angleInRadians) * m_depth * m_initial.height / 2);
-	m_vertices[2].position = sf::Vector2f(m_initial.left + (sin(angleInRadians + m_pi) + 1) * m_initial.width / 2, m_initial.top - cos(angleInRadians + m_pi) * m_depth * m_initial.height / 2);
-	m_vertices[3].position = sf::Vector2f(m_initial.left + (sin(angleInRadians + m_pi) + 1) * m_initial.width / 2, m_initial.top + (cos(angleInRadians + m_pi) * m_depth + 2) * m_initial.height / 2);
-	m_vertices[4].position = sf::Vector2f(m_initial.left + (sin(angleInRadians) + 1) * m_initial.width / 2, m_initial.top + (cos(angleInRadians) * m_depth + 2) * m_initial.height / 2);
+	m_vertices[1].position = sf::Vector2f(m_initial.left + (std::sin(angleInRadians) + 1) * m_initial.width / 2, m_initial.top - std::cos(angleInRadians) * m_depth * m_initial.height / 2);
+	m_vertices[2].position = sf::Vector2f(m_initial.left + (std::sin(angleInRadians + m_pi) + 1) * m_initial.width / 2, m_initial.top - std::cos(angleInRadians + m_pi) * m_depth * m_initial.height / 2);
+	m_vertices[3].position = sf::Vector2f(m_initial.left + (std::sin(angleInRadians + m_pi) + 1) * m_initial.width / 2, m_initial.top + (std::cos(angleInRadians + m_pi) * m_depth + 2) * m_initial.height / 2);
+	m_vertices[4].position = sf::Vector2f(m_initial.left + (std::sin(angleInRadians) + 1) * m_initial.width / 2, m_initial.top + (std::cos(angleInRadians) * m_depth + 2) * m_initial.height / 2);
 
 	// weld last vertex to second vertex (to complete the solid)
 	m_vertices[5] = m_vertices[1];
@@ -111,10 +113,10 @@ void SpinningCard::spinVerticallyRadians(float angleInRadians)
 {
 	angleInRadians -= m_pi / 2;
 	m_vertices[0].position = sf::Vector2f(m_initial.left + m_initial.width / 2, m_initial.top + m_initial.height / 2);
-	m_vertices[1].position = sf::Vector2f(m_initial.left - cos(angleInRadians) * m_depth * m_initial.width / 2, m_initial.top + (sin(angleInRadians) + 1) * m_initial.height / 2);
-	m_vertices[4].position = sf::Vector2f(m_initial.left - cos(angleInRadians + m_pi) * m_depth * m_initial.width / 2, m_initial.top + (sin(angleInRadians + m_pi) + 1) * m_initial.height / 2);
-	m_vertices[3].position = sf::Vector2f(m_initial.left + (cos(angleInRadians + m_pi) * m_depth + 2) * m_initial.width / 2, m_initial.top + (sin(angleInRadians + m_pi) + 1) * m_initial.height / 2);
-	m_vertices[2].position = sf::Vector2f(m_initial.left + (cos(angleInRadians) * m_depth + 2) * m_initial.width / 2, m_initial.top + (sin(angleInRadians) + 1) * m_initial.height / 2);
+	m_vertices[1].position = sf::Vector2f(m_initial.left - std::cos(angleInRadians) * m_depth * m_initial.width / 2, m_initial.top + (std::sin(angleInRadians) + 1) * m_initial.height / 2);
+	m_vertices[4].position = sf::Vector2f(m_initial.left - std::cos(angleInRadians + m_pi) * m_depth * m_initial.width / 2, m_initial.top + (std::sin(angleInRadians + m_pi) + 1) * m_initial.height / 2);
+	m_vertices[3].position = sf::Vector2f(m_initial.left + (std::cos(angleInRadians + m_pi) * m_depth + 2) * m_initial.width / 2, m_initial.top + (std::sin(angleInRadians + m_pi) + 1) * m_initial.height / 2);
+	m_vertices[2].position = sf::Vector2f(m_initial.left + (std::cos(angleInRadians) * m_depth + 2) * m_initial.width / 2, m_initial.top + (std::sin(angleInRadians) + 1) * m_initial.height / 2);
 
 	// weld last vertex to second vertex (to complete the solid)
 	m_vertices[5] = m_vertices[1];
