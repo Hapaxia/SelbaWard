@@ -35,16 +35,31 @@
 
 #include "Common.hpp"
 
+#include <deque>
+#include <array>
+#include <cmath>
+
 #include <SFML/Graphics/RenderTexture.hpp>
 
 namespace selbaward
 {
 
-// SW Tile Map v1.3.1
+// SW Tile Map v2.0.0
+template <class T>
 class TileMap : public sf::Drawable, public sf::Transformable
 {
 public:
 	TileMap();
+	void update();
+	void setLevel();
+	void setLevel(const std::vector<T>& level);
+	void setLevel(const std::deque<T>& level);
+	void setLevel(const T* level, unsigned long int size);
+	template <class U>
+	void setLevel(const U& level, unsigned long int width);
+	void setLevel(const T* level, unsigned long int size, unsigned long int width);
+	void setLevelWidth(unsigned long int width);
+	unsigned int getLevelWidth() const;
 	void setSize(sf::Vector2f size);
 	sf::Vector2f getSize() const;
 	void setGridSize(sf::Vector2u gridSize);
@@ -74,16 +89,6 @@ public:
 
 	void redraw();
 
-	template <class T>
-	void update(const T& level, unsigned int width, sf::Vector2f camera); // level can be any const stl container with random access using indices (std::array/std::vector/std::deque) containing any integer type
-	template <class T>
-	void update(const T& level, unsigned int width); // level can be any const stl container with random access using indices (std::array/std::vector/std::deque) containing any integer type
-
-	template <class T>
-	void update(const T* const level, unsigned int size, unsigned int width, sf::Vector2f camera); // level can be a pointer to any integer type
-	template <class T>
-	void update(const T* const level, unsigned int size, unsigned int width); // level can be a pointer to any integer type
-
 
 
 
@@ -106,6 +111,18 @@ private:
 	// flags
 	ActionFlags m_do;
 	StateFlags m_is;
+
+	// external level data
+	enum class LevelContainerType
+	{
+		None,
+		Vector,
+		Deque,
+		Raw
+	} m_levelContainerType;
+	unsigned long int m_levelWidth;
+	unsigned long int m_levelSize;
+	const void* m_pLevel;
 
 	// data
 	sf::Vector2u m_gridSize;
@@ -142,6 +159,8 @@ private:
 	sf::Vector2f priv_getActualCamera() const;
 	sf::Vector2f priv_getTileOffsetFromVector(sf::Vector2f vector) const;
 	sf::Vector2f priv_getVectorFromTileOffset(sf::Vector2f offset) const;
+	template <class U>
+	U priv_getTotalSizeFromSizeVector(sf::Vector2<U> vector) const;
 };
 
 } // namespace selbaward
