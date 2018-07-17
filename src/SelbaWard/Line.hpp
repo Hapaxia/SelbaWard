@@ -37,6 +37,7 @@
 
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/CircleShape.hpp>
 
 namespace selbaward
 {
@@ -71,7 +72,8 @@ public:
 	const sf::Texture& getTexture() const;
 	void setTextureRect(const sf::FloatRect& textureRect);
 	sf::FloatRect getTextureRect() const;
-
+	bool getRounded() const;
+	void setRounded(bool rounded);
 
 
 
@@ -84,6 +86,7 @@ private:
 	float m_thickness; // 0 to draw as line, any value above thicknessEpsilon or below negative thicknessEpsilon to be drawn as a rectangle (using a quad) (currently using a rectangle shape instead)
 	const sf::Texture* m_texture;
 	sf::FloatRect m_textureRect;
+	bool m_rounded;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 	bool isThick() const;
