@@ -168,6 +168,7 @@ Some renamed slightly for grammatical reasons
 ### Added
 - Full version
 
+[2.4.1]: https://github.com/Hapaxia/SelbaWard/commit/57d8bf440731640acede94e349a3c30b187082df
 [2.4.0]: https://github.com/Hapaxia/SelbaWard/commit/c9bfddc95e48aab6fd9d9a60bb872cfa5304851d
 [2.3.2]: https://github.com/Hapaxia/SelbaWard/commit/832048d2e87544425c42bbfdc4e837b4c32dbe67
 [2.3.1]: https://github.com/Hapaxia/SelbaWard/commit/04d9c8337dbe8522659c3c94e2ffbdfafb42e66f
