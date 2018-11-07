@@ -48,15 +48,16 @@ namespace selbaward
 {
 
 PieChart::Slice::Slice()
-	: size(0.1f)
-	, scale(1.f)
-	, explode(0.f)
+	: size{ 0.1f }
+	, scale{ 1.f }
+	, explode{ 0.f }
 	, color(sf::Color::White)
 {
 }
 
 PieChart::PieChart()
-	: m_primitive(sf::PrimitiveType::Triangles)
+	: slices()
+	, m_primitive{ sf::PrimitiveType::Triangles }
 	, m_vertices()
 	, m_size({ 32.f, 32.f })
 {

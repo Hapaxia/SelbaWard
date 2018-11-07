@@ -80,29 +80,29 @@ namespace selbaward
 {
 
 Sprite3d::Sprite3d()
-	: m_depthToShallownessConversionNumerator(10000.f)
-	, m_pitch(0.f)
-	, m_yaw(0.f)
-	, m_depth(10.f)
-	, m_shallowness(m_depthToShallownessConversionNumerator / m_depth)
-	, m_meshDensity(0u)
-	, m_flipBack(false)
-	, m_pTexture(nullptr)
-	, m_pBackTexture(nullptr)
+	: m_depthToShallownessConversionNumerator{ 10000.f }
+	, m_pitch{ 0.f }
+	, m_yaw{ 0.f }
+	, m_depth{ 10.f }
+	, m_shallowness{ m_depthToShallownessConversionNumerator / m_depth }
+	, m_meshDensity{ 0u }
+	, m_flipBack{ false }
+	, m_pTexture{ nullptr }
+	, m_pBackTexture{ nullptr }
+	, m_size()
 	, m_textureOffset()
 	, m_backTextureOffset()
-	, m_size()
-	, m_useDynamicSubdivision(false)
-	, m_minSubdivision(1u)
-	, m_maxSubdivision(4u)
-	, m_subdivision(0u)
-	, m_subdividedMeshDensity(0u)
+	, m_useDynamicSubdivision{ false }
+	, m_minSubdivision{ 1u }
+	, m_maxSubdivision{ 4u }
+	, m_subdivision{ 0u }
+	, m_subdividedMeshDensity{ 0u }
 	, m_points(4)
 	, m_transformedPoints(4)
 	, m_origin()
 	, m_vertices(4)
-	, m_isBackFacing(false)
 	, m_compactTransformMatrix(8, 0.f) // was 5. is now 8 to take into account z (for origin's z)
+	, m_isBackFacing{ false }
 	, m_topLeft()
 	, m_topRight()
 	, m_bottomLeft()

@@ -37,14 +37,16 @@
 namespace selbaward
 {
 
-SpinningCard::SpinningCard(const sf::Sprite& sprite) :
-m_pi(3.14159f),
-m_depth(0.2f),
+SpinningCard::SpinningCard(const sf::Sprite& sprite)
 #ifdef USE_SFML_PRE_2_4
-m_vertices(sf::PrimitiveType::TrianglesFan, 6)
+	: m_vertices(sf::PrimitiveType::TrianglesFan, 6)
 #else // USE_SFML_PRE_2_4
-m_vertices(sf::PrimitiveType::TriangleFan, 6)
+	: m_vertices(sf::PrimitiveType::TriangleFan, 6)
 #endif // USE_SFML_PRE_2_4
+	, m_pTexture{ nullptr }
+	, m_initial()
+	, m_pi{ 3.14159f }
+	, m_depth{ 0.2f }
 {
 	// copy sprite's origin, position, rotation and scale in an attempt to look like the sprite
 	setOrigin(sprite.getOrigin());

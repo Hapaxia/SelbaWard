@@ -44,7 +44,7 @@
 namespace selbaward
 {
 
-// Sprite3d version 1.2.1
+// Sprite3d version 1.2.2
 class Sprite3d : public sf::Drawable, public sf::Transformable
 {
 public:

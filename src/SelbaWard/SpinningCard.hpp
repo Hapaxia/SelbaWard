@@ -52,7 +52,7 @@
 namespace selbaward
 {
 
-// SpinningCard (v1.2.2)
+// SpinningCard (v1.2.3)
 class SpinningCard : public sf::Drawable, public sf::Transformable
 {
 public:

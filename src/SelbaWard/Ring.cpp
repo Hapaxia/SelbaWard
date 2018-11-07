@@ -46,19 +46,19 @@ namespace selbaward
 {
 
 Ring::Ring(const float radius, const float hole, const unsigned int numberOfSides)
-	: m_radius(radius)
-	, m_hole(hole)
-	, m_sectorSize(1.f)
-	, m_sectorOffset(0.f)
-	, m_numberOfSides(numberOfSides)
+	: m_radius{ radius }
+	, m_hole{ hole }
+	, m_sectorSize{ 1.f }
+	, m_sectorOffset{ 0.f }
+	, m_numberOfSides{ numberOfSides }
 	, m_color(sf::Color::White)
 #ifdef USE_SFML_PRE_2_4
-	, m_primitiveType(sf::PrimitiveType::TrianglesStrip)
+	, m_primitiveType{ sf::PrimitiveType::TrianglesStrip }
 #else // USE_SFML_PRE_2_4
-	, m_primitiveType(sf::PrimitiveType::TriangleStrip)
+	, m_primitiveType{ sf::PrimitiveType::TriangleStrip }
 #endif // USE_SFML_PRE_2_4
 	, m_vertices((m_numberOfSides + 1) * 2)
-	, m_texture(nullptr)
+	, m_texture{ nullptr }
 	, m_textureRect()
 {
 	priv_updateVertices();

@@ -49,7 +49,7 @@ class Vector2;
 namespace selbaward
 {
 
-// SW Elastic Sprite v1.1.0
+// SW Elastic Sprite v1.1.1
 class ElasticSprite : public sf::Drawable, public sf::Transformable
 {
 public:

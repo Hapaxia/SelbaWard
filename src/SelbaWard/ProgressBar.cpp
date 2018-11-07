@@ -36,16 +36,16 @@ namespace selbaward
 {
 
 ProgressBar::ProgressBar(const sf::Vector2f size)
-	: m_amount(0.f)
+	: m_amount{ 0.f }
+	, m_showBar{ true }
+	, m_showBackground{ false }
 	, m_size(size)
-	, m_showBar(true)
-	, m_showBackground(false)
 	, m_color(sf::Color::White)
 	, m_bar(4)
 	, m_backgroundAndFrame(size)
-	, m_texture(nullptr)
+	, m_texture{ nullptr }
+	, m_backgroundTexture{ nullptr }
 	, m_textureRectangle()
-	, m_backgroundTexture(nullptr)
 	, m_backgroundTextureRectangle()
 {
 	m_backgroundAndFrame.setFillColor(sf::Color::Black);

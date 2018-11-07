@@ -680,28 +680,31 @@ ConsoleScreen& ConsoleScreen::operator>>(const CursorCommand& cursorCommand)
 }
 
 ConsoleScreen::ConsoleScreen(const sf::Vector2u mode)
-	: m_cells()
-	, m_mode(mode)
-	, m_buffers()
-	, m_do()
+	: m_do()
 	, m_is()
+	, m_defaultPrintProperties{ 0u, ColorPair(defaultColor, defaultBackgroundColor), StretchType::None, CellAttributes(), Affect::Default, ColorType::Foreground }
+	, m_cells()
+	, m_mode(mode)
+	, m_overCells()
+	, m_underCells()
+	, m_buffers()
+	, m_cursor{ static_cast<int>('_'), defaultCursorColor, true, false, false }
+	, m_tabSize{ 4u }
+	, m_readLength{ 1u }
+	, m_palette()
+	, m_characterMap()
+	, m_characterMapCursorCommand()
+	, m_clearValue{ 0u }
+	, m_darkAttributeMultiplier{ 0.5f }
 	, m_display()
 	, m_backgroundDisplay()
 	, m_overDisplay()
 	, m_underDisplay()
 	, m_size{ 100.f, 100.f }
-	, m_texture(nullptr)
+	, m_texture{ nullptr }
 	, m_textureOffset{ 0u, 0u }
 	, m_tileSize{ 8u, 8u }
 	, m_numberOfTilesPerRow{ 16u }
-	, m_palette()
-	, m_cursor{ static_cast<int>('_'), defaultCursorColor, true, false, false }
-	, m_tabSize{ 4u }
-	, m_readLength{ 1u }
-	, m_clearValue{ 0u }
-	, m_darkAttributeMultiplier{ 0.5f }
-	, m_characterMap()
-	, m_defaultPrintProperties{ 0u, ColorPair(defaultColor, defaultBackgroundColor), StretchType::None, CellAttributes(), Affect::Default, ColorType::Foreground }
 {
 	m_cursorPrintProperties = m_defaultPrintProperties;
 	m_directPrintProperties = m_defaultPrintProperties;

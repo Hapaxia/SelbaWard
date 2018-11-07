@@ -60,7 +60,7 @@ namespace selbaward
 {
 
 Starfield::Starfield(const sf::Vector2f size, const unsigned int numberOfStars, const sf::Color color)
-	: m_primitiveType(sf::PrimitiveType::Points)
+	: m_primitiveType{ sf::PrimitiveType::Points }
 	, m_vertices(numberOfStars)
 	, m_size(size)
 	, m_color(color)

@@ -44,7 +44,7 @@
 namespace selbaward
 {
 
-// SW Tile Map v2.0.0
+// SW Tile Map v2.0.1
 template <class T>
 class TileMap : public sf::Drawable, public sf::Transformable
 {

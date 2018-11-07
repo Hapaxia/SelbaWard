@@ -42,11 +42,11 @@ namespace selbaward
 {
 
 BitmapFont::BitmapFont()
-	: m_throwExceptions(true)
-	, m_useExternalTexture(false)
+	: m_throwExceptions{ true }
+	, m_useExternalTexture{ false }
 	, m_texture()
-	, m_mExternalTexture(nullptr)
-	, m_numberOfTilesPerRow(1)
+	, m_mExternalTexture{ nullptr }
+	, m_numberOfTilesPerRow{ 1u }
 	, m_tileSize({ 0, 0 })
 	, m_defaultTextureRect()
 	, m_kernings()

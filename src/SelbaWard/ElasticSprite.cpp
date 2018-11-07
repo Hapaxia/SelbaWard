@@ -139,14 +139,14 @@ namespace selbaward
 {
 
 ElasticSprite::ElasticSprite()
-	: m_vertices(4)
-	, m_offsets(4)
+	: m_requiresVerticesUpdate{ false }
+	, m_vertices(4)
 	, m_weights(0)
-	, m_useShader(sf::Shader::isAvailable())
-	, m_usePerspectiveInterpolation(false)
-	, m_requiresVerticesUpdate(false)
+	, m_offsets(4)
+	, m_pTexture{ nullptr }
 	, m_textureRect()
-	, m_pTexture(nullptr)
+	, m_useShader(sf::Shader::isAvailable())
+	, m_usePerspectiveInterpolation{ false }
 {
 	if (m_useShader)
 		loadShader();

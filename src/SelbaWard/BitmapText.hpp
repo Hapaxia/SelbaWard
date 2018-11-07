@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Bitmap Text v1.1.1
+// SW Bitmap Text v1.1.2
 class BitmapText : public sf::Drawable, public sf::Transformable
 {
 public:

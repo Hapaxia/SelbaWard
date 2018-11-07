@@ -96,10 +96,10 @@ Crosshair::Crosshair(const sf::Color& horizontalColor, const sf::Color& vertical
 }
 
 Crosshair::Crosshair(const sf::Color& horizontalColor, const sf::Color& verticalColor)
-	: m_vertices(sf::PrimitiveType::Lines, 4)
-	, m_horizontalColor(horizontalColor)
-	, m_verticalColor(verticalColor)
-	, m_window(nullptr)
+	: m_window{ nullptr }
+	, m_horizontalColor{ horizontalColor }
+	, m_verticalColor{ verticalColor }
+	, m_vertices(sf::PrimitiveType::Lines, 4)
 {
 }
 

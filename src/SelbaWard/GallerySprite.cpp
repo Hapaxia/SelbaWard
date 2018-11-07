@@ -48,10 +48,10 @@ namespace selbaward
 {
 	
 GallerySprite::GallerySprite()
-	: m_vertices(4)
-	, m_pTexture(nullptr)
+	: m_pTexture{ nullptr }
+	, m_vertices(4)
+	, m_currentExhibit{ 0u }
 	, m_exhibits()
-	, m_currentExhibit(0u)
 {
 	priv_updateVertices();
 }

@@ -294,24 +294,24 @@ namespace selbaward
 {
 
 ConsoleScreenV1::ConsoleScreenV1(const sf::Vector2u mode)
-	: m_cells()
+	: m_do()
+	, m_cells()
 	, m_mode(mode)
 	, m_buffers()
-	, m_do()
-	, m_primitiveType(sf::PrimitiveType::Quads)
+	, m_cursor({ 0, static_cast<unsigned int>('_'), true, false, false })
+	, m_colors({ defaultColor, defaultBackgroundColor, defaultCursorColor })
+	, m_stretch()
+	, m_attributes()
+	, m_palette()
+	, m_characterMap()
+	, m_primitiveType{ sf::PrimitiveType::Quads }
 	, m_display()
 	, m_backgroundDisplay()
 	, m_size({ 100.f, 100.f })
-	, m_texture(nullptr)
+	, m_texture{ nullptr }
 	, m_textureOffset({ 0u, 0u })
 	, m_tileSize({ 8u, 8u })
-	, m_numberOfTilesPerRow(8u)
-	, m_colors({ defaultColor, defaultBackgroundColor, defaultCursorColor })
-	, m_palette()
-	, m_cursor({ 0, static_cast<unsigned int>('_'), true, false, false })
-	, m_attributes()
-	, m_stretch()
-	, m_characterMap()
+	, m_numberOfTilesPerRow{ 8u }
 {
 	randomSeed();
 	setMode(m_mode);

@@ -51,9 +51,8 @@ namespace selbaward
 Line::Line()
 	: m_vertices(sf::Lines, 2)
 	, m_quad(sf::Quads, 4)
-	, m_thickness(0.f)
-	//, m_color(sf::Color::White)
-	, m_texture(nullptr)
+	, m_thickness{ 0.f }
+	, m_texture{ nullptr }
 	, m_textureRect()
 {
 }

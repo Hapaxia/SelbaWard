@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Pie Chart v1.0.2
+// SW Pie Chart v1.0.3
 class PieChart : public sf::Drawable, public sf::Transformable
 {
 public:

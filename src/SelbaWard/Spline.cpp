@@ -114,24 +114,27 @@ namespace selbaward
 {
 
 Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPosition)
-	: m_throwExceptions(true)
-	, m_isClosed(false)
+	: m_throwExceptions{ true }
+	, m_isClosed{ false }
+	, m_automaticallyUpdateRandomNormalOffset{ true }
 	, m_vertices(vertexCount, Vertex(initialPosition))
 	, m_color(sf::Color::White)
-	, m_thickness(0.f)
-	, m_sfmlVertices()
-	, m_sfmlThickVertices()
+	, m_thickness{ 0.f }
+	, m_randomNormalOffsetRange{ 0.f }
+	, m_interpolatedVertices()
+	, m_interpolatedVerticesUnitTangents()
+	, m_outputVertices()
 #ifdef USE_SFML_PRE_2_4
 	, m_primitiveType(sf::PrimitiveType::LinesStrip)
 #else // USE_SFML_PRE_2_4
 	, m_primitiveType(sf::PrimitiveType::LineStrip)
 #endif // USE_SFML_PRE_2_4
-	, m_interpolationSteps(0u)
+	, m_interpolationSteps{ 0u }
+	, m_useBezier{ false }
 	, m_handlesVertices()
-	, m_showHandles(false)
-	, m_useBezier(false)
-	, m_lockHandleMirror(true)
-	, m_lockHandleAngle(true)
+	, m_showHandles{ false }
+	, m_lockHandleMirror{ true }
+	, m_lockHandleAngle{ true }
 {
 }
 

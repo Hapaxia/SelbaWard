@@ -36,11 +36,11 @@ namespace selbaward
 {
 
 BitmapText::BitmapText()
-	: m_pBitmapFont(nullptr)
+	: m_pBitmapFont{ nullptr }
 	, m_vertices(sf::Quads)
 	, m_string()
 	, m_color(sf::Color::White)
-	, m_tracking(1)
+	, m_tracking{ 1 }
 {
 }
 

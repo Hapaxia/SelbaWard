@@ -144,16 +144,16 @@ namespace selbaward
 {
 
 NinePatch::NinePatch()
-	: m_primitiveType(sf::PrimitiveType::Quads)
+	: m_primitiveType{ sf::PrimitiveType::Quads }
 	, m_vertices(36, sf::Vertex({ 0.f, 0.f }))
-	, m_texture(nullptr)
-	, m_textureRectangle({ 0, 0, 3, 3 })
+	, m_texture{ nullptr }
 	, m_trimmedSize({ 0.f, 0.f })
 	, m_size({ 0.f, 0.f })
 	, m_scaleTopLeft({ 0.f, 0.f })
 	, m_scaleBottomRight({ 0.f, 0.f })
 	, m_contentTopLeft({ 0.f, 0.f })
 	, m_contentBottomRight({ 0.f, 0.f })
+	, m_textureRectangle({ 0, 0, 3, 3 })
 {
 }
 

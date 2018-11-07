@@ -41,7 +41,7 @@
 namespace selbaward
 {
 
-// SW Crosshair v1.0.0
+// SW Crosshair v1.0.1
 class Crosshair : public sf::Drawable
 {
 public:

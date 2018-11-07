@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Starfield v1.1.0
+// SW Starfield v1.1.1
 class Starfield : public sf::Drawable, public sf::Transformable
 {
 public:
