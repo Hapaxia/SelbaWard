@@ -1,6 +1,10 @@
 # Console Screen Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.4.1] - 2018-11-07
+### Fixed
+- Member initialisation updated and ordered
+
 ## [2.4.0] - 2017-09-16
 ### Added
 - Ability to get a cell location at a given co-ordinate

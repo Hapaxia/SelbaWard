@@ -1,6 +1,10 @@
 # Progress Bar Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.1.1] - 2018-11-07
+### Fixed
+- Member initialisation updated and ordered
+
 ## [1.1.0] - 2016-01-27
 ### Added
 - Texturing to bar and background
