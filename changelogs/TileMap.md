@@ -23,5 +23,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Full version
 
+[2.0.1]: https://github.com/Hapaxia/SelbaWard/commit/57d8bf440731640acede94e349a3c30b187082df
+[2.0.0]: https://github.com/Hapaxia/SelbaWard/commit/3bbc8bba1b0fbfcc0907b62cf2ba3a3d6969ebcc
 [1.1.0]: https://github.com/Hapaxia/SelbaWard/commit/0059b138323e72e2f174f455a20f146cbbf28b97
 [1.0.0]: https://github.com/Hapaxia/SelbaWard/commit/5ee231dc74733206972204c52577819b056fa146
