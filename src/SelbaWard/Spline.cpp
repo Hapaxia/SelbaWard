@@ -116,14 +116,12 @@ namespace selbaward
 Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPosition)
 	: m_throwExceptions{ true }
 	, m_isClosed{ false }
-	, m_automaticallyUpdateRandomNormalOffset{ true }
 	, m_vertices(vertexCount, Vertex(initialPosition))
 	, m_color(sf::Color::White)
 	, m_thickness{ 0.f }
-	, m_randomNormalOffsetRange{ 0.f }
-	, m_interpolatedVertices()
-	, m_interpolatedVerticesUnitTangents()
-	, m_outputVertices()
+	, m_sfmlVerticesUnitTangents()
+	, m_sfmlVertices()
+	, m_sfmlThickVertices()
 #ifdef USE_SFML_PRE_2_4
 	, m_primitiveType(sf::PrimitiveType::LinesStrip)
 #else // USE_SFML_PRE_2_4
