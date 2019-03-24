@@ -5,7 +5,7 @@
 //
 // Elastic Sprite
 //
-// Copyright(c) 2017-2018 M.J.Silk
+// Copyright(c) 2017-2019 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -49,7 +49,7 @@ class Vector2;
 namespace selbaward
 {
 
-// SW Elastic Sprite v1.1.1
+// SW Elastic Sprite v1.2.0
 class ElasticSprite : public sf::Drawable, public sf::Transformable
 {
 public:

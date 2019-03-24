@@ -5,7 +5,7 @@
 //
 // Elastic Sprite
 //
-// Copyright(c) 2017-2018 M.J.Silk
+// Copyright(c) 2017-2019 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -79,19 +79,26 @@ const std::string bilinearFragmentShaderCode
 
 const std::string perspectiveVertexShaderCode
 {
-	"void main()\n{\ngl_Position = gl_ModelViewProjectionMatrix * gl_Vert"
-	"ex;\ngl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;\ngl_"
-	"TexCoord[0].z = ((gl_Color.r * 256.0) + gl_Color.g + (gl_Color.b / 25"
-	"6.0)) * 256.0;\ngl_FrontColor = gl_Color;\n}\n"
+	"uniform vec4 c0;\nuniform vec4 c1;\nuniform vec4 c2;\nuniform vec4 c3"
+	";\nuniform float w0;\nuniform float w1;\nuniform float w2;\nuniform f"
+	"loat w3;\n\nvoid main()\n{\nint vertexNumber = 0;\nif (gl_Color.r >"
+	" 0.5)\nvertexNumber = 1;\nelse if (gl_Color.g > 0.5)\nvertexNumb"
+	"er = 2;\nelse if (gl_Color.b > 0.5)\nvertexNumber = 3;\n\nvec4 c"
+	"olor;\nfloat weight;\nswitch (vertexNumber)\n{\ncase 0:\ncolor "
+	"= c0;\nweight = w0;\nbreak;\ncase 1:\ncolor = c1;\nweight = "
+	"w1;\nbreak;\ncase 2:\ncolor = c2;\nweight = w2;\nbreak;\nca"
+	"se 3:\ncolor = c3;\nweight = w3;\nbreak;\n}\ngl_Position = gl"
+	"_ModelViewProjectionMatrix * gl_Vertex;\ngl_TexCoord[0] = gl_Texture"
+	"Matrix[0] * gl_MultiTexCoord0;\ngl_TexCoord[0].z = weight;\ngl_Fron"
+	"tColor = color;\n}\n"
 };
 
 const std::string perspectiveFragmentShaderCode
 {
 	"uniform bool useTexture;\nuniform sampler2D texture;\n\nvoid main()\n"
-	"{\nvec4 color = vec4(1.0, 1.0, 1.0, gl_Color.a);\nif (useTexture)\n"
-	"{\nvec2 texCoord = gl_TexCoord[0].xy / gl_TexCoord[0].z;\ngl_Fra"
-	"gColor = color * texture2D(texture, texCoord);\n}\nelse\ngl_FragC"
-	"olor = color;\n}\n"
+	"{\nvec4 color = gl_Color;\nif (useTexture)\n{\nvec2 texCoord = g"
+	"l_TexCoord[0].xy / gl_TexCoord[0].z;\ngl_FragColor = color * textur"
+	"e2D(texture, texCoord);\n}\nelse\ngl_FragColor = color;\n}\n"
 };
 
 void loadShader()
@@ -104,7 +111,7 @@ void loadShader()
 
 inline bool isValidVertexIndex(const unsigned int vertexIndex)
 {
-	return (vertexIndex >= 0 && vertexIndex < 4);
+	return (vertexIndex < 4);
 }
 
 inline sf::Vector2f linesIntersection(const sf::Vector2f aStart, const sf::Vector2f aEnd, const sf::Vector2f bStart, const sf::Vector2f bEnd)
@@ -383,18 +390,40 @@ void ElasticSprite::draw(sf::RenderTarget& target, sf::RenderStates states) cons
 {
 	if (m_requiresVerticesUpdate)
 		priv_updateVertices(states.transform);
+	states.transform = sf::Transform::Identity;
 
 	if (!m_useShader)
+	{
 		states.texture = m_pTexture;
+		target.draw(m_vertices.data(), 4u, primitiveType, states);
+	}
 	else
 	{
 		const bool isTextureAvailable{ (m_pTexture != nullptr) };
 		if (m_usePerspectiveInterpolation)
 		{
+			std::vector<sf::Color> colors(4);
+			for (std::size_t i{ 0u }; i < 4u; ++i)
+				colors[i] = m_vertices[i].color;
 			perspectiveShader.setUniform("useTexture", isTextureAvailable);
 			if (isTextureAvailable)
 				perspectiveShader.setUniform("texture", *m_pTexture);
+			perspectiveShader.setUniform("c0", sf::Glsl::Vec4(m_vertices[0].color));
+			perspectiveShader.setUniform("c1", sf::Glsl::Vec4(m_vertices[1].color));
+			perspectiveShader.setUniform("c2", sf::Glsl::Vec4(m_vertices[2].color));
+			perspectiveShader.setUniform("c3", sf::Glsl::Vec4(m_vertices[3].color));
+			perspectiveShader.setUniform("w0", m_weights[0]);
+			perspectiveShader.setUniform("w1", m_weights[1]);
+			perspectiveShader.setUniform("w2", m_weights[2]);
+			perspectiveShader.setUniform("w3", m_weights[3]);
+			m_vertices[0].color = sf::Color::Black;
+			m_vertices[1].color = sf::Color::Red;
+			m_vertices[2].color = sf::Color::Green;
+			m_vertices[3].color = sf::Color::Blue;
 			states.shader = &perspectiveShader;
+			target.draw(m_vertices.data(), 4u, primitiveType, states);
+			for (std::size_t i{ 0u }; i < 4u; ++i)
+				m_vertices[i].color = colors[i];
 		}
 		else
 		{
@@ -418,43 +447,9 @@ void ElasticSprite::draw(sf::RenderTarget& target, sf::RenderStates states) cons
 			bilinearShader.setUniform("c2", sf::Glsl::Vec4(m_vertices[2].color));
 			bilinearShader.setUniform("c3", sf::Glsl::Vec4(m_vertices[3].color));
 			states.shader = &bilinearShader;
+			target.draw(m_vertices.data(), 4u, primitiveType, states);
 		}
 	}
-
-	if (m_useShader && m_usePerspectiveInterpolation && m_pTexture != nullptr)
-	{
-		// store current vertices' colors
-		std::vector<sf::Color> colors
-		{
-			m_vertices[0].color,
-			m_vertices[1].color,
-			m_vertices[2].color,
-			m_vertices[3].color
-		};
-
-		// 'borrow' the vertices' colors to pass a float (vertex's value of 'q')
-		m_vertices[0].color = encodeFloatAsColor(m_weights[0]);
-		m_vertices[1].color = encodeFloatAsColor(m_weights[1]);
-		m_vertices[2].color = encodeFloatAsColor(m_weights[2]);
-		m_vertices[3].color = encodeFloatAsColor(m_weights[3]);
-
-		// restore alphas from stored colors (float stored in color only uses RGB components - note that encodeFloatAsColor still sets alpha to zero)
-		m_vertices[0].color.a = colors[0].a;
-		m_vertices[1].color.a = colors[1].a;
-		m_vertices[2].color.a = colors[2].a;
-		m_vertices[3].color.a = colors[3].a;
-
-		// draw while color stores the float of 'q'
-		target.draw(m_vertices.data(), m_vertices.size(), primitiveType, states);
-
-		// return the stored colors back to the vertices
-		m_vertices[0].color = colors[0];
-		m_vertices[1].color = colors[1];
-		m_vertices[2].color = colors[2];
-		m_vertices[3].color = colors[3];
-	}
-	else
-		target.draw(m_vertices.data(), m_vertices.size(), primitiveType, states);
 }
 
 void ElasticSprite::priv_updateVertices(sf::Transform transform) const
@@ -478,7 +473,7 @@ void ElasticSprite::priv_updateVertices(sf::Transform transform) const
 		m_weights[2] = (distanceToIntersection2 + distanceToIntersection0) / distanceToIntersection0;
 		m_weights[3] = (distanceToIntersection3 + distanceToIntersection1) / distanceToIntersection1;
 
-		const sf::Vector2u textureSize{ m_pTexture->getSize() };
+		const sf::Vector2f textureSize(m_pTexture->getSize());
 		m_vertices[0].texCoords = { m_weights[0] * (m_textureRect.left / textureSize.x), m_weights[0] * (m_textureRect.top / textureSize.y) };
 		m_vertices[1].texCoords = { m_weights[1] * (m_textureRect.left / textureSize.x), m_weights[1] * ((m_textureRect.top + m_textureRect.height) / textureSize.y) };
 		m_vertices[2].texCoords = { m_weights[2] * ((m_textureRect.left + m_textureRect.width) / textureSize.x), m_weights[2] * ((m_textureRect.top + m_textureRect.height) / textureSize.y) };
