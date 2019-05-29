@@ -38,10 +38,22 @@
 namespace selbaward
 {
 
-// SW Spline v1.3.1
+// SW Spline v1.4.0
 class Spline : public sf::Drawable
 {
 public:
+	enum class ThickCornerType
+	{
+		Bevel,
+		Point,
+		Round,
+	};
+	enum class ThickCapType
+	{
+		None,
+		Extended,
+		Round,
+	};
 	struct Vertex
 	{
 		sf::Vector2f position;
@@ -49,18 +61,35 @@ public:
 		sf::Vector2f backHandle; // offset from position
 		float thickness;
 		sf::Color color;
-		Vertex() : thickness(1.f), color(sf::Color::White) {}
-		Vertex(sf::Vector2f newPosition) : position(newPosition), thickness(1.f), color(sf::Color::White) {}
+		float randomNormalOffsetRange;
+		Vertex() : thickness(1.f), color(sf::Color::White), randomNormalOffsetRange(1.f) {}
+		Vertex(sf::Vector2f newPosition) : position(newPosition), thickness(1.f), color(sf::Color::White), randomNormalOffsetRange(1.f) {}
 	};
 
 	Spline(unsigned int vertexCount = 0u, sf::Vector2f initialPosition = { 0.f, 0.f });
 	Spline(std::initializer_list<sf::Vector2f> list); // pass vertices' positions (sf::Vector2f) to the constructor (sets size automatically)
 	void update();
+	void updateOutputVertices();
 
 	Vertex& operator[] (unsigned int index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
 
 	void setClosed(bool isClosed);
 	bool getClosed() const;
+
+	void setThickCornerType(ThickCornerType cornerType);
+	ThickCornerType getThickCornerType() const;
+	void setRoundedThickCornerInterpolationLevel(unsigned int roundedCornerInterpolationLevel);
+	unsigned int getRoundedThickCornerInterpolationLevel() const;
+
+	void setThickStartCapType(ThickCapType thickStartCapType);
+	ThickCapType getThickStartCapType() const;
+	void setRoundedThickStartCapInterpolationLevel(unsigned int roundedThickStartCapInterpolationLevel);
+	unsigned int getRoundedThickStartCapInterpolationLevel() const;
+
+	void setThickEndCapType(ThickCapType thickEndCapType);
+	ThickCapType getThickEndCapType() const;
+	void setRoundedThickEndCapInterpolationLevel(unsigned int roundedThickEndCapInterpolationLevel);
+	unsigned int getRoundedThickEndCapInterpolationLevel() const;
 
 	unsigned int getVertexCount() const;
 	unsigned int getLastVertexIndex() const;
@@ -104,6 +133,13 @@ public:
 	void setThickness(unsigned int index, T thickness);
 	float getThickness(unsigned int index) const;
 
+	template<class T>
+	void setRandomNormalOffsetRange(T randomNormalOffsetRange);
+	float getRandomNormalOffsetRange() const;
+	template<class T>
+	void setRandomNormalOffsetRange(unsigned int index, T randomNormalOffsetRange);
+	float getRandomNormalOffsetRange(unsigned int index) const;
+
 	void setColor(sf::Color color);
 	sf::Color getColor() const;
 	void setColor(unsigned int index, sf::Color color);
@@ -129,18 +165,30 @@ public:
 	unsigned int getInterpolatedPositionCount() const;
 
 
+
+
+
+
+
 private:
 	bool m_throwExceptions;
-
 	bool m_isClosed;
+	ThickCornerType m_thickCornerType;
+	ThickCapType m_thickStartCapType;
+	ThickCapType m_thickEndCapType;
+	unsigned int m_roundedThickCornerInterpolationLevel; // number of interpolations per corner (includes corners at interpolated points). does not include backward and forward line points - only the interpolation between them i.e. 0 interpolation looks equal to bevel.
+	unsigned int m_roundedThickStartCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
+	unsigned int m_roundedThickEndCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
+	const bool m_automaticallyUpdateRandomNormalOffset;
 
 	std::vector<Vertex> m_vertices;
 	sf::Color m_color;
 	float m_thickness;
+	float m_randomNormalOffsetRange;
 
-	std::vector<sf::Vector2f> m_sfmlVerticesUnitTangents;
-	std::vector<sf::Vertex> m_sfmlVertices;
-	std::vector<sf::Vertex> m_sfmlThickVertices;
+	std::vector<sf::Vertex> m_interpolatedVertices;
+	std::vector<sf::Vector2f> m_interpolatedVerticesUnitTangents;
+	std::vector<sf::Vertex> m_outputVertices;
 	sf::PrimitiveType m_primitiveType;
 	unsigned int m_interpolationSteps;
 	bool m_useBezier;
@@ -156,6 +204,7 @@ private:
 	bool priv_isThick() const;
 	unsigned int priv_getNumberOfPointsPerVertex() const;
 	unsigned int priv_getInterpolatedIndex(const unsigned int interpolationOffset, const unsigned int index) const;
+	void priv_updateOutputVertices();
 };
 
 template <class T>
@@ -180,6 +229,28 @@ inline float Spline::getThickness(const unsigned int index) const
 	return m_vertices[index].thickness;
 }
 
+template<class T>
+inline void Spline::setRandomNormalOffsetRange(const T randomNormalOffsetRange)
+{
+	m_randomNormalOffsetRange = static_cast<float>(randomNormalOffsetRange);
+}
+
+inline float Spline::getRandomNormalOffsetRange() const
+{
+	return m_randomNormalOffsetRange;
+}
+
+template <class T>
+inline void Spline::setRandomNormalOffsetRange(const unsigned int index, const T randomNormalOffsetRange)
+{
+	m_vertices[index].randomNormalOffsetRange = static_cast<float>(randomNormalOffsetRange);
+}
+
+inline float Spline::getRandomNormalOffsetRange(const unsigned int index) const
+{
+	return m_vertices[index].randomNormalOffsetRange;
+}
+
 inline Spline::Vertex& Spline::operator[] (const unsigned int index)
 {
 	return m_vertices[index];
@@ -188,6 +259,36 @@ inline Spline::Vertex& Spline::operator[] (const unsigned int index)
 inline bool Spline::getClosed() const
 {
 	return m_isClosed;
+}
+
+inline Spline::ThickCornerType Spline::getThickCornerType() const
+{
+	return m_thickCornerType;
+}
+
+inline unsigned int Spline::getRoundedThickCornerInterpolationLevel() const
+{
+	return m_roundedThickCornerInterpolationLevel;
+}
+
+inline Spline::ThickCapType Spline::getThickStartCapType() const
+{
+	return m_thickStartCapType;
+}
+
+inline unsigned int Spline::getRoundedThickStartCapInterpolationLevel() const
+{
+	return m_roundedThickStartCapInterpolationLevel;
+}
+
+inline Spline::ThickCapType Spline::getThickEndCapType() const
+{
+	return m_thickEndCapType;
+}
+
+inline unsigned int Spline::getRoundedThickEndCapInterpolationLevel() const
+{
+	return m_roundedThickEndCapInterpolationLevel;
 }
 
 inline unsigned int Spline::getVertexCount() const

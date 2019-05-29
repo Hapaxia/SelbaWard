@@ -34,6 +34,9 @@
 
 #include <cmath>
 #include <assert.h>
+#include <random>
+#include <algorithm>
+#include <initializer_list>
 
 namespace
 {
@@ -47,6 +50,20 @@ const sf::PrimitiveType thickPrimitiveType{ sf::PrimitiveType::TrianglesStrip };
 #else // USE_SFML_PRE_2_4
 const sf::PrimitiveType thickPrimitiveType{ sf::PrimitiveType::TriangleStrip };
 #endif // USE_SFML_PRE_2_4
+
+std::mt19937 randomGenerator;
+
+inline void randomSeed()
+{
+	std::random_device rd;
+	randomGenerator.seed(rd());
+}
+
+inline float randomValue(const float range)
+{
+	assert(range > 0.f);
+	return std::uniform_real_distribution<float>{ 0.f, range }(randomGenerator);
+}
 
 template <class T>
 inline T linearInterpolation(const T start, const T end, const float alpha)
@@ -95,6 +112,11 @@ inline T abs(const T value)
 	return value < 0 ? -value : value;
 }
 
+inline bool isConsideredZero(const float value)
+{
+	return abs(value) < zeroEpsilon;
+}
+
 inline sf::Vector2f vectorNormal(const sf::Vector2f vector)
 {
 	return{ vector.y, -vector.x };
@@ -102,7 +124,7 @@ inline sf::Vector2f vectorNormal(const sf::Vector2f vector)
 
 inline sf::Vector2f vectorUnit(const sf::Vector2f vector)
 {
-	if ((abs(vector.x) < zeroEpsilon) && (abs(vector.y) < zeroEpsilon))
+	if (isConsideredZero(vector.x) && isConsideredZero(vector.y))
 		return{ 0.f, 0.f };
 	else
 		return vector / vectorLength(vector);
@@ -116,12 +138,20 @@ namespace selbaward
 Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPosition)
 	: m_throwExceptions{ true }
 	, m_isClosed{ false }
+	, m_thickCornerType{ ThickCornerType::Point }
+	, m_thickStartCapType{ ThickCapType::None }
+	, m_thickEndCapType{ ThickCapType::None }
+	, m_roundedThickCornerInterpolationLevel{ 5u }
+	, m_roundedThickStartCapInterpolationLevel{ 5u }
+	, m_roundedThickEndCapInterpolationLevel{ 5u }
+	, m_automaticallyUpdateRandomNormalOffset{ true }
 	, m_vertices(vertexCount, Vertex(initialPosition))
 	, m_color(sf::Color::White)
 	, m_thickness{ 0.f }
-	, m_sfmlVerticesUnitTangents()
-	, m_sfmlVertices()
-	, m_sfmlThickVertices()
+	, m_randomNormalOffsetRange{ 0.f }
+	, m_interpolatedVertices()
+	, m_interpolatedVerticesUnitTangents()
+	, m_outputVertices()
 #ifdef USE_SFML_PRE_2_4
 	, m_primitiveType(sf::PrimitiveType::LinesStrip)
 #else // USE_SFML_PRE_2_4
@@ -134,6 +164,7 @@ Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPositio
 	, m_lockHandleMirror{ true }
 	, m_lockHandleAngle{ true }
 {
+	randomSeed();
 }
 
 Spline::Spline(std::initializer_list<sf::Vector2f> list)
@@ -157,12 +188,12 @@ float Spline::getLength() const
 
 float Spline::getInterpolatedLength() const
 {
-	if (m_sfmlVertices.size() < 2)
+	if (m_interpolatedVertices.size() < 2)
 		return 0.f;
 
 	float total{ 0.f };
-	for (unsigned int v{ 0 }; v < m_sfmlVertices.size() - 1; ++v)
-		total += vectorLength(m_sfmlVertices[v + 1].position - m_sfmlVertices[v].position);
+	for (std::vector<sf::Vertex>::const_iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() - 1 }, it{ begin }; it != end; ++it)
+		total += vectorLength((it + 1)->position - it->position);
 	return total;
 }
 
@@ -170,19 +201,19 @@ void Spline::update()
 {
 	if (m_vertices.size() < 2)
 	{
-		m_sfmlVertices.clear();
-		m_sfmlThickVertices.clear();
+		m_interpolatedVertices.clear();
+		m_outputVertices.clear();
 		m_handlesVertices.clear();
-		m_sfmlVerticesUnitTangents.clear();
+		m_interpolatedVerticesUnitTangents.clear();
 		return;
 	}
 
 	const unsigned int pointsPerVertex{ priv_getNumberOfPointsPerVertex() };
 	if (m_isClosed)
-		m_sfmlVertices.resize((m_vertices.size() * pointsPerVertex) + 1);
+		m_interpolatedVertices.resize((m_vertices.size() * pointsPerVertex) + 1);
 	else
-		m_sfmlVertices.resize(((m_vertices.size() - 1) * pointsPerVertex) + 1);
-	m_sfmlVerticesUnitTangents.resize(m_sfmlVertices.size());
+		m_interpolatedVertices.resize(((m_vertices.size() - 1) * pointsPerVertex) + 1);
+	m_interpolatedVerticesUnitTangents.resize(m_interpolatedVertices.size());
 
 	m_handlesVertices.resize((m_vertices.size()) * 4);
 	std::vector<sf::Vertex>::iterator itHandle{ m_handlesVertices.begin() };
@@ -198,7 +229,7 @@ void Spline::update()
 		itHandle->color = sf::Color(0, 255, 0, 128);
 		itHandle++->position = it->position + it->frontHandle;
 
-		std::vector<sf::Vertex>::iterator itSfml{ m_sfmlVertices.begin() + (it - begin) * pointsPerVertex };
+		std::vector<sf::Vertex>::iterator itInterpolated{ m_interpolatedVertices.begin() + (it - begin) * pointsPerVertex };
 		if (m_isClosed || it != end - 1)
 		{
 			for (unsigned int i{ 0u }; i < pointsPerVertex; ++i)
@@ -207,27 +238,27 @@ void Spline::update()
 				if (it != end - 1)
 					nextIt = it + 1;
 				if (m_useBezier)
-					itSfml->position = bezierInterpolation(it->position, nextIt->position, it->frontHandle, nextIt->backHandle, static_cast<float>(i) / pointsPerVertex);
+					itInterpolated->position = bezierInterpolation(it->position, nextIt->position, it->frontHandle, nextIt->backHandle, static_cast<float>(i) / pointsPerVertex);
 				else
-					itSfml->position = linearInterpolation(it->position, nextIt->position, static_cast<float>(i) / pointsPerVertex);
-				itSfml++->color = m_color;
+					itInterpolated->position = linearInterpolation(it->position, nextIt->position, static_cast<float>(i) / pointsPerVertex);
+				itInterpolated++->color = m_color;
 			}
 		}
 		else
 		{
-			itSfml->position = it->position;
-			itSfml->color = m_color;
+			itInterpolated->position = it->position;
+			itInterpolated->color = m_color;
 		}
 	}
 	if (m_isClosed)
 	{
-		std::vector<sf::Vertex>::iterator itSfml{ m_sfmlVertices.begin() + m_vertices.size() * pointsPerVertex };
-		itSfml->position = m_vertices.front().position;
-		itSfml->color = m_color;
+		std::vector<sf::Vertex>::iterator itInterpolated{ m_interpolatedVertices.begin() + m_vertices.size() * pointsPerVertex };
+		itInterpolated->position = m_vertices.front().position;
+		itInterpolated->color = m_color;
 	}
 
 	// calculate tangents
-	for (std::vector<sf::Vertex>::iterator begin{ m_sfmlVertices.begin() }, end{ m_sfmlVertices.end() }, current{ begin }; current != end; ++current)
+	for (std::vector<sf::Vertex>::iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, current{ begin }; current != end; ++current)
 	{
 		std::vector<sf::Vertex>::iterator next{ current };
 		std::vector<sf::Vertex>::iterator previous{ current };
@@ -243,54 +274,51 @@ void Spline::update()
 		const sf::Vector2f nextVectorUnit{ vectorUnit(next->position - current->position) };
 		const sf::Vector2f previousVectorUnit{ vectorUnit(current->position - previous->position) };
 
-		sf::Vector2f& tangent{ *(m_sfmlVerticesUnitTangents.begin() + (current - begin)) };
+		sf::Vector2f& tangent{ *(m_interpolatedVerticesUnitTangents.begin() + (current - begin)) };
 		tangent = vectorUnit(previousVectorUnit + nextVectorUnit);
 	}
 
-	if (!priv_isThick())
-		m_sfmlThickVertices.clear();
-	else
-	{
-		m_sfmlThickVertices.resize(m_sfmlVertices.size() * 2); // required number of vertices for a triangle strip (two triangles between each pair of points)
+	priv_updateOutputVertices();
+}
 
-		std::vector<sf::Vertex>::iterator itThick{ m_sfmlThickVertices.begin() };
-		for (std::vector<sf::Vertex>::iterator begin{ m_sfmlVertices.begin() }, end{ m_sfmlVertices.end() }, it{ begin }; it != end; ++it)
-		{
-			const unsigned int sfmlIndex{ static_cast<unsigned int>(it - begin) };
-			const unsigned int index{ sfmlIndex / priv_getNumberOfPointsPerVertex() };
-			const unsigned int interpolatedIndex{ index * priv_getNumberOfPointsPerVertex() };
-			const float vertexRatio{ static_cast<float>(sfmlIndex - interpolatedIndex) / priv_getNumberOfPointsPerVertex() };
-			const std::vector<Vertex>::iterator currentVertex{ m_vertices.begin() + (index % m_vertices.size()) };
-			std::vector<Vertex>::iterator nextVertex{ currentVertex };
-			if (currentVertex != m_vertices.end() - 1)
-				nextVertex = currentVertex + 1;
-			else if (m_isClosed)
-				nextVertex = m_vertices.begin();
-			const float thickness{ m_thickness * linearInterpolation(currentVertex->thickness, nextVertex->thickness, vertexRatio) };
-			const float halfWidth{ thickness / 2.f };
-
-			sf::Color color{ m_color * linearInterpolation(currentVertex->color, nextVertex->color, vertexRatio) };
-
-			sf::Vector2f tangentUnit{ *(m_sfmlVerticesUnitTangents.begin() + (it - begin)) };
-			if (m_isClosed || it != end - 1)
-			{
-				const sf::Vector2f forwardLine{ ((it != end - 1) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
-				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
-				float dotUnits{ dot(forwardUnit , tangentUnit) };
-				tangentUnit = tangentUnit / ((abs(dotUnits) > zeroEpsilon) ? dotUnits : zeroEpsilon);
-			}
-			const sf::Vector2f scaledNormal{ vectorNormal(tangentUnit) * halfWidth };
-			itThick->color = color;
-			itThick++->position = it->position + scaledNormal;
-			itThick->color = color;
-			itThick++->position = it->position - scaledNormal;
-		}
-	}
+void Spline::updateOutputVertices()
+{
+	priv_updateOutputVertices();
 }
 
 void Spline::setClosed(const bool isClosed)
 {
 	m_isClosed = isClosed;
+}
+
+void Spline::setThickCornerType(const ThickCornerType thickCornerType)
+{
+	m_thickCornerType = thickCornerType;
+}
+
+void Spline::setRoundedThickCornerInterpolationLevel(const unsigned int roundedThickCornerInterpolationLevel)
+{
+	m_roundedThickCornerInterpolationLevel = roundedThickCornerInterpolationLevel;
+}
+
+void Spline::setThickStartCapType(const ThickCapType thickStartCapType)
+{
+	m_thickStartCapType = thickStartCapType;
+}
+
+void Spline::setRoundedThickStartCapInterpolationLevel(const unsigned int roundedThickStartCapInterpolationLevel)
+{
+	m_roundedThickStartCapInterpolationLevel = roundedThickStartCapInterpolationLevel;
+}
+
+void Spline::setThickEndCapType(const ThickCapType thickEndCapType)
+{
+	m_thickEndCapType = thickEndCapType;
+}
+
+void Spline::setRoundedThickEndCapInterpolationLevel(const unsigned int roundedThickEndCapInterpolationLevel)
+{
+	m_roundedThickEndCapInterpolationLevel = roundedThickEndCapInterpolationLevel;
 }
 
 void Spline::reserveVertices(const unsigned int numberOfVertices)
@@ -299,8 +327,8 @@ void Spline::reserveVertices(const unsigned int numberOfVertices)
 		return;
 
 	m_vertices.reserve(numberOfVertices);
-	m_sfmlVertices.reserve(numberOfVertices * priv_getNumberOfPointsPerVertex() + 1);
-	m_sfmlThickVertices.reserve(m_sfmlVertices.size() * 2);
+	m_interpolatedVertices.reserve(numberOfVertices * priv_getNumberOfPointsPerVertex() + 1);
+	m_outputVertices.reserve(m_interpolatedVertices.size() * 2);
 	m_handlesVertices.reserve(numberOfVertices * 4);
 }
 
@@ -549,17 +577,17 @@ void Spline::setPrimitiveType(const sf::PrimitiveType primitiveType)
 
 sf::Vector2f Spline::getInterpolatedPosition(const unsigned int interpolationOffset, const unsigned int index) const
 {
-	return m_sfmlVertices[priv_getInterpolatedIndex(interpolationOffset, index)].position;
+	return m_interpolatedVertices[priv_getInterpolatedIndex(interpolationOffset, index)].position;
 }
 
 unsigned int Spline::getInterpolatedPositionCount() const
 {
-	return ((m_isClosed) ? (static_cast<unsigned int>(m_vertices.size()) * priv_getNumberOfPointsPerVertex()) : ((static_cast<unsigned int>(m_vertices.size()) - 1u) * priv_getNumberOfPointsPerVertex() + 1u));
+	return ((m_isClosed) ? static_cast<unsigned int>(m_vertices.size() * priv_getNumberOfPointsPerVertex()) : static_cast<unsigned int>((m_vertices.size() - 1u) * priv_getNumberOfPointsPerVertex() + 1u));
 }
 
 sf::Vector2f Spline::getInterpolatedPositionTangent(const unsigned int interpolationOffset, const unsigned int index) const
 {
-	return m_sfmlVerticesUnitTangents[priv_getInterpolatedIndex(interpolationOffset, index)];
+	return m_interpolatedVerticesUnitTangents[priv_getInterpolatedIndex(interpolationOffset, index)];
 }
 
 sf::Vector2f Spline::getInterpolatedPositionNormal(const unsigned int interpolationOffset, const unsigned int index) const
@@ -594,7 +622,7 @@ float Spline::getInterpolatedPositionThicknessCorrectionScale(const unsigned int
 
 	const unsigned int interpolatedIndex{ priv_getInterpolatedIndex(interpolationOffset, index) };
 
-	const sf::Vector2f sideOffset{ m_sfmlThickVertices[interpolatedIndex * 2].position - m_sfmlVertices[interpolatedIndex].position };
+	const sf::Vector2f sideOffset{ m_outputVertices[interpolatedIndex * 2].position - m_interpolatedVertices[interpolatedIndex].position };
 	const float sideOffsetLength{ vectorLength(sideOffset) };
 
 	return sideOffsetLength * 2 / getInterpolatedPositionThickness(interpolationOffset, index);
@@ -607,13 +635,8 @@ float Spline::getInterpolatedPositionThicknessCorrectionScale(const unsigned int
 void Spline::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.texture = nullptr;
-	if (priv_isThick())
-	{
-		if (m_sfmlThickVertices.size() > 0)
-			target.draw(&m_sfmlThickVertices.front(), m_sfmlThickVertices.size(), thickPrimitiveType, states);
-	}
-	else if (m_sfmlVertices.size() > 0)
-		target.draw(&m_sfmlVertices.front(), m_sfmlVertices.size(), m_primitiveType, states);
+	if (m_outputVertices.size() > 0)
+		target.draw(m_outputVertices.data(), m_outputVertices.size(), (priv_isThick() ? thickPrimitiveType : m_primitiveType), states);
 	if (m_showHandles && m_handlesVertices.size() > 1)
 		target.draw(&m_handlesVertices.front(), m_handlesVertices.size(), sf::PrimitiveType::Lines, states);
 }
@@ -648,7 +671,7 @@ unsigned int Spline::priv_getNumberOfPointsPerVertex() const
 // index should be: [0, numberOfVertices)
 // interpolation should be (when used with index): [0, numberOfInterpolationSteps] or [0, numberOfInterpolatedPositionsPerVertex)
 // (note that higher value of range is 'not' inclusive)
-// interpolation can, however, extend beyond the range into the follow vertex/ices so index can be omitted (it defaults to zero).
+// interpolation can, however, extend beyond the range into the following vertex/ices so index can be omitted (it defaults to zero).
 // index and interpolationOffset values must be valid
 unsigned int Spline::priv_getInterpolatedIndex(const unsigned int interpolationOffset, const unsigned int index) const
 {
@@ -656,6 +679,271 @@ unsigned int Spline::priv_getInterpolatedIndex(const unsigned int interpolationO
 	const unsigned int interpolatedPositionIndex{ indexOffset + interpolationOffset };
 	assert(interpolatedPositionIndex < getInterpolatedPositionCount()); // index must be in valid range
 	return interpolatedPositionIndex;
+}
+
+void Spline::priv_updateOutputVertices()
+{
+	if (!priv_isThick())
+	{
+		m_outputVertices.resize(m_interpolatedVertices.size());
+		for (std::vector<sf::Vertex>::iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, it{ begin }; it != end; ++it)
+		{
+			//const unsigned int index{ static_cast<unsigned int>(it - begin) };
+			//m_outputVertices[index] = *it;
+
+			const unsigned int outputIndex{ static_cast<unsigned int>(it - begin) };
+			const unsigned int index{ outputIndex / priv_getNumberOfPointsPerVertex() };
+			const unsigned int interpolatedIndex{ index * priv_getNumberOfPointsPerVertex() };
+			const float vertexRatio{ static_cast<float>(outputIndex - interpolatedIndex) / priv_getNumberOfPointsPerVertex() };
+
+			m_outputVertices[outputIndex] = *it;
+
+			const std::vector<Vertex>::iterator currentVertex{ m_vertices.begin() + (index % m_vertices.size()) };
+			std::vector<Vertex>::iterator nextVertex{ currentVertex };
+			if (currentVertex != m_vertices.end() - 1)
+				nextVertex = currentVertex + 1;
+			else if (m_isClosed)
+				nextVertex = m_vertices.begin();
+
+			sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.begin() + (it - begin)) };
+			if (m_isClosed || it != end - 1)
+			{
+				const sf::Vector2f forwardLine{ ((it != end - 1) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
+				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
+				float dotUnits{ dot(forwardUnit , tangentUnit) };
+				tangentUnit = tangentUnit / (isConsideredZero(dotUnits) ? zeroEpsilon : dotUnits);
+			}
+			const sf::Vector2f normalUnit{ vectorNormal(tangentUnit) };
+			const float randomNormalOffsetRange{ m_randomNormalOffsetRange * linearInterpolation(currentVertex->randomNormalOffsetRange, nextVertex->randomNormalOffsetRange, vertexRatio) };
+			sf::Vector2f randomOffset{ normalUnit * (isConsideredZero(randomNormalOffsetRange) ? 0.f : randomValue(randomNormalOffsetRange)) };
+			const bool randomOffsetIsCentered{ true };
+			if (randomOffsetIsCentered)
+				randomOffset -= normalUnit * (randomNormalOffsetRange / 2.f);
+
+			m_outputVertices[outputIndex].position += randomOffset;
+
+			if (m_isClosed && (it == end - 1))
+				m_outputVertices[outputIndex].position = m_outputVertices[0].position;
+		}
+	}
+	else
+	{
+		unsigned int numberOfExtraVerticesForCaps{ 0u };
+		if (!m_isClosed)
+		{
+			if (m_thickStartCapType == ThickCapType::Round)
+				numberOfExtraVerticesForCaps += (m_roundedThickStartCapInterpolationLevel + 1u) * 2u;
+			if (m_thickEndCapType == ThickCapType::Round)
+				numberOfExtraVerticesForCaps += (m_roundedThickEndCapInterpolationLevel + 1u) * 2u;
+		}
+		switch (m_thickCornerType)
+		{
+		case ThickCornerType::Point:
+			m_outputVertices.resize(m_interpolatedVertices.size() * 2u + numberOfExtraVerticesForCaps); // required number of vertices for a triangle strip (two triangles between each pair of points)
+			break;
+		case ThickCornerType::Bevel:
+			m_outputVertices.resize((m_interpolatedVertices.size() - 1u) * 4u + numberOfExtraVerticesForCaps); // required number of vertices for a triangle strip
+			break;
+		case ThickCornerType::Round:
+			m_outputVertices.resize(((m_interpolatedVertices.size() - 2u) * (m_roundedThickCornerInterpolationLevel + 2u) + 2) * 2u + numberOfExtraVerticesForCaps); // required number of vertices for a triangle strip
+			break;
+		}
+
+		std::vector<sf::Vertex>::iterator itThick{ m_outputVertices.begin() };
+		if (!m_isClosed && (m_thickStartCapType == ThickCapType::Round))
+		{
+			std::vector<Vertex>::iterator vertex{ m_vertices.begin() };
+			const float thickness{ m_thickness * vertex->thickness };
+			const float halfWidth{ thickness / 2.f };
+			const sf::Color color{ m_color * vertex->color };
+			const sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.begin()) };
+			const sf::Vector2f normalUnit{ -vectorNormal(tangentUnit) };
+			const float normalAngle{ std::atan2(normalUnit.y, normalUnit.x) };
+			for (unsigned int i{ 0u }; i <= m_roundedThickStartCapInterpolationLevel; ++i)
+			{
+				const float ratio{ static_cast<float>(i) / (m_roundedThickStartCapInterpolationLevel + 1u) };
+				const float angleOffset{ ratio * pi };
+				const float angle{ normalAngle + angleOffset };
+				const sf::Vector2f vector{ std::cos(angle) * halfWidth, std::sin(angle) * halfWidth };
+				itThick->color = color;
+				itThick++->position = vertex->position + vector;
+				itThick->color = color;
+				itThick++->position = vertex->position;
+			}
+		}
+		for (std::vector<sf::Vertex>::const_iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, it{ begin }; it != end; ++it)
+		{
+			const unsigned int outputIndex{ static_cast<unsigned int>(it - begin) };
+			const unsigned int index{ outputIndex / priv_getNumberOfPointsPerVertex() };
+			const unsigned int interpolatedIndex{ index * priv_getNumberOfPointsPerVertex() };
+			const float vertexRatio{ static_cast<float>(outputIndex - interpolatedIndex) / priv_getNumberOfPointsPerVertex() };
+			const std::vector<Vertex>::iterator currentVertex{ m_vertices.begin() + (index % m_vertices.size()) };
+			std::vector<Vertex>::iterator nextVertex{ currentVertex };
+			if (currentVertex != m_vertices.end() - 1)
+				nextVertex = currentVertex + 1;
+			else if (m_isClosed)
+				nextVertex = m_vertices.begin();
+			const float thickness{ m_thickness * linearInterpolation(currentVertex->thickness, nextVertex->thickness, vertexRatio) };
+			const float halfWidth{ thickness / 2.f };
+
+			const sf::Color color{ m_color * linearInterpolation(currentVertex->color, nextVertex->color, vertexRatio) };
+
+			sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.begin() + (it - begin)) };
+			if (m_isClosed || it != end - 1)
+			{
+				const sf::Vector2f forwardLine{ ((it != end - 1) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
+				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
+				float dotUnits{ dot(forwardUnit , tangentUnit) };
+				tangentUnit = tangentUnit / (isConsideredZero(dotUnits) ? zeroEpsilon : dotUnits);
+				/*
+				const float maxPointLength{ 100.f };
+				if (vectorLength(tangentUnit) * halfWidth > maxPointLength)
+					tangentUnit *= maxPointLength / (vectorLength(tangentUnit) * halfWidth);
+				*/
+			}
+			const sf::Vector2f normalUnit{ vectorNormal(tangentUnit) };
+			const sf::Vector2f scaledNormal{ normalUnit * halfWidth };
+			const float randomNormalOffsetRange{ m_randomNormalOffsetRange * linearInterpolation(currentVertex->randomNormalOffsetRange, nextVertex->randomNormalOffsetRange, vertexRatio) };
+			sf::Vector2f randomOffset{ normalUnit * (isConsideredZero(randomNormalOffsetRange) ? 0.f : randomValue(randomNormalOffsetRange)) };
+			const bool randomOffsetIsCentered{ true };
+			if (randomOffsetIsCentered)
+				randomOffset -= normalUnit * (randomNormalOffsetRange / 2.f);
+			if (it == begin || it == end - 1)
+				randomOffset = { 0.f, 0.f };
+
+			sf::Vector2f capOffset{ 0.f, 0.f };
+			if (!m_isClosed)
+			{
+				if ((it == begin) && (m_thickStartCapType == ThickCapType::Extended))
+					capOffset = -tangentUnit * halfWidth;
+				else if ((it == end - 1u) && (m_thickEndCapType == ThickCapType::Extended))
+					capOffset = tangentUnit * halfWidth;
+			}
+
+			switch (m_thickCornerType)
+			{
+			case ThickCornerType::Point:
+				itThick->color = color;
+				itThick++->position = it->position + scaledNormal + capOffset + randomOffset;
+				itThick->color = color;
+				itThick++->position = it->position - scaledNormal + capOffset + randomOffset;
+				break;
+			case ThickCornerType::Bevel:
+			{
+				const sf::Vector2f forwardLine{ ((it != end - 1) ? (it + 1)->position - it->position : begin->position - it->position) };
+				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
+				const sf::Vector2f backwardLine{ ((it != begin) ? it->position - (it - 1)->position : it->position - (end - 1)->position) };
+				const sf::Vector2f backwardUnit{ backwardLine / vectorLength(backwardLine) };
+
+				const sf::Vector2f forwardNormalUnit{ vectorNormal(forwardUnit) };
+				const sf::Vector2f backwardNormalUnit{ vectorNormal(backwardUnit) };
+				const sf::Vector2f forwardNormal{ forwardNormalUnit * halfWidth };
+				const sf::Vector2f backwardNormal{ backwardNormalUnit * halfWidth };
+
+				if (it == begin)
+				{
+					itThick->color = color;
+					itThick++->position = it->position + forwardNormal + capOffset + randomOffset;
+					itThick->color = color;
+					itThick++->position = it->position - forwardNormal + capOffset + randomOffset;
+				}
+				else if (it == end - 1)
+				{
+					itThick->color = color;
+					itThick++->position = it->position + backwardNormal + capOffset + randomOffset;
+					itThick->color = color;
+					itThick++->position = it->position - backwardNormal + capOffset + randomOffset;
+				}
+				else
+				{
+					itThick->color = color;
+					itThick++->position = it->position + backwardNormal + capOffset + randomOffset;
+					itThick->color = color;
+					itThick++->position = it->position - backwardNormal + capOffset + randomOffset;
+
+					itThick->color = color;
+					itThick++->position = it->position + forwardNormal + capOffset + randomOffset;
+					itThick->color = color;
+					itThick++->position = it->position - forwardNormal + capOffset + randomOffset;
+				}
+			}
+				break;
+			case ThickCornerType::Round:
+			{
+				const sf::Vector2f forwardLine{ ((it != end - 1) ? (it + 1)->position - it->position : begin->position - it->position) };
+				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
+				const sf::Vector2f backwardLine{ ((it != begin) ? it->position - (it - 1)->position : it->position - (end - 1)->position) };
+				const sf::Vector2f backwardUnit{ backwardLine / vectorLength(backwardLine) };
+
+				if (it == begin)
+				{
+					const sf::Vector2f forwardNormalUnit{ vectorNormal(forwardUnit) };
+					const sf::Vector2f forwardNormal{ forwardNormalUnit * halfWidth };
+					itThick->color = color;
+					itThick++->position = it->position + forwardNormal + capOffset + randomOffset;
+					itThick->color = color;
+					itThick++->position = it->position - forwardNormal + capOffset + randomOffset;
+				}
+				else if (it == end - 1)
+				{
+					const sf::Vector2f backwardNormalUnit{ vectorNormal(backwardUnit) };
+					const sf::Vector2f backwardNormal{ backwardNormalUnit * halfWidth };
+					itThick->color = color;
+					itThick++->position = it->position + backwardNormal + capOffset + randomOffset;
+					itThick->color = color;
+					itThick++->position = it->position - backwardNormal + capOffset + randomOffset;
+				}
+				else
+				{
+					const float backwardAngle{ std::atan2(backwardUnit.y, backwardUnit.x) };
+					const float forwardAngle{ std::atan2(forwardUnit.y, forwardUnit.x) };
+					for (unsigned int i{ 0u }; i <= (m_roundedThickCornerInterpolationLevel + 1u); ++i)
+					{
+						const float ratio{ static_cast<float>(i) / (m_roundedThickCornerInterpolationLevel + 1u) };
+						const float angle{ linearInterpolation(backwardAngle, forwardAngle, ratio) };
+						const sf::Vector2f unit{ std::cos(angle), std::sin(angle) };
+						const sf::Vector2f thisNormalUnit{ vectorNormal(unit) };
+						const sf::Vector2f thisNormal{ thisNormalUnit * halfWidth };
+						itThick->color = color;
+						itThick++->position = it->position + thisNormal + capOffset + randomOffset;
+						itThick->color = color;
+						itThick++->position = it->position - thisNormal + capOffset + randomOffset;
+					}
+				}
+			}
+				break;
+			}
+
+			///*
+			if (m_isClosed && (it == end - 1))
+			{
+				(itThick - 2)->position = m_outputVertices.begin()->position;
+				(itThick - 1)->position = (m_outputVertices.begin() + 1)->position;
+			}
+			//*/
+		}
+		if (!m_isClosed && (m_thickEndCapType == ThickCapType::Round))
+		{
+			std::vector<Vertex>::iterator vertex{ m_vertices.end() - 1u };
+			const float thickness{ m_thickness * vertex->thickness };
+			const float halfWidth{ thickness / 2.f };
+			const sf::Color color{ m_color * vertex->color };
+			const sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.end() - 1u) };
+			const sf::Vector2f normalUnit{ vectorNormal(tangentUnit) };
+			const float normalAngle{ std::atan2(normalUnit.y, normalUnit.x) };
+			for (unsigned int i{ 0u }; i <= m_roundedThickEndCapInterpolationLevel; ++i)
+			{
+				const float ratio{ static_cast<float>(m_roundedThickEndCapInterpolationLevel - i) / (m_roundedThickEndCapInterpolationLevel + 1u) };
+				const float angleOffset{ ratio * pi };
+				const float angle{ normalAngle + angleOffset };
+				const sf::Vector2f vector{ std::cos(angle) * halfWidth, std::sin(angle) * halfWidth };
+				itThick->color = color;
+				itThick++->position = vertex->position + vector;
+				itThick->color = color;
+				itThick++->position = vertex->position;
+			}
+		}
+	}
 }
 
 } // namespace selbaward
