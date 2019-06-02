@@ -144,6 +144,7 @@ Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPositio
 	, m_roundedThickCornerInterpolationLevel{ 5u }
 	, m_roundedThickStartCapInterpolationLevel{ 5u }
 	, m_roundedThickEndCapInterpolationLevel{ 5u }
+	, m_maxPointLength{ 100.f }
 	, m_automaticallyUpdateRandomNormalOffset{ true }
 	, m_vertices(vertexCount, Vertex(initialPosition))
 	, m_color(sf::Color::White)
@@ -319,6 +320,11 @@ void Spline::setThickEndCapType(const ThickCapType thickEndCapType)
 void Spline::setRoundedThickEndCapInterpolationLevel(const unsigned int roundedThickEndCapInterpolationLevel)
 {
 	m_roundedThickEndCapInterpolationLevel = roundedThickEndCapInterpolationLevel;
+}
+
+void Spline::setMaxCornerPointLength(const float maxCornerPointLength)
+{
+	m_maxPointLength = maxCornerPointLength;
 }
 
 void Spline::reserveVertices(const unsigned int numberOfVertices)
@@ -688,9 +694,6 @@ void Spline::priv_updateOutputVertices()
 		m_outputVertices.resize(m_interpolatedVertices.size());
 		for (std::vector<sf::Vertex>::iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, it{ begin }; it != end; ++it)
 		{
-			//const unsigned int index{ static_cast<unsigned int>(it - begin) };
-			//m_outputVertices[index] = *it;
-
 			const unsigned int outputIndex{ static_cast<unsigned int>(it - begin) };
 			const unsigned int index{ outputIndex / priv_getNumberOfPointsPerVertex() };
 			const unsigned int interpolatedIndex{ index * priv_getNumberOfPointsPerVertex() };
@@ -739,13 +742,24 @@ void Spline::priv_updateOutputVertices()
 		switch (m_thickCornerType)
 		{
 		case ThickCornerType::Point:
-			m_outputVertices.resize(m_interpolatedVertices.size() * 2u + numberOfExtraVerticesForCaps); // required number of vertices for a triangle strip (two triangles between each pair of points)
+			// ends and corners require 2 each.
+			m_outputVertices.resize(m_interpolatedVertices.size() * 2u + numberOfExtraVerticesForCaps);
+			break;
+		case ThickCornerType::PointLimit:
+			// ends require 2 each. corners require 6 each.
+			m_outputVertices.resize(m_interpolatedVertices.size() * 6u - 8u + numberOfExtraVerticesForCaps);
+			break;
+		case ThickCornerType::PointClip:
+			// ends require 2 each. corners require 6 each.
+			m_outputVertices.resize(m_interpolatedVertices.size() * 6u - 8u + numberOfExtraVerticesForCaps);
 			break;
 		case ThickCornerType::Bevel:
-			m_outputVertices.resize((m_interpolatedVertices.size() - 1u) * 4u + numberOfExtraVerticesForCaps); // required number of vertices for a triangle strip
+			// ends require 2 each. corners require 4 each.
+			m_outputVertices.resize((m_interpolatedVertices.size() - 1u) * 4u + numberOfExtraVerticesForCaps);
 			break;
 		case ThickCornerType::Round:
-			m_outputVertices.resize(((m_interpolatedVertices.size() - 2u) * (m_roundedThickCornerInterpolationLevel + 2u) + 2) * 2u + numberOfExtraVerticesForCaps); // required number of vertices for a triangle strip
+			// ends require 2 each. corners require (2 + interpolation) * 2 each.
+			m_outputVertices.resize(((m_interpolatedVertices.size() - 2u) * (m_roundedThickCornerInterpolationLevel + 2u) + 2) * 2u + numberOfExtraVerticesForCaps);
 			break;
 		}
 
@@ -789,20 +803,21 @@ void Spline::priv_updateOutputVertices()
 			const sf::Color color{ m_color * linearInterpolation(currentVertex->color, nextVertex->color, vertexRatio) };
 
 			sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.begin() + (it - begin)) };
+			sf::Vector2f pointTransformedTangentUnit{ tangentUnit };
+			float dotUnits{ 1.f };
+			bool pointIsTooLong{ false };
 			if (m_isClosed || it != end - 1)
 			{
 				const sf::Vector2f forwardLine{ ((it != end - 1) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
 				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
-				float dotUnits{ dot(forwardUnit , tangentUnit) };
-				tangentUnit = tangentUnit / (isConsideredZero(dotUnits) ? zeroEpsilon : dotUnits);
-				/*
-				const float maxPointLength{ 100.f };
-				if (vectorLength(tangentUnit) * halfWidth > maxPointLength)
-					tangentUnit *= maxPointLength / (vectorLength(tangentUnit) * halfWidth);
-				*/
+				dotUnits = dot(forwardUnit, pointTransformedTangentUnit);
+				pointTransformedTangentUnit = pointTransformedTangentUnit / (isConsideredZero(dotUnits) ? zeroEpsilon : dotUnits);
+				pointIsTooLong = (vectorLength(pointTransformedTangentUnit) * halfWidth) > m_maxPointLength;
 			}
 			const sf::Vector2f normalUnit{ vectorNormal(tangentUnit) };
+			const sf::Vector2f pointTransformedNormalUnit{ vectorNormal(pointTransformedTangentUnit) };
 			const sf::Vector2f scaledNormal{ normalUnit * halfWidth };
+			const sf::Vector2f scaledPointTransformedNormal{ pointTransformedNormalUnit * halfWidth };
 			const float randomNormalOffsetRange{ m_randomNormalOffsetRange * linearInterpolation(currentVertex->randomNormalOffsetRange, nextVertex->randomNormalOffsetRange, vertexRatio) };
 			sf::Vector2f randomOffset{ normalUnit * (isConsideredZero(randomNormalOffsetRange) ? 0.f : randomValue(randomNormalOffsetRange)) };
 			const bool randomOffsetIsCentered{ true };
@@ -824,10 +839,12 @@ void Spline::priv_updateOutputVertices()
 			{
 			case ThickCornerType::Point:
 				itThick->color = color;
-				itThick++->position = it->position + scaledNormal + capOffset + randomOffset;
+				itThick++->position = it->position + scaledPointTransformedNormal + capOffset + randomOffset;
 				itThick->color = color;
-				itThick++->position = it->position - scaledNormal + capOffset + randomOffset;
+				itThick++->position = it->position - scaledPointTransformedNormal + capOffset + randomOffset;
 				break;
+			case ThickCornerType::PointClip:
+			case ThickCornerType::PointLimit:
 			case ThickCornerType::Bevel:
 			{
 				const sf::Vector2f forwardLine{ ((it != end - 1) ? (it + 1)->position - it->position : begin->position - it->position) };
@@ -860,6 +877,27 @@ void Spline::priv_updateOutputVertices()
 					itThick++->position = it->position + backwardNormal + capOffset + randomOffset;
 					itThick->color = color;
 					itThick++->position = it->position - backwardNormal + capOffset + randomOffset;
+
+					if (m_thickCornerType != ThickCornerType::Bevel)
+					{
+						sf::Vector2f normalToUse{ scaledPointTransformedNormal };
+						if (pointIsTooLong)
+						{
+							switch (m_thickCornerType)
+							{
+							case ThickCornerType::PointClip:
+								normalToUse = scaledNormal * dotUnits;
+								break;
+							case ThickCornerType::PointLimit:
+								normalToUse = normalUnit * m_maxPointLength;
+								break;
+							}
+						}
+						itThick->color = color;
+						itThick++->position = it->position + normalToUse + capOffset + randomOffset;
+						itThick->color = color;
+						itThick++->position = it->position - normalToUse + capOffset + randomOffset;
+					}
 
 					itThick->color = color;
 					itThick++->position = it->position + forwardNormal + capOffset + randomOffset;
@@ -929,7 +967,7 @@ void Spline::priv_updateOutputVertices()
 			const float halfWidth{ thickness / 2.f };
 			const sf::Color color{ m_color * vertex->color };
 			const sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.end() - 1u) };
-			const sf::Vector2f normalUnit{ vectorNormal(tangentUnit) };
+			const sf::Vector2f normalUnit{ -vectorNormal(tangentUnit) };
 			const float normalAngle{ std::atan2(normalUnit.y, normalUnit.x) };
 			for (unsigned int i{ 0u }; i <= m_roundedThickEndCapInterpolationLevel; ++i)
 			{
@@ -938,9 +976,9 @@ void Spline::priv_updateOutputVertices()
 				const float angle{ normalAngle + angleOffset };
 				const sf::Vector2f vector{ std::cos(angle) * halfWidth, std::sin(angle) * halfWidth };
 				itThick->color = color;
-				itThick++->position = vertex->position + vector;
-				itThick->color = color;
 				itThick++->position = vertex->position;
+				itThick->color = color;
+				itThick++->position = vertex->position - vector;
 			}
 		}
 	}

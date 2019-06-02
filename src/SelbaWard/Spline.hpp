@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.4.0
+// SW Spline v1.5.0
 class Spline : public sf::Drawable
 {
 public:
@@ -46,6 +46,8 @@ public:
 	{
 		Bevel,
 		Point,
+		PointLimit,
+		PointClip,
 		Round,
 	};
 	enum class ThickCapType
@@ -90,6 +92,9 @@ public:
 	ThickCapType getThickEndCapType() const;
 	void setRoundedThickEndCapInterpolationLevel(unsigned int roundedThickEndCapInterpolationLevel);
 	unsigned int getRoundedThickEndCapInterpolationLevel() const;
+
+	void setMaxCornerPointLength(float maxPointCornerLength);
+	float getMaxCornerPointLength() const;
 
 	unsigned int getVertexCount() const;
 	unsigned int getLastVertexIndex() const;
@@ -179,6 +184,7 @@ private:
 	unsigned int m_roundedThickCornerInterpolationLevel; // number of interpolations per corner (includes corners at interpolated points). does not include backward and forward line points - only the interpolation between them i.e. 0 interpolation looks equal to bevel.
 	unsigned int m_roundedThickStartCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
 	unsigned int m_roundedThickEndCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
+	float m_maxPointLength; // maximum length of point when limited or clipped. ignored when using other corner types including Point.
 	const bool m_automaticallyUpdateRandomNormalOffset;
 
 	std::vector<Vertex> m_vertices;
@@ -289,6 +295,11 @@ inline Spline::ThickCapType Spline::getThickEndCapType() const
 inline unsigned int Spline::getRoundedThickEndCapInterpolationLevel() const
 {
 	return m_roundedThickEndCapInterpolationLevel;
+}
+
+inline float Spline::getMaxCornerPointLength() const
+{
+	return m_maxPointLength;
 }
 
 inline unsigned int Spline::getVertexCount() const
