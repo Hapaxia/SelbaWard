@@ -5,7 +5,7 @@
 //
 // Pixel Display
 //
-// Copyright(c) 2018 M.J.Silk
+// Copyright(c) 2019 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -322,8 +322,8 @@ void PixelDisplay::scrollWrapDown(const unsigned int amount, sf::IntRect selecti
 
 void PixelDisplay::scrollWrapLeft(const unsigned int amount, sf::IntRect selectionRectangle)
 {
-	assert(selectionRectangle.left < m_resolution.x);
-	assert(selectionRectangle.top < m_resolution.y);
+	assert(selectionRectangle.left < static_cast<int>(m_resolution.x));
+	assert(selectionRectangle.top < static_cast<int>(m_resolution.y));
 	if (selectionRectangle.width == 0u)
 		selectionRectangle.width = m_resolution.x - selectionRectangle.left;
 	if (selectionRectangle.height == 0u)
@@ -335,13 +335,13 @@ void PixelDisplay::scrollWrapLeft(const unsigned int amount, sf::IntRect selecti
 
 void PixelDisplay::scrollWrapRight(const unsigned int amount, sf::IntRect selectionRectangle)
 {
-	assert(selectionRectangle.left < m_resolution.x);
-	assert(selectionRectangle.top < m_resolution.y);
+	assert(selectionRectangle.left < static_cast<int>(m_resolution.x));
+	assert(selectionRectangle.top < static_cast<int>(m_resolution.y));
 	if (selectionRectangle.width == 0u)
 		selectionRectangle.width = m_resolution.x - selectionRectangle.left;
 	if (selectionRectangle.height == 0u)
 		selectionRectangle.height = m_resolution.y - selectionRectangle.top;
-	for (unsigned int y{ 0u }; y < selectionRectangle.height; ++y)
+	for (unsigned int y{ 0u }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
 		shiftVectorWrapUp(m_pixels, amount, (selectionRectangle.top + y) * m_resolution.x + selectionRectangle.left, selectionRectangle.width);
 	priv_updatePixels();
 }
@@ -540,7 +540,7 @@ void PixelDisplay::priv_updateVertices()
 
 void PixelDisplay::priv_updatePixels()
 {
-	const unsigned int numberOfPixels{ m_pixels.size() };
+	const unsigned int numberOfPixels{ static_cast<unsigned int>(m_pixels.size()) };
 	for (unsigned int i{ 0u }; i < numberOfPixels; ++i)
 		priv_updatePixel(i);
 }

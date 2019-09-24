@@ -5,7 +5,7 @@
 //
 // Pixel Display
 //
-// Copyright(c) 2018 M.J.Silk
+// Copyright(c) 2019 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW PixelDisplay v0.1.0
+// SW PixelDisplay v1.0.0
 class PixelDisplay : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -84,7 +84,7 @@ public:
 	void cyclePaletteDown(unsigned int amount = 1u, unsigned int firstColor = 0u, unsigned int numberOfColors = 0u); // first colour and last colour of range to cycle
 	void cyclePaletteUp(unsigned int amount = 1u, unsigned int firstColor = 0u, unsigned int numberOfColors = 0u); // first colour and last colour of range to cycle
 	unsigned int getPaletteSize() const { return m_palette.size(); };
-	sf::Color getRgb(unsigned int color) { return m_palette[color]; }
+	sf::Color getRgb(unsigned int color) const { return m_palette[color]; }
 
 	// buffers (clipboards/"screenshots"/captures)
 	unsigned int copy(); // returns index of buffer
