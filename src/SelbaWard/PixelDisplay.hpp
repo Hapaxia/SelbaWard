@@ -83,7 +83,7 @@ public:
 	void addRgb(sf::Color rgb);
 	void cyclePaletteDown(unsigned int amount = 1u, unsigned int firstColor = 0u, unsigned int numberOfColors = 0u); // first colour and last colour of range to cycle
 	void cyclePaletteUp(unsigned int amount = 1u, unsigned int firstColor = 0u, unsigned int numberOfColors = 0u); // first colour and last colour of range to cycle
-	unsigned int getPaletteSize() const { return m_palette.size(); };
+	std::size_t getPaletteSize() const { return m_palette.size(); };
 	sf::Color getRgb(unsigned int color) const { return m_palette[color]; }
 
 	// buffers (clipboards/"screenshots"/captures)
