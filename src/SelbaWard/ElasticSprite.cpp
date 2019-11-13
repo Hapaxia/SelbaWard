@@ -50,55 +50,125 @@ sf::Shader perspectiveShader;
 
 const std::string bilinearFragmentShaderCode
 {
-	"uniform bool useTexture;\nuniform sampler2D texture;\nuniform int ren"
-	"derTargetHeight;\nuniform vec2 v0;\nuniform vec2 v1;\nuniform vec2 v2"
-	";\nuniform vec2 v3;\nuniform float textureRectLeftRatio;\nuniform flo"
-	"at textureRectTopRatio;\nuniform float textureRectWidthRatio;\nunifor"
-	"m float textureRectHeightRatio;\nuniform vec4 c0;\nuniform vec4 c1;\n"
-	"uniform vec4 c2;\nuniform vec4 c3;\n\nvec2 linesIntersection(vec2 aSt"
-	"art, vec2 aEnd, vec2 bStart, vec2 bEnd)\n{\nvec2 a = aEnd - aStart;"
-	"\nvec2 b = bEnd - bStart;\nfloat aAngle = atan(a.y, a.x);\nfloat bA"
-	"ngle = atan(b.y, b.x);\nif (abs(aAngle - bAngle) < 0.01)\n{\na = "
-	"mix(aEnd, bEnd, 0.0001) - aStart;\nb = mix(bEnd, aEnd, 0.0001) - bS"
-	"tart;\n}\nvec2 c = aStart - bStart;\nfloat alpha = ((b.x * c.y) - "
-	"(b.y * c.x)) / ((b.y * a.x) - (b.x * a.y));\nreturn aStart + (a * al"
-	"pha);\n}\n\nvoid main()\n{\nvec2 p = vec2(gl_FragCoord.x, (renderTar"
-	"getHeight - gl_FragCoord.y));\nvec2 o = linesIntersection(v0, v3, v1"
-	", v2);\nvec2 n = linesIntersection(v1, v0, v2, v3);\nvec2 l = lines"
-	"Intersection(o, p, v0, v1);\nvec2 m = linesIntersection(o, p, v3, v2"
-	");\nvec2 j = linesIntersection(n, p, v0, v3);\nvec2 k = linesInters"
-	"ection(n, p, v2, v1);\nvec2 ratioCoord = vec2(distance(p, l) / dista"
-	"nce(m, l), distance(p, j) / distance(k, j));\nvec4 color = mix(mix(c"
-	"0, c3, ratioCoord.x), mix(c1, c2, ratioCoord.x), ratioCoord.y);\nif "
-	"(useTexture)\n{\nvec2 texCoord = vec2(ratioCoord.x * textureRectWi"
-	"dthRatio + textureRectLeftRatio, ratioCoord.y * textureRectHeightRati"
-	"o + textureRectTopRatio);\nvec4 pixel = texture2D(texture, texCoord"
-	");\ngl_FragColor = color * pixel;\n}\nelse\ngl_FragColor = colo"
-	"r;\n}\n"
+    R"shader(
+        uniform bool useTexture;
+        uniform sampler2D texture;
+        uniform float renderTargetHeight;
+        uniform vec2 v0;
+        uniform vec2 v1;
+        uniform vec2 v2;
+        uniform vec2 v3;
+        uniform float textureRectLeftRatio;
+        uniform float textureRectTopRatio;
+        uniform float textureRectWidthRatio;
+        uniform float textureRectHeightRatio;
+        uniform vec4 c0;
+        uniform vec4 c1;
+        uniform vec4 c2;
+        uniform vec4 c3;
+
+        vec2 linesIntersection(vec2 aStart, vec2 aEnd, vec2 bStart, vec2 bEnd)
+        {
+            vec2 a = aEnd - aStart;
+            vec2 b = bEnd - bStart;
+
+            float aAngle = atan(a.y, a.x);
+            float bAngle = atan(b.y, b.x);
+
+            if (abs(aAngle - bAngle) < 0.01) {
+                a = mix(aEnd, bEnd, 0.0001) - aStart;
+                b = mix(bEnd, aEnd, 0.0001) - bStart;
+            }
+
+            vec2 c = aStart - bStart;
+            float alpha = ((b.x * c.y) - (b.y * c.x)) / ((b.y * a.x) - (b.x * a.y));
+            return aStart + (a * alpha);
+        }
+
+        void main()
+        {
+            vec2 p = vec2(gl_FragCoord.x, (renderTargetHeight - gl_FragCoord.y));
+            vec2 o = linesIntersection(v0, v3, v1, v2);
+            vec2 n = linesIntersection(v1, v0, v2, v3);
+            vec2 l = linesIntersection(o, p, v0, v1);
+            vec2 m = linesIntersection(o, p, v3, v2);
+            vec2 j = linesIntersection(n, p, v0, v3);
+            vec2 k = linesIntersection(n, p, v2, v1);
+            vec2 ratioCoord = vec2(distance(p, l) / distance(m, l), distance(p, j) / distance(k, j));
+            vec4 color = mix(mix(c0, c3, ratioCoord.x), mix(c1, c2, ratioCoord.x), ratioCoord.y);
+            if(useTexture) {
+                vec2 texCoord = vec2(ratioCoord.x * textureRectWidthRatio + textureRectLeftRatio, ratioCoord.y * textureRectHeightRatio + textureRectTopRatio);
+                vec4 pixel = texture2D(texture, texCoord);
+                gl_FragColor = color * pixel;
+            }
+            else gl_FragColor = color;
+        }
+)shader"
 };
 
 const std::string perspectiveVertexShaderCode
 {
-	"uniform vec4 c0;\nuniform vec4 c1;\nuniform vec4 c2;\nuniform vec4 c3"
-	";\nuniform float w0;\nuniform float w1;\nuniform float w2;\nuniform f"
-	"loat w3;\n\nvoid main()\n{\nint vertexNumber = 0;\nif (gl_Color.r >"
-	" 0.5)\nvertexNumber = 1;\nelse if (gl_Color.g > 0.5)\nvertexNumb"
-	"er = 2;\nelse if (gl_Color.b > 0.5)\nvertexNumber = 3;\n\nvec4 c"
-	"olor;\nfloat weight;\nswitch (vertexNumber)\n{\ncase 0:\ncolor "
-	"= c0;\nweight = w0;\nbreak;\ncase 1:\ncolor = c1;\nweight = "
-	"w1;\nbreak;\ncase 2:\ncolor = c2;\nweight = w2;\nbreak;\nca"
-	"se 3:\ncolor = c3;\nweight = w3;\nbreak;\n}\ngl_Position = gl"
-	"_ModelViewProjectionMatrix * gl_Vertex;\ngl_TexCoord[0] = gl_Texture"
-	"Matrix[0] * gl_MultiTexCoord0;\ngl_TexCoord[0].z = weight;\ngl_Fron"
-	"tColor = color;\n}\n"
+    R"shader(
+uniform vec4 c0;
+uniform vec4 c1;
+uniform vec4 c2;
+uniform vec4 c3;
+uniform float w0;
+uniform float w1;
+uniform float w2;
+uniform float w3;
+
+void main()
+{
+    int vertexNumber = 0;
+    if(gl_Color.r > 0.5) vertexNumber = 1;
+    else if(gl_Color.g > 0.5) vertexNumber = 2;
+    else if(gl_Color.b > 0.5) vertexNumber = 3;
+
+    vec4 color;
+    float weight;
+
+    if(vertexNumber == 0) {
+        color = c0;
+        weight = w0;
+    }
+    else if(vertexNumber == 1) {
+        color = c1;
+        weight = w1;
+    }
+    else if(vertexNumber == 2) {
+        color = c2;
+        weight = w2;
+    }
+    else if(vertexNumber == 3) {
+        color = c3;
+        weight = w3;
+    }
+
+    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+    gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+    gl_TexCoord[0].z = weight;
+    gl_FrontColor = color;
+}
+
+)shader"
 };
 
 const std::string perspectiveFragmentShaderCode
 {
-	"uniform bool useTexture;\nuniform sampler2D texture;\n\nvoid main()\n"
-	"{\nvec4 color = gl_Color;\nif (useTexture)\n{\nvec2 texCoord = g"
-	"l_TexCoord[0].xy / gl_TexCoord[0].z;\ngl_FragColor = color * textur"
-	"e2D(texture, texCoord);\n}\nelse\ngl_FragColor = color;\n}\n"
+	R"shader(
+uniform bool useTexture;
+uniform sampler2D texture;
+
+void main() {
+    vec4 color = gl_Color;
+    if (useTexture) {
+        vec2 texCoord = gl_TexCoord[0].xy / gl_TexCoord[0].z;
+        gl_FragColor = color * texture2D(texture, texCoord);
+    }
+    else gl_FragColor = color;
+}
+)shader"
 };
 
 void loadShader()
