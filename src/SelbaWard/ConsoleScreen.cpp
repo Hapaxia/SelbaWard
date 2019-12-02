@@ -460,6 +460,8 @@ ConsoleScreen& ConsoleScreen::operator<<(const StretchType& stretchType)
 	priv_getCurrentPrintProperties().stretch = stretchType;
 	if (stretchType == Cs::StretchType::Both)
 		priv_testCursorForScroll();
+	if (m_do.updateAutomatically)
+		update();
 	return *this;
 }
 
@@ -861,6 +863,18 @@ void ConsoleScreen::setCursor(const int cellValue)
 void ConsoleScreen::setCursor(const char cellCharacter, bool mapCharacter)
 {
 	m_cursor.value = mapCharacter ? priv_getCellValueFromCharacter(cellCharacter) : static_cast<int>(cellCharacter);
+
+	if (m_do.updateAutomatically)
+	{
+		priv_updateCell(m_cursorPrintProperties.index);
+		if (priv_getCurrentPrintProperties().stretch == Cs::StretchType::Both)
+			priv_updateCell(m_cursorPrintProperties.index + m_mode.x);
+	}
+}
+
+void ConsoleScreen::setCursorColor(const Color& color)
+{
+	m_cursor.color = color;
 
 	if (m_do.updateAutomatically)
 	{
@@ -2442,15 +2456,20 @@ void ConsoleScreen::priv_setVerticesFromCell(unsigned int index, int baseVertex,
 	sf::Color cellColor;
 	sf::Color backgroundColor;
 
+	Color bgColor;
+
 	if (mainLayer)
 	{
+		bgColor = priv_getModifiedColorFromCellUsingSpecifiedColorType(index, ColorType::Background);
 		cellColor = getPaletteColor(priv_getModifiedColorFromCellUsingSpecifiedColorType(index, ColorType::Foreground).id);
-		backgroundColor = getPaletteColor(priv_getModifiedColorFromCellUsingSpecifiedColorType(index, ColorType::Background).id);
+		//backgroundColor = getPaletteColor(priv_getModifiedColorFromCellUsingSpecifiedColorType(index, ColorType::Background).id);
+		backgroundColor = getPaletteColor(bgColor.id);
 	}
 	else
 	{
+		bgColor = cell.colors.background;
 		cellColor = getPaletteColor(cell.colors.foreground.id);
-		backgroundColor = getPaletteColor(cell.colors.background.id);
+		backgroundColor = getPaletteColor(bgColor.id);
 	}
 
 	const bool isCursor{ (m_cursor.visible) && (m_cursorPrintProperties.index == index) };
@@ -2465,7 +2484,10 @@ void ConsoleScreen::priv_setVerticesFromCell(unsigned int index, int baseVertex,
 			cellValue = m_cursor.value;
 		}
 		if (m_cursor.useOwnColour)
-			cellColor = getPaletteColor(m_cursor.color.id);
+		{
+			cellColor = getPaletteColor(priv_getModifiedColorFromColorPairUsingSpecifiedColorType(Cs::ColorPair(m_cursor.color.id, bgColor), Cs::ColorType::Foreground));
+			//cellColor = getPaletteColor(m_cursor.color.id);
+		}
 		if (cell.attributes.inverse != m_cursor.inverse)
 			swapColors(cellColor, backgroundColor);
 	}

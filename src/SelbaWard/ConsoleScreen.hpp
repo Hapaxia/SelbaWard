@@ -45,7 +45,7 @@ namespace sf
 namespace selbaward
 {
 
-// SW Console Screen v2.4.1
+// SW Console Screen v2.4.2
 class ConsoleScreen : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -761,6 +761,7 @@ inline void ConsoleScreen::setTexture(const sf::Texture& texture, const unsigned
 inline void ConsoleScreen::setDarkAttributeMultiplier(const float darkAttributeMultiplier)
 {
 	m_darkAttributeMultiplier = darkAttributeMultiplier;
+	update();
 }
 
 inline float ConsoleScreen::getDarkAttributeMultiplier() const
@@ -871,11 +872,6 @@ inline bool ConsoleScreen::getWrapOnManualScroll() const
 inline bool ConsoleScreen::getAddNewColorToPalette() const
 {
 	return m_do.addNewColorToPalette;
-}
-
-inline void ConsoleScreen::setCursorColor(const Color& color)
-{
-	m_cursor.color = color;
 }
 
 inline int ConsoleScreen::getCursorValue() const
