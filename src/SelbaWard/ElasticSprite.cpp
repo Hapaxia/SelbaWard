@@ -50,55 +50,57 @@ sf::Shader perspectiveShader;
 
 const std::string bilinearFragmentShaderCode
 {
-	"uniform bool useTexture;\nuniform sampler2D texture;\nuniform int ren"
-	"derTargetHeight;\nuniform vec2 v0;\nuniform vec2 v1;\nuniform vec2 v2"
-	";\nuniform vec2 v3;\nuniform float textureRectLeftRatio;\nuniform flo"
-	"at textureRectTopRatio;\nuniform float textureRectWidthRatio;\nunifor"
-	"m float textureRectHeightRatio;\nuniform vec4 c0;\nuniform vec4 c1;\n"
-	"uniform vec4 c2;\nuniform vec4 c3;\n\nvec2 linesIntersection(vec2 aSt"
-	"art, vec2 aEnd, vec2 bStart, vec2 bEnd)\n{\nvec2 a = aEnd - aStart;"
-	"\nvec2 b = bEnd - bStart;\nfloat aAngle = atan(a.y, a.x);\nfloat bA"
-	"ngle = atan(b.y, b.x);\nif (abs(aAngle - bAngle) < 0.01)\n{\na = "
-	"mix(aEnd, bEnd, 0.0001) - aStart;\nb = mix(bEnd, aEnd, 0.0001) - bS"
-	"tart;\n}\nvec2 c = aStart - bStart;\nfloat alpha = ((b.x * c.y) - "
-	"(b.y * c.x)) / ((b.y * a.x) - (b.x * a.y));\nreturn aStart + (a * al"
-	"pha);\n}\n\nvoid main()\n{\nvec2 p = vec2(gl_FragCoord.x, (renderTar"
-	"getHeight - gl_FragCoord.y));\nvec2 o = linesIntersection(v0, v3, v1"
-	", v2);\nvec2 n = linesIntersection(v1, v0, v2, v3);\nvec2 l = lines"
-	"Intersection(o, p, v0, v1);\nvec2 m = linesIntersection(o, p, v3, v2"
-	");\nvec2 j = linesIntersection(n, p, v0, v3);\nvec2 k = linesInters"
-	"ection(n, p, v2, v1);\nvec2 ratioCoord = vec2(distance(p, l) / dista"
-	"nce(m, l), distance(p, j) / distance(k, j));\nvec4 color = mix(mix(c"
-	"0, c3, ratioCoord.x), mix(c1, c2, ratioCoord.x), ratioCoord.y);\nif "
-	"(useTexture)\n{\nvec2 texCoord = vec2(ratioCoord.x * textureRectWi"
-	"dthRatio + textureRectLeftRatio, ratioCoord.y * textureRectHeightRati"
-	"o + textureRectTopRatio);\nvec4 pixel = texture2D(texture, texCoord"
-	");\ngl_FragColor = color * pixel;\n}\nelse\ngl_FragColor = colo"
-	"r;\n}\n"
+	"#version 110\n\nuniform bool useTexture;\nuniform sampler2D texture;"
+	"\nuniform int renderTargetHeight;\nuniform vec2 v0;\nuniform vec2 v1;"
+	"\nuniform vec2 v2;\nuniform vec2 v3;\nuniform float textureRectLeftRat"
+	"io;\nuniform float textureRectTopRatio;\nuniform float textureRectWid"
+	"thRatio;\nuniform float textureRectHeightRatio;\nuniform vec4 c0;\nun"
+	"iform vec4 c1;\nuniform vec4 c2;\nuniform vec4 c3;\n\nvec2 linesInter"
+	"section(vec2 aStart, vec2 aEnd, vec2 bStart, vec2 bEnd)\n{\nvec2 a ="
+	" aEnd - aStart;\nvec2 b = bEnd - bStart;\nfloat aAngle = atan(a.y, "
+	"a.x);\nfloat bAngle = atan(b.y, b.x);\nif (abs(aAngle - bAngle) < 0"
+	".01)\n{\na = mix(aEnd, bEnd, 0.0001) - aStart;\nb = mix(bEnd, aE"
+	"nd, 0.0001) - bStart;\n}\nvec2 c = aStart - bStart;\nfloat alpha ="
+	" ((b.x * c.y) - (b.y * c.x)) / ((b.y * a.x) - (b.x * a.y));\nreturn "
+	"aStart + (a * alpha);\n}\n\nvoid main()\n{\nvec2 p = vec2(gl_FragCoo"
+	"rd.x, (float(renderTargetHeight) - gl_FragCoord.y));\nvec2 o = lines"
+	"Intersection(v0, v3, v1, v2);\nvec2 n = linesIntersection(v1, v0, v2"
+	", v3);\nvec2 l = linesIntersection(o, p, v0, v1);\nvec2 m = linesIn"
+	"tersection(o, p, v3, v2);\nvec2 j = linesIntersection(n, p, v0, v3);"
+	"\nvec2 k = linesIntersection(n, p, v2, v1);\nvec2 ratioCoord = vec2"
+	"(distance(p, l) / distance(m, l), distance(p, j) / distance(k, j));\n"
+	"vec4 color = mix(mix(c0, c3, ratioCoord.x), mix(c1, c2, ratioCoord.x"
+	"), ratioCoord.y);\nif (useTexture)\n{\nvec2 texCoord = vec2(ratio"
+	"Coord.x * textureRectWidthRatio + textureRectLeftRatio, ratioCoord.y "
+	"* textureRectHeightRatio + textureRectTopRatio);\nvec4 pixel = text"
+	"ure2D(texture, texCoord);\ngl_FragColor = color * pixel;\n}\nelse"
+	"\ngl_FragColor = color;\n}\n"
 };
 
 const std::string perspectiveVertexShaderCode
 {
-	"uniform vec4 c0;\nuniform vec4 c1;\nuniform vec4 c2;\nuniform vec4 c3"
-	";\nuniform float w0;\nuniform float w1;\nuniform float w2;\nuniform f"
-	"loat w3;\n\nvoid main()\n{\nint vertexNumber = 0;\nif (gl_Color.r >"
-	" 0.5)\nvertexNumber = 1;\nelse if (gl_Color.g > 0.5)\nvertexNumb"
-	"er = 2;\nelse if (gl_Color.b > 0.5)\nvertexNumber = 3;\n\nvec4 c"
-	"olor;\nfloat weight;\nswitch (vertexNumber)\n{\ncase 0:\ncolor "
-	"= c0;\nweight = w0;\nbreak;\ncase 1:\ncolor = c1;\nweight = "
-	"w1;\nbreak;\ncase 2:\ncolor = c2;\nweight = w2;\nbreak;\nca"
-	"se 3:\ncolor = c3;\nweight = w3;\nbreak;\n}\ngl_Position = gl"
-	"_ModelViewProjectionMatrix * gl_Vertex;\ngl_TexCoord[0] = gl_Texture"
-	"Matrix[0] * gl_MultiTexCoord0;\ngl_TexCoord[0].z = weight;\ngl_Fron"
-	"tColor = color;\n}\n"
+	"#version 110\n\nuniform vec4 c0;\nuniform vec4 c1;\nuniform vec4 c2;"
+	"\nuniform vec4 c3;\nuniform float w0;\nuniform float w1;\nuniform floa"
+	"t w2;\nuniform float w3;\n\nvoid main()\n{\nint vertexNumber = 0;\n"
+	"if (gl_Color.r > 0.5)\nvertexNumber = 1;\nelse if (gl_Color.g > 0."
+	"5)\nvertexNumber = 2;\nelse if (gl_Color.b > 0.5)\nvertexNumber "
+	"= 3;\n\nvec4 color;\nfloat weight;\nif (vertexNumber == 0)\n{\n"
+	"color = c0;\nweight = w0;\n}\nelse if (vertexNumber == 1)\n{\n"
+	"color = c1;\nweight = w1;\n}\nelse if (vertexNumber == 2)\n{\n"
+	"color = c2;\nweight = w2;\n}\nelse if (vertexNumber == 3)\n{\n"
+	"color = c3;\nweight = w3;\n}\ngl_Position = gl_ModelViewProjecti"
+	"onMatrix * gl_Vertex;\ngl_TexCoord[0] = gl_TextureMatrix[0] * gl_Mul"
+	"tiTexCoord0;\ngl_TexCoord[0].z = weight;\ngl_FrontColor = color;\n}"
+	"\n"
 };
 
 const std::string perspectiveFragmentShaderCode
 {
-	"uniform bool useTexture;\nuniform sampler2D texture;\n\nvoid main()\n"
-	"{\nvec4 color = gl_Color;\nif (useTexture)\n{\nvec2 texCoord = g"
-	"l_TexCoord[0].xy / gl_TexCoord[0].z;\ngl_FragColor = color * textur"
-	"e2D(texture, texCoord);\n}\nelse\ngl_FragColor = color;\n}\n"
+	"#version 110\n\nuniform bool useTexture;\nuniform sampler2D texture;"
+	"\n\nvoid main()\n{\nvec4 color = gl_Color;\nif (useTexture)\n{\nv"
+	"ec2 texCoord = gl_TexCoord[0].xy / gl_TexCoord[0].z;\ngl_FragColor "
+	"= color * texture2D(texture, texCoord);\n}\nelse\ngl_FragColor = "
+	"color;\n}\n"
 };
 
 void loadShader()
@@ -224,7 +226,7 @@ void ElasticSprite::activateBilinearInterpolation()
 
 bool ElasticSprite::isActiveBilinearInterpolation() const
 {
-	return m_usePerspectiveInterpolation;
+	return !m_usePerspectiveInterpolation;
 }
 
 void ElasticSprite::activatePerspectiveInterpolation()
