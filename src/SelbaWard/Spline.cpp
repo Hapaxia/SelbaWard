@@ -65,6 +65,11 @@ inline float randomValue(const float range)
 	return std::uniform_real_distribution<float>{ 0.f, range }(randomGenerator);
 }
 
+inline bool isSecondVectorClockwiseOfFirstVector(const sf::Vector2f& first, const sf::Vector2f& second)
+{
+	return first.x * second.y > first.y * second.x;
+}
+
 template <class T>
 inline T linearInterpolation(const T start, const T end, const float alpha)
 {
@@ -128,6 +133,15 @@ inline sf::Vector2f vectorUnit(const sf::Vector2f vector)
 		return{ 0.f, 0.f };
 	else
 		return vector / vectorLength(vector);
+}
+
+bool lineSegmentsIntersection(sf::Vector2f& intersectionPoint, const sf::Vector2f& position1, const sf::Vector2f& vector1, const sf::Vector2f& position2, const sf::Vector2f& vector2)
+{
+	sf::Vector2f intersection{ position1 };
+	sf::Vector2f difference{ position1 - position2 };
+	float ratio1{ (vector2.y * difference.x - vector2.x * difference.y) / (vector2.x * vector1.y - vector2.y * vector1.x) };
+	intersectionPoint = position1 + vector1 * ratio1;
+	return ratio1 >= 0.f && ratio1 <= 1.f;
 }
 
 } // namespace
@@ -219,7 +233,7 @@ void Spline::update()
 	m_handlesVertices.resize((m_vertices.size()) * 4);
 	std::vector<sf::Vertex>::iterator itHandle{ m_handlesVertices.begin() };
 
-	for (std::vector<Vertex>::iterator begin{ m_vertices.begin() }, end{ m_vertices.end() }, it{ begin }; it != end; ++it)
+	for (std::vector<Vertex>::iterator begin{ m_vertices.begin() }, end{ m_vertices.end() }, last{ end - 1u }, it{ begin }; it != end; ++it)
 	{
 		itHandle->color = sf::Color(255, 255, 128, 32);
 		itHandle++->position = it->position;
@@ -231,12 +245,12 @@ void Spline::update()
 		itHandle++->position = it->position + it->frontHandle;
 
 		std::vector<sf::Vertex>::iterator itInterpolated{ m_interpolatedVertices.begin() + (it - begin) * pointsPerVertex };
-		if (m_isClosed || it != end - 1)
+		if (m_isClosed || it != last)
 		{
 			for (unsigned int i{ 0u }; i < pointsPerVertex; ++i)
 			{
 				std::vector<Vertex>::iterator nextIt{ m_vertices.begin() };
-				if (it != end - 1)
+				if (it != last)
 					nextIt = it + 1;
 				if (m_useBezier)
 					itInterpolated->position = bezierInterpolation(it->position, nextIt->position, it->frontHandle, nextIt->backHandle, static_cast<float>(i) / pointsPerVertex);
@@ -253,21 +267,21 @@ void Spline::update()
 	}
 	if (m_isClosed)
 	{
-		std::vector<sf::Vertex>::iterator itInterpolated{ m_interpolatedVertices.begin() + m_vertices.size() * pointsPerVertex };
-		itInterpolated->position = m_vertices.front().position;
-		itInterpolated->color = m_color;
+		
+		m_interpolatedVertices.back().position = m_vertices.front().position;
+		m_interpolatedVertices.back().color = m_color;
 	}
 
 	// calculate tangents
-	for (std::vector<sf::Vertex>::iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, current{ begin }; current != end; ++current)
+	for (std::vector<sf::Vertex>::iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, last{ end - 1u }, current{ begin }; current != end; ++current)
 	{
 		std::vector<sf::Vertex>::iterator next{ current };
 		std::vector<sf::Vertex>::iterator previous{ current };
 		if (current != begin)
 			previous = current - 1;
 		else if (m_isClosed)
-			previous = end - 2;
-		if (current != end - 1)
+			previous = last - 1;
+		if (current != last)
 			next = current + 1;
 		else if (m_isClosed)
 			next = begin + 1;
@@ -692,7 +706,7 @@ void Spline::priv_updateOutputVertices()
 	if (!priv_isThick())
 	{
 		m_outputVertices.resize(m_interpolatedVertices.size());
-		for (std::vector<sf::Vertex>::iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, it{ begin }; it != end; ++it)
+		for (std::vector<sf::Vertex>::iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, last{ end - 1u }, it{ begin }; it != end; ++it)
 		{
 			const unsigned int outputIndex{ static_cast<unsigned int>(it - begin) };
 			const unsigned int index{ outputIndex / priv_getNumberOfPointsPerVertex() };
@@ -709,9 +723,9 @@ void Spline::priv_updateOutputVertices()
 				nextVertex = m_vertices.begin();
 
 			sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.begin() + (it - begin)) };
-			if (m_isClosed || it != end - 1)
+			if (m_isClosed || it != last)
 			{
-				const sf::Vector2f forwardLine{ ((it != end - 1) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
+				const sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
 				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
 				float dotUnits{ dot(forwardUnit , tangentUnit) };
 				tangentUnit = tangentUnit / (isConsideredZero(dotUnits) ? zeroEpsilon : dotUnits);
@@ -725,7 +739,7 @@ void Spline::priv_updateOutputVertices()
 
 			m_outputVertices[outputIndex].position += randomOffset;
 
-			if (m_isClosed && (it == end - 1))
+			if (m_isClosed && (it == last))
 				m_outputVertices[outputIndex].position = m_outputVertices[0].position;
 		}
 	}
@@ -739,29 +753,31 @@ void Spline::priv_updateOutputVertices()
 			if (m_thickEndCapType == ThickCapType::Round)
 				numberOfExtraVerticesForCaps += (m_roundedThickEndCapInterpolationLevel + 1u) * 2u;
 		}
+		std::size_t numberOfVerticesRequiredPerCorner{ 0u };
 		switch (m_thickCornerType)
 		{
 		case ThickCornerType::Point:
-			// ends and corners require 2 each.
-			m_outputVertices.resize(m_interpolatedVertices.size() * 2u + numberOfExtraVerticesForCaps);
+			numberOfVerticesRequiredPerCorner = 2u;
 			break;
 		case ThickCornerType::PointLimit:
-			// ends require 2 each. corners require 6 each.
-			m_outputVertices.resize(m_interpolatedVertices.size() * 6u - 8u + numberOfExtraVerticesForCaps);
+			numberOfVerticesRequiredPerCorner = 6u;
 			break;
 		case ThickCornerType::PointClip:
-			// ends require 2 each. corners require 6 each.
-			m_outputVertices.resize(m_interpolatedVertices.size() * 6u - 8u + numberOfExtraVerticesForCaps);
+			numberOfVerticesRequiredPerCorner = 6u;
 			break;
 		case ThickCornerType::Bevel:
-			// ends require 2 each. corners require 4 each.
-			m_outputVertices.resize((m_interpolatedVertices.size() - 1u) * 4u + numberOfExtraVerticesForCaps);
+			numberOfVerticesRequiredPerCorner = 4u;
 			break;
 		case ThickCornerType::Round:
-			// ends require 2 each. corners require (2 + interpolation) * 2 each.
-			m_outputVertices.resize(((m_interpolatedVertices.size() - 2u) * (m_roundedThickCornerInterpolationLevel + 2u) + 2) * 2u + numberOfExtraVerticesForCaps);
+			numberOfVerticesRequiredPerCorner = (m_roundedThickCornerInterpolationLevel + 2u) * 2u;
 			break;
 		}
+		std::size_t numberOfVerticesRequired{ 0u };
+		if (m_isClosed)
+			numberOfVerticesRequired = (m_interpolatedVertices.size() - 1u) * numberOfVerticesRequiredPerCorner + 2u; // start is an end (2 vertices), finish is a corner (to join to other end)
+		else
+			numberOfVerticesRequired = (m_interpolatedVertices.size() - 2u) * numberOfVerticesRequiredPerCorner + 4u; // 2 per end
+		m_outputVertices.resize(numberOfVerticesRequired + numberOfExtraVerticesForCaps);
 
 		std::vector<sf::Vertex>::iterator itThick{ m_outputVertices.begin() };
 		if (!m_isClosed && (m_thickStartCapType == ThickCapType::Round))
@@ -785,7 +801,7 @@ void Spline::priv_updateOutputVertices()
 				itThick++->position = vertex->position;
 			}
 		}
-		for (std::vector<sf::Vertex>::const_iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, it{ begin }; it != end; ++it)
+		for (std::vector<sf::Vertex>::const_iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, last{ end - 1u }, it{ begin }; it != end; ++it)
 		{
 			const unsigned int outputIndex{ static_cast<unsigned int>(it - begin) };
 			const unsigned int index{ outputIndex / priv_getNumberOfPointsPerVertex() };
@@ -806,9 +822,10 @@ void Spline::priv_updateOutputVertices()
 			sf::Vector2f pointTransformedTangentUnit{ tangentUnit };
 			float dotUnits{ 1.f };
 			bool pointIsTooLong{ false };
-			if (m_isClosed || it != end - 1)
+			bool useInsidePoint{ false };
+			if (m_isClosed || it != last)
 			{
-				const sf::Vector2f forwardLine{ ((it != end - 1) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
+				const sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
 				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
 				dotUnits = dot(forwardUnit, pointTransformedTangentUnit);
 				pointTransformedTangentUnit = pointTransformedTangentUnit / (isConsideredZero(dotUnits) ? zeroEpsilon : dotUnits);
@@ -823,7 +840,7 @@ void Spline::priv_updateOutputVertices()
 			const bool randomOffsetIsCentered{ true };
 			if (randomOffsetIsCentered)
 				randomOffset -= normalUnit * (randomNormalOffsetRange / 2.f);
-			if (it == begin || it == end - 1)
+			if (it == begin || it == last)
 				randomOffset = { 0.f, 0.f };
 
 			sf::Vector2f capOffset{ 0.f, 0.f };
@@ -831,32 +848,39 @@ void Spline::priv_updateOutputVertices()
 			{
 				if ((it == begin) && (m_thickStartCapType == ThickCapType::Extended))
 					capOffset = -tangentUnit * halfWidth;
-				else if ((it == end - 1u) && (m_thickEndCapType == ThickCapType::Extended))
+				else if ((it == last) && (m_thickEndCapType == ThickCapType::Extended))
 					capOffset = tangentUnit * halfWidth;
 			}
+
+			const sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (m_isClosed ? (begin + 1)->position - begin->position : it->position - (it - 1)->position )) };
+			const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
+			const sf::Vector2f backwardLine{ ((it != begin) ? it->position - (it - 1)->position : (m_isClosed ? it->position - (last)->position : (it + 1)->position - it->position)) };
+			const sf::Vector2f backwardUnit{ backwardLine / vectorLength(backwardLine) };
+
+			const sf::Vector2f forwardNormalUnit{ vectorNormal(forwardUnit) };
+			const sf::Vector2f backwardNormalUnit{ vectorNormal(backwardUnit) };
+			const sf::Vector2f forwardNormal{ forwardNormalUnit * halfWidth };
+			const sf::Vector2f backwardNormal{ backwardNormalUnit * halfWidth };
+
+			const bool isClockwise{ isSecondVectorClockwiseOfFirstVector(backwardUnit, forwardUnit) };
+			const sf::Vector2f insidePoint{ it->position + scaledPointTransformedNormal * (isClockwise ? -1.f : 1.f) + capOffset + randomOffset };
+			useInsidePoint = (vectorLength(scaledPointTransformedNormal) < vectorLength(backwardLine + backwardNormal)) && (vectorLength(scaledPointTransformedNormal) < vectorLength(forwardLine + forwardNormal));
 
 			switch (m_thickCornerType)
 			{
 			case ThickCornerType::Point:
+			{
+				const sf::Vector2f outsidePoint{ it->position - scaledPointTransformedNormal * (isClockwise ? -1.f : 1.f) + capOffset + randomOffset };
 				itThick->color = color;
-				itThick++->position = it->position + scaledPointTransformedNormal + capOffset + randomOffset;
+				itThick++->position = isClockwise ? outsidePoint : insidePoint;
 				itThick->color = color;
-				itThick++->position = it->position - scaledPointTransformedNormal + capOffset + randomOffset;
+				itThick++->position = isClockwise ? insidePoint : outsidePoint;
+			}
 				break;
 			case ThickCornerType::PointClip:
 			case ThickCornerType::PointLimit:
 			case ThickCornerType::Bevel:
 			{
-				const sf::Vector2f forwardLine{ ((it != end - 1) ? (it + 1)->position - it->position : begin->position - it->position) };
-				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
-				const sf::Vector2f backwardLine{ ((it != begin) ? it->position - (it - 1)->position : it->position - (end - 1)->position) };
-				const sf::Vector2f backwardUnit{ backwardLine / vectorLength(backwardLine) };
-
-				const sf::Vector2f forwardNormalUnit{ vectorNormal(forwardUnit) };
-				const sf::Vector2f backwardNormalUnit{ vectorNormal(backwardUnit) };
-				const sf::Vector2f forwardNormal{ forwardNormalUnit * halfWidth };
-				const sf::Vector2f backwardNormal{ backwardNormalUnit * halfWidth };
-
 				if (it == begin)
 				{
 					itThick->color = color;
@@ -864,7 +888,7 @@ void Spline::priv_updateOutputVertices()
 					itThick->color = color;
 					itThick++->position = it->position - forwardNormal + capOffset + randomOffset;
 				}
-				else if (it == end - 1)
+				else if (it == last && !m_isClosed)
 				{
 					itThick->color = color;
 					itThick++->position = it->position + backwardNormal + capOffset + randomOffset;
@@ -903,29 +927,44 @@ void Spline::priv_updateOutputVertices()
 					itThick++->position = it->position + forwardNormal + capOffset + randomOffset;
 					itThick->color = color;
 					itThick++->position = it->position - forwardNormal + capOffset + randomOffset;
+
+					if (useInsidePoint)
+					{
+						if (isClockwise)
+						{
+							(itThick - 3u)->position = insidePoint;
+							(itThick - 1u)->position = insidePoint;
+							if (m_thickCornerType != ThickCornerType::Bevel)
+							{
+								(itThick - 5u)->position = insidePoint;
+								(itThick - 3u)->position = insidePoint;
+							}
+						}
+						else
+						{
+							(itThick - 4u)->position = insidePoint;
+							(itThick - 2u)->position = insidePoint;
+							if (m_thickCornerType != ThickCornerType::Bevel)
+							{
+								(itThick - 6u)->position = insidePoint;
+								(itThick - 4u)->position = insidePoint;
+							}
+						}
+					}
 				}
 			}
 				break;
 			case ThickCornerType::Round:
 			{
-				const sf::Vector2f forwardLine{ ((it != end - 1) ? (it + 1)->position - it->position : begin->position - it->position) };
-				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
-				const sf::Vector2f backwardLine{ ((it != begin) ? it->position - (it - 1)->position : it->position - (end - 1)->position) };
-				const sf::Vector2f backwardUnit{ backwardLine / vectorLength(backwardLine) };
-
 				if (it == begin)
 				{
-					const sf::Vector2f forwardNormalUnit{ vectorNormal(forwardUnit) };
-					const sf::Vector2f forwardNormal{ forwardNormalUnit * halfWidth };
 					itThick->color = color;
 					itThick++->position = it->position + forwardNormal + capOffset + randomOffset;
 					itThick->color = color;
 					itThick++->position = it->position - forwardNormal + capOffset + randomOffset;
 				}
-				else if (it == end - 1)
+				else if (it == last && !m_isClosed)
 				{
-					const sf::Vector2f backwardNormalUnit{ vectorNormal(backwardUnit) };
-					const sf::Vector2f backwardNormal{ backwardNormalUnit * halfWidth };
 					itThick->color = color;
 					itThick++->position = it->position + backwardNormal + capOffset + randomOffset;
 					itThick->color = color;
@@ -933,8 +972,18 @@ void Spline::priv_updateOutputVertices()
 				}
 				else
 				{
-					const float backwardAngle{ std::atan2(backwardUnit.y, backwardUnit.x) };
-					const float forwardAngle{ std::atan2(forwardUnit.y, forwardUnit.x) };
+					float backwardAngle{ std::atan2(backwardUnit.y, backwardUnit.x) };
+					float forwardAngle{ std::atan2(forwardUnit.y, forwardUnit.x) };
+					if (isClockwise)
+					{
+						if (forwardAngle < backwardAngle)
+							forwardAngle += 2.f * pi;
+					}
+					else
+					{
+						if (backwardAngle < forwardAngle)
+							backwardAngle += 2.f * pi;
+					}
 					for (unsigned int i{ 0u }; i <= (m_roundedThickCornerInterpolationLevel + 1u); ++i)
 					{
 						const float ratio{ static_cast<float>(i) / (m_roundedThickCornerInterpolationLevel + 1u) };
@@ -947,19 +996,24 @@ void Spline::priv_updateOutputVertices()
 						itThick->color = color;
 						itThick++->position = it->position - thisNormal + capOffset + randomOffset;
 					}
+
+					if (useInsidePoint)
+					{
+						for (unsigned int i{ 0u }; i <= m_roundedThickCornerInterpolationLevel + 1u; ++i)
+							(itThick - i * 2u - (isClockwise ? 1u : 2u))->position = insidePoint;
+					}
 				}
 			}
 				break;
 			}
-
-			///*
-			if (m_isClosed && (it == end - 1))
-			{
-				(itThick - 2)->position = m_outputVertices.begin()->position;
-				(itThick - 1)->position = (m_outputVertices.begin() + 1)->position;
-			}
-			//*/
 		}
+		if (m_isClosed)
+		{
+			// match starting vertices to match modified ending vertices (to remove overlap)
+			m_outputVertices.begin()->position = (itThick - 2)->position;
+			(m_outputVertices.begin() + 1)->position = (itThick - 1)->position;
+		}
+		
 		if (!m_isClosed && (m_thickEndCapType == ThickCapType::Round))
 		{
 			std::vector<Vertex>::iterator vertex{ m_vertices.end() - 1u };
@@ -981,6 +1035,7 @@ void Spline::priv_updateOutputVertices()
 				itThick++->position = vertex->position - vector;
 			}
 		}
+		
 	}
 }
 
