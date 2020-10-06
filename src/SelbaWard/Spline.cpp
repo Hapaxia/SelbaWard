@@ -45,6 +45,8 @@ const std::string exceptionPrefix = "Spline: ";
 constexpr float thicknessEpsilon{ 0.001f };
 constexpr float zeroEpsilon{ 0.00001f };
 constexpr float pi{ 3.141592653f };
+constexpr float radiansFromDegreesMultipler{ pi / 180.f };
+constexpr float degreesFromRadiansMultiplier{ 1.f / radiansFromDegreesMultipler };
 #ifdef USE_SFML_PRE_2_4
 const sf::PrimitiveType thickPrimitiveType{ sf::PrimitiveType::TrianglesStrip };
 #else // USE_SFML_PRE_2_4
@@ -144,6 +146,16 @@ bool lineSegmentsIntersection(sf::Vector2f& intersectionPoint, const sf::Vector2
 	return ratio1 >= 0.f && ratio1 <= 1.f;
 }
 
+inline sf::Vector2f rotatePoint(const sf::Vector2f point, const float cosine, const float sine)
+{
+	return{ (point.x * cosine) - (point.y * sine), (point.x * sine) + (point.y * cosine) };
+}
+
+inline float getAngleInRadians(const sf::Vector2f v)
+{
+	return std::atan2(v.y, v.x);
+}
+
 } // namespace
 
 namespace selbaward
@@ -152,6 +164,7 @@ namespace selbaward
 Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPosition)
 	: m_throwExceptions{ true }
 	, m_isClosed{ false }
+	, m_isRandomNormalOffsetsActivated{ false }
 	, m_thickCornerType{ ThickCornerType::Point }
 	, m_thickStartCapType{ ThickCapType::None }
 	, m_thickEndCapType{ ThickCapType::None }
@@ -301,9 +314,183 @@ void Spline::updateOutputVertices()
 	priv_updateOutputVertices();
 }
 
+void Spline::connectFrontToFrontOf(const Spline& spline, const bool rotateSpline, const bool moveSpline)
+{
+	if (!moveSpline && !rotateSpline)
+		m_vertices.front().position = spline.getPosition(0u);
+	else
+	{
+		if (moveSpline)
+		{
+			const sf::Vector2f movement{ spline.getPosition(0u) - m_vertices.front().position };
+			for (auto& vertex : m_vertices)
+				vertex.position += movement;
+		}
+		if (rotateSpline)
+		{
+			const sf::Vector2f otherTangent{ spline.getInterpolatedPositionTangent(0u) };
+			const sf::Vector2f thisTangent{ m_interpolatedVerticesUnitTangents.front() };
+			const float angle{ (getAngleInRadians(otherTangent) - getAngleInRadians(thisTangent)) * degreesFromRadiansMultiplier };
+			rotate(180.f + angle, m_vertices.front().position);
+		}
+	}
+}
+
+void Spline::connectFrontToBackOf(const Spline& spline, const bool rotateSpline, const bool moveSpline)
+{
+	if (!moveSpline && !rotateSpline)
+		m_vertices.front().position = spline.getPosition(spline.getVertexCount() - 1u);
+	else
+	{
+		if (moveSpline)
+		{
+			const sf::Vector2f movement{ spline.getPosition(spline.getVertexCount() - 1u) - m_vertices.front().position };
+			for (auto& vertex : m_vertices)
+				vertex.position += movement;
+		}
+		if (rotateSpline)
+		{
+			const sf::Vector2f otherTangent{ spline.getInterpolatedPositionTangent(0u, spline.getVertexCount() - 1u) };
+			const sf::Vector2f thisTangent{ m_interpolatedVerticesUnitTangents.front() };
+			const float angle{ (getAngleInRadians(otherTangent) - getAngleInRadians(thisTangent)) * degreesFromRadiansMultiplier };
+			rotate(angle, m_vertices.front().position);
+		}
+	}
+}
+
+void Spline::connectBackToFrontOf(const Spline& spline, const bool rotateSpline, const bool moveSpline)
+{
+	if (!moveSpline && !rotateSpline)
+		m_vertices.back().position = spline.getPosition(0u);
+	else
+	{
+		if (moveSpline)
+		{
+			const sf::Vector2f movement{ spline.getPosition(0u) - m_vertices.back().position };
+			for (auto& vertex : m_vertices)
+				vertex.position += movement;
+		}
+		if (rotateSpline)
+		{
+			const sf::Vector2f otherTangent{ spline.getInterpolatedPositionTangent(0u) };
+			const sf::Vector2f thisTangent{ m_interpolatedVerticesUnitTangents.back() };
+			const float angle{ (getAngleInRadians(otherTangent) - getAngleInRadians(thisTangent)) * degreesFromRadiansMultiplier };
+			rotate(angle, m_vertices.back().position);
+		}
+	}
+}
+
+void Spline::connectBackToBackOf(const Spline& spline, const bool rotateSpline, const bool moveSpline)
+{
+	if (!moveSpline && !rotateSpline)
+		m_vertices.back().position = spline.getPosition(spline.getVertexCount() - 1u);
+	else
+	{
+		if (moveSpline)
+		{
+			const sf::Vector2f movement{ spline.getPosition(spline.getVertexCount() - 1u) - m_vertices.back().position };
+			for (auto& vertex : m_vertices)
+				vertex.position += movement;
+		}
+		if (rotateSpline)
+		{
+			const sf::Vector2f otherTangent{ spline.getInterpolatedPositionTangent(0u, spline.getVertexCount() - 1u) };
+			const sf::Vector2f thisTangent{ m_interpolatedVerticesUnitTangents.back() };
+			const float angle{ (getAngleInRadians(otherTangent) - getAngleInRadians(thisTangent)) * degreesFromRadiansMultiplier };
+			rotate(180.f + angle, m_vertices.back().position);
+		}
+	}
+}
+
+void Spline::addSplineConnectFrontToFront(Spline spline, const bool rotateSpline, const bool moveSpline)
+{
+	spline.connectFrontToFrontOf(*this, rotateSpline, moveSpline);
+	sf::Vector2f handle{ spline.getFrontHandle(0u) };
+	spline.removeVertex(0u);
+	const std::size_t numberOfVertices{ spline.getVertexCount() };
+	spline.reverseVertices();
+	m_vertices[0u].backHandle = handle;
+	addSplineToFront(spline);
+}
+
+void Spline::addSplineConnectFrontToBack(Spline spline, const bool rotateSpline, const bool moveSpline)
+{
+	spline.connectFrontToBackOf(*this, rotateSpline, moveSpline);
+	sf::Vector2f handle{ spline.getFrontHandle(0u) };
+	spline.removeVertex(0u);
+	m_vertices.back().frontHandle = handle;
+	addSplineToBack(spline);
+}
+
+void Spline::addSplineConnectBackToFront(Spline spline, const bool rotateSpline, const bool moveSpline)
+{
+	spline.connectBackToFrontOf(*this, rotateSpline, moveSpline);
+	const std::size_t numberOfVertices{ spline.getVertexCount() };
+	sf::Vector2f handle{ spline.getBackHandle(numberOfVertices - 1u) };
+	spline.removeVertex(numberOfVertices - 1u);
+	m_vertices[0u].backHandle = handle;
+	addSplineToFront(spline);
+}
+
+void Spline::addSplineConnectBackToBack(Spline spline, const bool rotateSpline, const bool moveSpline)
+{
+	spline.connectBackToBackOf(*this, rotateSpline, moveSpline);
+	spline.reverseVertices();
+	sf::Vector2f handle{ spline.getFrontHandle(0u) };
+	spline.removeVertex(0u);
+	m_vertices.back().frontHandle = handle;
+	addSplineToBack(spline);
+}
+
+void Spline::addSplineToFront(const Spline& spline)
+{
+	addVertices(spline.getVertexCount(), 0u);
+	for (std::size_t i{ 0u }; i < spline.getVertexCount(); ++i)
+	{
+		m_vertices[i].position = spline.getPosition(i);
+		m_vertices[i].frontHandle = spline.getFrontHandle(i);
+		m_vertices[i].backHandle = spline.getBackHandle(i);
+		m_vertices[i].thickness = spline.getThickness(i);
+		m_vertices[i].color = spline.getColor(i);
+		m_vertices[i].randomNormalOffsetRange = spline.getRandomNormalOffsetRange(i);
+	}
+}
+
+void Spline::addSplineToBack(const Spline& spline)
+{
+	const std::size_t initialSize{ m_vertices.size() };
+	addVertices(spline.getVertexCount());
+	for (std::size_t i{ 0u }; i < spline.getVertexCount(); ++i)
+	{
+		m_vertices[initialSize + i].position = spline.getPosition(i);
+		m_vertices[initialSize + i].frontHandle = spline.getFrontHandle(i);
+		m_vertices[initialSize + i].backHandle = spline.getBackHandle(i);
+		m_vertices[initialSize + i].thickness = spline.getThickness(i);
+		m_vertices[initialSize + i].color = spline.getColor(i);
+		m_vertices[initialSize + i].randomNormalOffsetRange = spline.getRandomNormalOffsetRange(i);
+	}
+}
+
 void Spline::setClosed(const bool isClosed)
 {
 	m_isClosed = isClosed;
+}
+
+void Spline::rotate(const float angle, const sf::Vector2f origin)
+{
+	const float s{ std::sin(angle * radiansFromDegreesMultipler) };
+	const float c{ std::cos(angle * radiansFromDegreesMultipler) };
+	for (auto& vertex : m_vertices)
+	{
+		vertex.position = rotatePoint(vertex.position - origin, c, s) + origin;
+		vertex.frontHandle = rotatePoint(vertex.frontHandle, c, s);
+		vertex.backHandle = rotatePoint(vertex.backHandle, c, s);
+	}
+}
+
+void Spline::setRandomNormalOffsetsActivated(const bool randomNormalOffsetsActivated)
+{
+	m_isRandomNormalOffsetsActivated = randomNormalOffsetsActivated;
 }
 
 void Spline::setThickCornerType(const ThickCornerType thickCornerType)
@@ -366,12 +553,14 @@ void Spline::addVertices(const unsigned int index, const std::vector<sf::Vector2
 
 void Spline::addVertices(const unsigned int numberOfVertices, const sf::Vector2f position)
 {
+	reserveVertices(m_vertices.size() + numberOfVertices);
 	for (unsigned int i{ 0u }; i < numberOfVertices; ++i)
 		addVertex(position);
 }
 
 void Spline::addVertices(const unsigned int numberOfVertices, const unsigned int index, const sf::Vector2f position)
 {
+	reserveVertices(m_vertices.size() + numberOfVertices);
 	for (unsigned int i{ 0u }; i < numberOfVertices; ++i)
 		addVertex(index + i, position);
 }
@@ -730,14 +919,18 @@ void Spline::priv_updateOutputVertices()
 				float dotUnits{ dot(forwardUnit , tangentUnit) };
 				tangentUnit = tangentUnit / (isConsideredZero(dotUnits) ? zeroEpsilon : dotUnits);
 			}
-			const sf::Vector2f normalUnit{ vectorNormal(tangentUnit) };
-			const float randomNormalOffsetRange{ m_randomNormalOffsetRange * linearInterpolation(currentVertex->randomNormalOffsetRange, nextVertex->randomNormalOffsetRange, vertexRatio) };
-			sf::Vector2f randomOffset{ normalUnit * (isConsideredZero(randomNormalOffsetRange) ? 0.f : randomValue(randomNormalOffsetRange)) };
-			const bool randomOffsetIsCentered{ true };
-			if (randomOffsetIsCentered)
-				randomOffset -= normalUnit * (randomNormalOffsetRange / 2.f);
 
-			m_outputVertices[outputIndex].position += randomOffset;
+			if (m_isRandomNormalOffsetsActivated)
+			{
+				const sf::Vector2f normalUnit{ vectorNormal(tangentUnit) };
+				const float randomNormalOffsetRange{ m_randomNormalOffsetRange * linearInterpolation(currentVertex->randomNormalOffsetRange, nextVertex->randomNormalOffsetRange, vertexRatio) };
+				sf::Vector2f randomOffset{ normalUnit * (isConsideredZero(randomNormalOffsetRange) ? 0.f : randomValue(randomNormalOffsetRange)) };
+				const bool randomOffsetIsCentered{ true };
+				if (randomOffsetIsCentered)
+					randomOffset -= normalUnit * (randomNormalOffsetRange / 2.f);
+
+				m_outputVertices[outputIndex].position += randomOffset;
+			}
 
 			if (m_isClosed && (it == last))
 				m_outputVertices[outputIndex].position = m_outputVertices[0].position;
@@ -835,13 +1028,18 @@ void Spline::priv_updateOutputVertices()
 			const sf::Vector2f pointTransformedNormalUnit{ vectorNormal(pointTransformedTangentUnit) };
 			const sf::Vector2f scaledNormal{ normalUnit * halfWidth };
 			const sf::Vector2f scaledPointTransformedNormal{ pointTransformedNormalUnit * halfWidth };
-			const float randomNormalOffsetRange{ m_randomNormalOffsetRange * linearInterpolation(currentVertex->randomNormalOffsetRange, nextVertex->randomNormalOffsetRange, vertexRatio) };
-			sf::Vector2f randomOffset{ normalUnit * (isConsideredZero(randomNormalOffsetRange) ? 0.f : randomValue(randomNormalOffsetRange)) };
-			const bool randomOffsetIsCentered{ true };
-			if (randomOffsetIsCentered)
-				randomOffset -= normalUnit * (randomNormalOffsetRange / 2.f);
-			if (it == begin || it == last)
-				randomOffset = { 0.f, 0.f };
+			sf::Vector2f randomOffset{ 0.f, 0.f };
+
+			if (m_isRandomNormalOffsetsActivated)
+			{
+				const float randomNormalOffsetRange{ m_randomNormalOffsetRange * linearInterpolation(currentVertex->randomNormalOffsetRange, nextVertex->randomNormalOffsetRange, vertexRatio) };
+				randomOffset = normalUnit * (isConsideredZero(randomNormalOffsetRange) ? 0.f : randomValue(randomNormalOffsetRange));
+				const bool randomOffsetIsCentered{ true };
+				if (randomOffsetIsCentered)
+					randomOffset -= normalUnit * (randomNormalOffsetRange / 2.f);
+				if (it == begin || it == last)
+					randomOffset = { 0.f, 0.f };
+			}
 
 			sf::Vector2f capOffset{ 0.f, 0.f };
 			if (!m_isClosed)

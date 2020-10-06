@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.5.1
+// SW Spline v1.6.0
 class Spline : public sf::Drawable
 {
 public:
@@ -75,8 +75,26 @@ public:
 
 	Vertex& operator[] (unsigned int index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
 
+	void connectFrontToFrontOf(const Spline& spline, bool rotateSpline = true, bool moveSpline = true);
+	void connectFrontToBackOf(const Spline& spline, bool rotateSpline = true, bool moveSpline = true);
+	void connectBackToFrontOf(const Spline& spline, bool rotateSpline = true, bool moveSpline = true);
+	void connectBackToBackOf(const Spline& spline, bool rotateSpline = true, bool moveSpline = true);
+
+	void addSplineConnectFrontToFront(Spline spline, bool rotateSpline = true, bool moveSpline = true);
+	void addSplineConnectFrontToBack(Spline spline, bool rotateSpline = true, bool moveSpline = true);
+	void addSplineConnectBackToFront(Spline spline, bool rotateSpline = true, bool moveSpline = true);
+	void addSplineConnectBackToBack(Spline spline, bool rotateSpline = true, bool moveSpline = true);
+
+	void addSplineToFront(const Spline& spline);
+	void addSplineToBack(const Spline& spline);
+
 	void setClosed(bool isClosed);
 	bool getClosed() const;
+
+	void rotate(float rotation, sf::Vector2f origin);
+
+	void setRandomNormalOffsetsActivated(bool randomNormalOffsetsActivated);
+	bool getRandomNormalOffsetsActivated() const;
 
 	void setThickCornerType(ThickCornerType cornerType);
 	ThickCornerType getThickCornerType() const;
@@ -178,6 +196,7 @@ public:
 private:
 	bool m_throwExceptions;
 	bool m_isClosed;
+	bool m_isRandomNormalOffsetsActivated;
 	ThickCornerType m_thickCornerType;
 	ThickCapType m_thickStartCapType;
 	ThickCapType m_thickEndCapType;
@@ -265,6 +284,11 @@ inline Spline::Vertex& Spline::operator[] (const unsigned int index)
 inline bool Spline::getClosed() const
 {
 	return m_isClosed;
+}
+
+inline bool Spline::getRandomNormalOffsetsActivated() const
+{
+	return m_isRandomNormalOffsetsActivated;
 }
 
 inline Spline::ThickCornerType Spline::getThickCornerType() const
