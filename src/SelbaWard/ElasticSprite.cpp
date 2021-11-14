@@ -153,9 +153,12 @@ ElasticSprite::ElasticSprite()
 	, m_weights(0)
 	, m_offsets(4)
 	, m_pTexture{ nullptr }
-	, m_textureRect()
+	, m_baseTextureRect()
+	, m_actualTextureRect()
 	, m_useShader(sf::Shader::isAvailable())
 	, m_usePerspectiveInterpolation{ false }
+	, m_textureFlipX{ false }
+	, m_textureFlipY{ false }
 {
 	if (m_useShader)
 		loadShader();
@@ -192,7 +195,7 @@ void ElasticSprite::setTexture()
 
 void ElasticSprite::setTextureRect(const sf::FloatRect textureRect)
 {
-	m_textureRect = textureRect;
+	m_baseTextureRect = textureRect;
 	m_requiresVerticesUpdate = true;
 }
 
@@ -203,7 +206,29 @@ const sf::Texture* ElasticSprite::getTexture() const
 
 sf::FloatRect ElasticSprite::getTextureRect() const
 {
-	return m_textureRect;
+	return m_baseTextureRect;
+}
+
+void ElasticSprite::setTextureFlipX(bool textureFlipX)
+{
+	m_textureFlipX = textureFlipX;
+	m_requiresVerticesUpdate = true;
+}
+
+bool ElasticSprite::getTextureFlipX() const
+{
+	return m_textureFlipX;
+}
+
+void ElasticSprite::setTextureFlipY(bool textureFlipY)
+{
+	m_textureFlipY = textureFlipY;
+	m_requiresVerticesUpdate = true;
+}
+
+bool ElasticSprite::getTextureFlipY() const
+{
+	return m_textureFlipY;
 }
 
 bool ElasticSprite::setUseShader(const bool useShader)
@@ -434,10 +459,10 @@ void ElasticSprite::draw(sf::RenderTarget& target, sf::RenderStates states) cons
 			{
 				bilinearShader.setUniform("texture", *m_pTexture);
 				const sf::Vector2f textureSize(m_pTexture->getSize());
-				bilinearShader.setUniform("textureRectLeftRatio", m_textureRect.left / textureSize.x);
-				bilinearShader.setUniform("textureRectTopRatio", m_textureRect.top / textureSize.y);
-				bilinearShader.setUniform("textureRectWidthRatio", m_textureRect.width / textureSize.x);
-				bilinearShader.setUniform("textureRectHeightRatio", m_textureRect.height / textureSize.y);
+				bilinearShader.setUniform("textureRectLeftRatio", m_actualTextureRect.left / textureSize.x);
+				bilinearShader.setUniform("textureRectTopRatio", m_actualTextureRect.top / textureSize.y);
+				bilinearShader.setUniform("textureRectWidthRatio", m_actualTextureRect.width / textureSize.x);
+				bilinearShader.setUniform("textureRectHeightRatio", m_actualTextureRect.height / textureSize.y);
 			}
 			bilinearShader.setUniform("renderTargetHeight", static_cast<int>(target.getSize().y));
 			bilinearShader.setUniform("v0", sf::Glsl::Vec2(target.mapCoordsToPixel(m_vertices[0].position)));
@@ -463,6 +488,19 @@ void ElasticSprite::priv_updateVertices(sf::Transform transform) const
 	for (unsigned int i{ 0u }; i < 4; ++i)
 		m_vertices[i].position = transform.transformPoint(m_offsets[i] + priv_getVertexBasePosition(i));
 
+	m_actualTextureRect = m_baseTextureRect;
+
+	if (m_textureFlipX)
+	{
+		m_actualTextureRect.left += m_actualTextureRect.width;
+		m_actualTextureRect.width = -m_actualTextureRect.width;
+	}
+	if (m_textureFlipY)
+	{
+		m_actualTextureRect.top += m_actualTextureRect.height;
+		m_actualTextureRect.height = -m_actualTextureRect.height;
+	}
+
 	if (m_useShader && m_usePerspectiveInterpolation && m_pTexture != nullptr)
 	{
 		const sf::Vector2f intersection{ linesIntersection(m_vertices[0].position, m_vertices[2].position, m_vertices[1].position, m_vertices[3].position) };
@@ -476,15 +514,15 @@ void ElasticSprite::priv_updateVertices(sf::Transform transform) const
 		m_weights[3] = (distanceToIntersection3 + distanceToIntersection1) / distanceToIntersection1;
 
 		const sf::Vector2f textureSize(m_pTexture->getSize());
-		m_vertices[0].texCoords = { m_weights[0] * (m_textureRect.left / textureSize.x), m_weights[0] * (m_textureRect.top / textureSize.y) };
-		m_vertices[1].texCoords = { m_weights[1] * (m_textureRect.left / textureSize.x), m_weights[1] * ((m_textureRect.top + m_textureRect.height) / textureSize.y) };
-		m_vertices[2].texCoords = { m_weights[2] * ((m_textureRect.left + m_textureRect.width) / textureSize.x), m_weights[2] * ((m_textureRect.top + m_textureRect.height) / textureSize.y) };
-		m_vertices[3].texCoords = { m_weights[3] * ((m_textureRect.left + m_textureRect.width) / textureSize.x), m_weights[3] * (m_textureRect.top / textureSize.y) };
+		m_vertices[0].texCoords = { m_weights[0] * (m_actualTextureRect.left / textureSize.x), m_weights[0] * (m_actualTextureRect.top / textureSize.y) };
+		m_vertices[1].texCoords = { m_weights[1] * (m_actualTextureRect.left / textureSize.x), m_weights[1] * ((m_actualTextureRect.top + m_actualTextureRect.height) / textureSize.y) };
+		m_vertices[2].texCoords = { m_weights[2] * ((m_actualTextureRect.left + m_actualTextureRect.width) / textureSize.x), m_weights[2] * ((m_actualTextureRect.top + m_actualTextureRect.height) / textureSize.y) };
+		m_vertices[3].texCoords = { m_weights[3] * ((m_actualTextureRect.left + m_actualTextureRect.width) / textureSize.x), m_weights[3] * (m_actualTextureRect.top / textureSize.y) };
 	}
 	else
 	{
-		m_vertices[0].texCoords = { m_textureRect.left, m_textureRect.top };
-		m_vertices[2].texCoords = { m_textureRect.left + m_textureRect.width, m_textureRect.top + m_textureRect.height };
+		m_vertices[0].texCoords = { m_actualTextureRect.left, m_actualTextureRect.top };
+		m_vertices[2].texCoords = { m_actualTextureRect.left + m_actualTextureRect.width, m_actualTextureRect.top + m_actualTextureRect.height };
 		m_vertices[1].texCoords = { m_vertices[0].texCoords.x, m_vertices[2].texCoords.y };
 		m_vertices[3].texCoords = { m_vertices[2].texCoords.x, m_vertices[0].texCoords.y };
 	}
@@ -498,11 +536,11 @@ sf::Vector2f ElasticSprite::priv_getVertexBasePosition(const unsigned int vertex
 	switch (vertexIndex)
 	{
 	case 1u:
-		return sf::Vector2f(0.f, m_textureRect.height);
+		return sf::Vector2f(0.f, m_baseTextureRect.height);
 	case 2u:
-		return sf::Vector2f(m_textureRect.width, m_textureRect.height);
+		return sf::Vector2f(m_baseTextureRect.width, m_baseTextureRect.height);
 	case 3u:
-		return sf::Vector2f(m_textureRect.width, 0.f);
+		return sf::Vector2f(m_baseTextureRect.width, 0.f);
 	case 0u:
 	default:
 		return { 0.f, 0.f };

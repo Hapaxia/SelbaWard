@@ -49,7 +49,7 @@ class Vector2;
 namespace selbaward
 {
 
-// SW Elastic Sprite v1.2.1
+// SW Elastic Sprite v1.3.0
 class ElasticSprite : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -62,6 +62,11 @@ public:
 	void setTextureRect(sf::FloatRect textureRect);
 	const sf::Texture* getTexture() const;
 	sf::FloatRect getTextureRect() const;
+
+	void setTextureFlipX(bool textureFlipX);
+	bool getTextureFlipX() const;
+	void setTextureFlipY(bool textureFlipY);
+	bool getTextureFlipY() const;
 
 	bool setUseShader(bool useShader); // returns the actual state of "use shader" (may be different from parameter if setUseShader fails)
 	bool getUseShader() const;
@@ -96,11 +101,14 @@ private:
 	mutable bool m_requiresVerticesUpdate;
 	mutable std::vector<sf::Vertex> m_vertices;
 	mutable std::vector<float> m_weights;
+	mutable sf::FloatRect m_actualTextureRect;
 	std::vector<sf::Vector2f> m_offsets;
 	const sf::Texture* m_pTexture;
-	sf::FloatRect m_textureRect;
+	sf::FloatRect m_baseTextureRect;
 	bool m_useShader;
 	bool m_usePerspectiveInterpolation;
+	bool m_textureFlipX;
+	bool m_textureFlipY;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 	void priv_updateVertices(sf::Transform Transform)  const;
