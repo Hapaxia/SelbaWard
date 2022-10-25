@@ -671,7 +671,7 @@ struct ConsoleScreen::Bg
 struct ConsoleScreen::MovementControl
 {
 	const unsigned int amount;
-	Direction direction;
+	Direction direction{ Direction::Right };
 	explicit MovementControl(const unsigned int distance = 1u) : amount(distance) { }
 };
 
