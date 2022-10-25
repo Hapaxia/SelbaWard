@@ -161,7 +161,7 @@ inline float getAngleInRadians(const sf::Vector2f v)
 namespace selbaward
 {
 
-Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPosition)
+Spline::Spline(const std::size_t vertexCount, const sf::Vector2f initialPosition)
 	: m_throwExceptions{ true }
 	, m_isClosed{ false }
 	, m_isRandomNormalOffsetsActivated{ false }
@@ -196,9 +196,9 @@ Spline::Spline(const unsigned int vertexCount, const sf::Vector2f initialPositio
 }
 
 Spline::Spline(std::initializer_list<sf::Vector2f> list)
-	: Spline(static_cast<unsigned int>(list.size()))
+	: Spline(list.size())
 {
-	unsigned int index{ 0u };
+	std::size_t index{ 0u };
 	for (auto& position : list)
 		m_vertices[index++].position = position;
 }
@@ -209,7 +209,7 @@ float Spline::getLength() const
 		return 0.f;
 
 	float total{ 0.f };
-	for (unsigned int v{ 0 }; v < getLastVertexIndex(); ++v)
+	for (std::size_t v{ 0 }; v < getLastVertexIndex(); ++v)
 		total += vectorLength(m_vertices[v + 1].position - m_vertices[v].position);
 	return total;
 }
@@ -236,7 +236,7 @@ void Spline::update()
 		return;
 	}
 
-	const unsigned int pointsPerVertex{ priv_getNumberOfPointsPerVertex() };
+	const std::size_t pointsPerVertex{ priv_getNumberOfPointsPerVertex() };
 	if (m_isClosed)
 		m_interpolatedVertices.resize((m_vertices.size() * pointsPerVertex) + 1);
 	else
@@ -260,7 +260,7 @@ void Spline::update()
 		std::vector<sf::Vertex>::iterator itInterpolated{ m_interpolatedVertices.begin() + (it - begin) * pointsPerVertex };
 		if (m_isClosed || it != last)
 		{
-			for (unsigned int i{ 0u }; i < pointsPerVertex; ++i)
+			for (std::size_t i{ 0u }; i < pointsPerVertex; ++i)
 			{
 				std::vector<Vertex>::iterator nextIt{ m_vertices.begin() };
 				if (it != last)
@@ -498,7 +498,7 @@ void Spline::setThickCornerType(const ThickCornerType thickCornerType)
 	m_thickCornerType = thickCornerType;
 }
 
-void Spline::setRoundedThickCornerInterpolationLevel(const unsigned int roundedThickCornerInterpolationLevel)
+void Spline::setRoundedThickCornerInterpolationLevel(const std::size_t roundedThickCornerInterpolationLevel)
 {
 	m_roundedThickCornerInterpolationLevel = roundedThickCornerInterpolationLevel;
 }
@@ -508,7 +508,7 @@ void Spline::setThickStartCapType(const ThickCapType thickStartCapType)
 	m_thickStartCapType = thickStartCapType;
 }
 
-void Spline::setRoundedThickStartCapInterpolationLevel(const unsigned int roundedThickStartCapInterpolationLevel)
+void Spline::setRoundedThickStartCapInterpolationLevel(const std::size_t roundedThickStartCapInterpolationLevel)
 {
 	m_roundedThickStartCapInterpolationLevel = roundedThickStartCapInterpolationLevel;
 }
@@ -518,7 +518,7 @@ void Spline::setThickEndCapType(const ThickCapType thickEndCapType)
 	m_thickEndCapType = thickEndCapType;
 }
 
-void Spline::setRoundedThickEndCapInterpolationLevel(const unsigned int roundedThickEndCapInterpolationLevel)
+void Spline::setRoundedThickEndCapInterpolationLevel(const std::size_t roundedThickEndCapInterpolationLevel)
 {
 	m_roundedThickEndCapInterpolationLevel = roundedThickEndCapInterpolationLevel;
 }
@@ -528,7 +528,7 @@ void Spline::setMaxCornerPointLength(const float maxCornerPointLength)
 	m_maxPointLength = maxCornerPointLength;
 }
 
-void Spline::reserveVertices(const unsigned int numberOfVertices)
+void Spline::reserveVertices(const std::size_t numberOfVertices)
 {
 	if (numberOfVertices == 0)
 		return;
@@ -545,23 +545,23 @@ void Spline::addVertices(const std::vector<sf::Vector2f>& positions)
 		addVertex(position);
 }
 
-void Spline::addVertices(const unsigned int index, const std::vector<sf::Vector2f>& positions)
+void Spline::addVertices(const std::size_t index, const std::vector<sf::Vector2f>& positions)
 {
 	for (auto& position : positions)
 		addVertex(index, position);
 }
 
-void Spline::addVertices(const unsigned int numberOfVertices, const sf::Vector2f position)
+void Spline::addVertices(const std::size_t numberOfVertices, const sf::Vector2f position)
 {
 	reserveVertices(m_vertices.size() + numberOfVertices);
-	for (unsigned int i{ 0u }; i < numberOfVertices; ++i)
+	for (std::size_t i{ 0u }; i < numberOfVertices; ++i)
 		addVertex(position);
 }
 
-void Spline::addVertices(const unsigned int numberOfVertices, const unsigned int index, const sf::Vector2f position)
+void Spline::addVertices(const std::size_t numberOfVertices, const std::size_t index, const sf::Vector2f position)
 {
 	reserveVertices(m_vertices.size() + numberOfVertices);
-	for (unsigned int i{ 0u }; i < numberOfVertices; ++i)
+	for (std::size_t i{ 0u }; i < numberOfVertices; ++i)
 		addVertex(index + i, position);
 }
 
@@ -570,7 +570,7 @@ void Spline::addVertex(const sf::Vector2f position)
 	m_vertices.emplace_back(Vertex(position));
 }
 
-void Spline::addVertex(const unsigned int index, const sf::Vector2f position)
+void Spline::addVertex(const std::size_t index, const sf::Vector2f position)
 {
 	if (index < getVertexCount())
 		m_vertices.insert(m_vertices.begin() + index, Vertex(position));
@@ -578,7 +578,7 @@ void Spline::addVertex(const unsigned int index, const sf::Vector2f position)
 		addVertex(position);
 }
 
-void Spline::removeVertex(const unsigned int index)
+void Spline::removeVertex(const std::size_t index)
 {
 	if (!priv_testVertexIndex(index, "Cannot remove vertex."))
 		return;
@@ -586,7 +586,7 @@ void Spline::removeVertex(const unsigned int index)
 	m_vertices.erase(m_vertices.begin() + index);
 }
 
-void Spline::removeVertices(const unsigned int index, const unsigned int numberOfVertices)
+void Spline::removeVertices(const std::size_t index, const std::size_t numberOfVertices)
 {
 	if (!priv_testVertexIndex(index, "Cannot remove vertices") || ((numberOfVertices > 1) && (!priv_testVertexIndex(index + numberOfVertices - 1, "Cannot remove vertices"))))
 		return;
@@ -611,7 +611,7 @@ void Spline::reverseVertices()
 	}
 }
 
-void Spline::setPosition(const unsigned int index, const sf::Vector2f position)
+void Spline::setPosition(const std::size_t index, const sf::Vector2f position)
 {
 	if (!priv_testVertexIndex(index, "Cannot set vertex position."))
 		return;
@@ -619,7 +619,7 @@ void Spline::setPosition(const unsigned int index, const sf::Vector2f position)
 	m_vertices[index].position = position;
 }
 
-void Spline::setPositions(const unsigned int index, unsigned int numberOfVertices, const sf::Vector2f position)
+void Spline::setPositions(const std::size_t index, std::size_t numberOfVertices, const sf::Vector2f position)
 {
 	if (!priv_testVertexIndex(index, "Cannot set vertices' positions") || (numberOfVertices > 1 && !priv_testVertexIndex(index + numberOfVertices - 1, "Cannot set vertices' positions")))
 		return;
@@ -627,13 +627,13 @@ void Spline::setPositions(const unsigned int index, unsigned int numberOfVertice
 	if (numberOfVertices == 0)
 		numberOfVertices = static_cast<unsigned int>(m_vertices.size()) - index;
 
-	for (unsigned int v{ 0u }; v < numberOfVertices; ++v)
+	for (std::size_t v{ 0u }; v < numberOfVertices; ++v)
 		m_vertices[index + v].position = position;
 }
 
-void Spline::setPositions(const std::vector<sf::Vector2f>& positions, unsigned int index)
+void Spline::setPositions(const std::vector<sf::Vector2f>& positions, std::size_t index)
 {
-	const unsigned int numberOfVertices{ static_cast<unsigned int>(positions.size()) };
+	const std::size_t numberOfVertices{ positions.size() };
 	if ((numberOfVertices < 1) || (!priv_testVertexIndex(index, "Cannot set vertices' positions")) || ((numberOfVertices > 1) && (!priv_testVertexIndex(index + numberOfVertices - 1, "Cannot set vertices' positions"))))
 		return;
 
@@ -644,7 +644,7 @@ void Spline::setPositions(const std::vector<sf::Vector2f>& positions, unsigned i
 	}
 }
 
-sf::Vector2f Spline::getPosition(const unsigned int index) const
+sf::Vector2f Spline::getPosition(const std::size_t index) const
 {
 	if (!priv_testVertexIndex(index, "Cannot get vertex position."))
 		return{ 0.f, 0.f };
@@ -652,7 +652,7 @@ sf::Vector2f Spline::getPosition(const unsigned int index) const
 	return m_vertices[index].position;
 }
 
-void Spline::setFrontHandle(const unsigned int index, const sf::Vector2f offset)
+void Spline::setFrontHandle(const std::size_t index, const sf::Vector2f offset)
 {
 	if (!priv_testVertexIndex(index, "Cannot set vertex front handle."))
 		return;
@@ -664,7 +664,7 @@ void Spline::setFrontHandle(const unsigned int index, const sf::Vector2f offset)
 		copyAngle(m_vertices[index].frontHandle, m_vertices[index].backHandle);
 }
 
-sf::Vector2f Spline::getFrontHandle(const unsigned int index) const
+sf::Vector2f Spline::getFrontHandle(const std::size_t index) const
 {
 	if (!priv_testVertexIndex(index, "Cannot get vertex front handle."))
 		return{ 0.f, 0.f };
@@ -672,7 +672,7 @@ sf::Vector2f Spline::getFrontHandle(const unsigned int index) const
 	return m_vertices[index].frontHandle;
 }
 
-void Spline::setBackHandle(const unsigned int index, const sf::Vector2f offset)
+void Spline::setBackHandle(const std::size_t index, const sf::Vector2f offset)
 {
 	if (!priv_testVertexIndex(index, "Cannot set vertex back handle."))
 		return;
@@ -684,7 +684,7 @@ void Spline::setBackHandle(const unsigned int index, const sf::Vector2f offset)
 		copyAngle(m_vertices[index].backHandle, m_vertices[index].frontHandle);
 }
 
-sf::Vector2f Spline::getBackHandle(const unsigned int index) const
+sf::Vector2f Spline::getBackHandle(const std::size_t index) const
 {
 	if (!priv_testVertexIndex(index, "Cannot get vertex back handle."))
 		return{ 0.f, 0.f };
@@ -692,15 +692,15 @@ sf::Vector2f Spline::getBackHandle(const unsigned int index) const
 	return m_vertices[index].backHandle;
 }
 
-void Spline::resetHandles(const unsigned int index, unsigned int numberOfVertices)
+void Spline::resetHandles(const std::size_t index, std::size_t numberOfVertices)
 {
 	if ((!priv_testVertexIndex(index, "Cannot reset vertices' handles")) || ((numberOfVertices > 1) && (!priv_testVertexIndex(index + numberOfVertices - 1, "Cannot reset vertices' handles"))))
 		return;
 
 	if (numberOfVertices == 0)
-		numberOfVertices = static_cast<unsigned int>(m_vertices.size()) - index;
+		numberOfVertices = m_vertices.size() - index;
 
-	for (unsigned int v{ 0u }; v < numberOfVertices; ++v)
+	for (std::size_t v{ 0u }; v < numberOfVertices; ++v)
 	{
 		m_vertices[index + v].frontHandle = { 0.f, 0.f };
 		m_vertices[index + v].backHandle = { 0.f, 0.f };
@@ -709,7 +709,7 @@ void Spline::resetHandles(const unsigned int index, unsigned int numberOfVertice
 
 void Spline::smoothHandles()
 {
-	for (unsigned int v{ 0 }; v < m_vertices.size() - 1; ++v)
+	for (std::size_t v{ 0 }; v < m_vertices.size() - 1; ++v)
 	{
 		const sf::Vector2f p1{ m_vertices[v].position };
 		const sf::Vector2f p2{ m_vertices[v + 1].position };
@@ -754,12 +754,12 @@ void Spline::setColor(const sf::Color color)
 	m_color = color;
 }
 
-void Spline::setColor(const unsigned int index, const sf::Color color)
+void Spline::setColor(const std::size_t index, const sf::Color color)
 {
 	m_vertices[index].color = color;
 }
 
-void Spline::setInterpolationSteps(const unsigned int interpolationSteps)
+void Spline::setInterpolationSteps(const std::size_t interpolationSteps)
 {
 	m_interpolationSteps = interpolationSteps;
 }
@@ -784,35 +784,35 @@ void Spline::setPrimitiveType(const sf::PrimitiveType primitiveType)
 	m_primitiveType = primitiveType;
 }
 
-sf::Vector2f Spline::getInterpolatedPosition(const unsigned int interpolationOffset, const unsigned int index) const
+sf::Vector2f Spline::getInterpolatedPosition(const std::size_t interpolationOffset, const std::size_t index) const
 {
 	return m_interpolatedVertices[priv_getInterpolatedIndex(interpolationOffset, index)].position;
 }
 
-unsigned int Spline::getInterpolatedPositionCount() const
+std::size_t Spline::getInterpolatedPositionCount() const
 {
-	return ((m_isClosed) ? static_cast<unsigned int>(m_vertices.size() * priv_getNumberOfPointsPerVertex()) : static_cast<unsigned int>((m_vertices.size() - 1u) * priv_getNumberOfPointsPerVertex() + 1u));
+	return ((m_isClosed) ? (m_vertices.size() * priv_getNumberOfPointsPerVertex()) : ((m_vertices.size() - 1u) * priv_getNumberOfPointsPerVertex() + 1u));
 }
 
-sf::Vector2f Spline::getInterpolatedPositionTangent(const unsigned int interpolationOffset, const unsigned int index) const
+sf::Vector2f Spline::getInterpolatedPositionTangent(const std::size_t interpolationOffset, const std::size_t index) const
 {
 	return m_interpolatedVerticesUnitTangents[priv_getInterpolatedIndex(interpolationOffset, index)];
 }
 
-sf::Vector2f Spline::getInterpolatedPositionNormal(const unsigned int interpolationOffset, const unsigned int index) const
+sf::Vector2f Spline::getInterpolatedPositionNormal(const std::size_t interpolationOffset, const std::size_t index) const
 {
 	return vectorNormal(getInterpolatedPositionTangent(interpolationOffset, index));
 }
 
-float Spline::getInterpolatedPositionThickness(const unsigned int interpolationOffset, const unsigned int index) const
+float Spline::getInterpolatedPositionThickness(const unsigned int interpolationOffset, const std::size_t index) const
 {
 	if (!priv_isThick())
 		return 0.f;
 
-	const unsigned int interpolatedIndex{ priv_getInterpolatedIndex(interpolationOffset, index) };
+	const std::size_t interpolatedIndex{ priv_getInterpolatedIndex(interpolationOffset, index) };
 
-	const unsigned int vertexIndex{ interpolatedIndex / priv_getNumberOfPointsPerVertex() };
-	const unsigned int interpolatedVertexIndex{ vertexIndex * priv_getNumberOfPointsPerVertex() };
+	const std::size_t vertexIndex{ interpolatedIndex / priv_getNumberOfPointsPerVertex() };
+	const std::size_t interpolatedVertexIndex{ vertexIndex * priv_getNumberOfPointsPerVertex() };
 	const float vertexRatio{ static_cast<float>(interpolatedIndex - interpolatedVertexIndex) / priv_getNumberOfPointsPerVertex() };
 	const std::vector<Vertex>::const_iterator currentVertex{ m_vertices.begin() + (vertexIndex % m_vertices.size()) };
 	std::vector<Vertex>::const_iterator nextVertex{ currentVertex };
@@ -824,12 +824,12 @@ float Spline::getInterpolatedPositionThickness(const unsigned int interpolationO
 	return m_thickness * linearInterpolation(currentVertex->thickness, nextVertex->thickness, vertexRatio);
 }
 
-float Spline::getInterpolatedPositionThicknessCorrectionScale(const unsigned int interpolationOffset, const unsigned int index) const
+float Spline::getInterpolatedPositionThicknessCorrectionScale(const std::size_t interpolationOffset, const std::size_t index) const
 {
 	if (!priv_isThick())
 		return 0.f;
 
-	const unsigned int interpolatedIndex{ priv_getInterpolatedIndex(interpolationOffset, index) };
+	const std::size_t interpolatedIndex{ priv_getInterpolatedIndex(interpolationOffset, index) };
 
 	const sf::Vector2f sideOffset{ m_outputVertices[interpolatedIndex * 2].position - m_interpolatedVertices[interpolatedIndex].position };
 	const float sideOffsetLength{ vectorLength(sideOffset) };
@@ -850,12 +850,12 @@ void Spline::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		target.draw(&m_handlesVertices.front(), m_handlesVertices.size(), sf::PrimitiveType::Lines, states);
 }
 
-bool Spline::priv_isValidVertexIndex(const unsigned int vertexIndex) const
+bool Spline::priv_isValidVertexIndex(const std::size_t vertexIndex) const
 {
 	return vertexIndex < m_vertices.size();
 }
 
-bool Spline::priv_testVertexIndex(const unsigned int vertexIndex, const std::string& exceptionMessage) const
+bool Spline::priv_testVertexIndex(const std::size_t vertexIndex, const std::string& exceptionMessage) const
 {
 	if (!priv_isValidVertexIndex(vertexIndex))
 	{
@@ -871,7 +871,7 @@ bool Spline::priv_isThick() const
 	return (m_thickness >= thicknessEpsilon || m_thickness <= -thicknessEpsilon);
 }
 
-unsigned int Spline::priv_getNumberOfPointsPerVertex() const
+std::size_t Spline::priv_getNumberOfPointsPerVertex() const
 {
 	return m_interpolationSteps + 1u;
 }
@@ -882,10 +882,10 @@ unsigned int Spline::priv_getNumberOfPointsPerVertex() const
 // (note that higher value of range is 'not' inclusive)
 // interpolation can, however, extend beyond the range into the following vertex/ices so index can be omitted (it defaults to zero).
 // index and interpolationOffset values must be valid
-unsigned int Spline::priv_getInterpolatedIndex(const unsigned int interpolationOffset, const unsigned int index) const
+std::size_t Spline::priv_getInterpolatedIndex(const std::size_t interpolationOffset, const std::size_t index) const
 {
-	const unsigned int indexOffset{ index * priv_getNumberOfPointsPerVertex() };
-	const unsigned int interpolatedPositionIndex{ indexOffset + interpolationOffset };
+	const std::size_t indexOffset{ index * priv_getNumberOfPointsPerVertex() };
+	const std::size_t interpolatedPositionIndex{ indexOffset + interpolationOffset };
 	assert(interpolatedPositionIndex < getInterpolatedPositionCount()); // index must be in valid range
 	return interpolatedPositionIndex;
 }
@@ -897,7 +897,7 @@ void Spline::priv_updateOutputVertices()
 		m_outputVertices.resize(m_interpolatedVertices.size());
 		for (std::vector<sf::Vertex>::iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, last{ end - 1u }, it{ begin }; it != end; ++it)
 		{
-			const unsigned int outputIndex{ static_cast<unsigned int>(it - begin) };
+			const std::size_t outputIndex{ static_cast<std::size_t>(it - begin) };
 			const unsigned int index{ outputIndex / priv_getNumberOfPointsPerVertex() };
 			const unsigned int interpolatedIndex{ index * priv_getNumberOfPointsPerVertex() };
 			const float vertexRatio{ static_cast<float>(outputIndex - interpolatedIndex) / priv_getNumberOfPointsPerVertex() };
@@ -938,7 +938,7 @@ void Spline::priv_updateOutputVertices()
 	}
 	else
 	{
-		unsigned int numberOfExtraVerticesForCaps{ 0u };
+		std::size_t numberOfExtraVerticesForCaps{ 0u };
 		if (!m_isClosed)
 		{
 			if (m_thickStartCapType == ThickCapType::Round)
@@ -982,7 +982,7 @@ void Spline::priv_updateOutputVertices()
 			const sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.begin()) };
 			const sf::Vector2f normalUnit{ -vectorNormal(tangentUnit) };
 			const float normalAngle{ std::atan2(normalUnit.y, normalUnit.x) };
-			for (unsigned int i{ 0u }; i <= m_roundedThickStartCapInterpolationLevel; ++i)
+			for (std::size_t i{ 0u }; i <= m_roundedThickStartCapInterpolationLevel; ++i)
 			{
 				const float ratio{ static_cast<float>(i) / (m_roundedThickStartCapInterpolationLevel + 1u) };
 				const float angleOffset{ ratio * pi };
@@ -996,9 +996,9 @@ void Spline::priv_updateOutputVertices()
 		}
 		for (std::vector<sf::Vertex>::const_iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, last{ end - 1u }, it{ begin }; it != end; ++it)
 		{
-			const unsigned int outputIndex{ static_cast<unsigned int>(it - begin) };
-			const unsigned int index{ outputIndex / priv_getNumberOfPointsPerVertex() };
-			const unsigned int interpolatedIndex{ index * priv_getNumberOfPointsPerVertex() };
+			const std::size_t outputIndex{ static_cast<std::size_t>(it - begin) };
+			const std::size_t index{ outputIndex / priv_getNumberOfPointsPerVertex() };
+			const std::size_t interpolatedIndex{ index * priv_getNumberOfPointsPerVertex() };
 			const float vertexRatio{ static_cast<float>(outputIndex - interpolatedIndex) / priv_getNumberOfPointsPerVertex() };
 			const std::vector<Vertex>::iterator currentVertex{ m_vertices.begin() + (index % m_vertices.size()) };
 			std::vector<Vertex>::iterator nextVertex{ currentVertex };
@@ -1182,7 +1182,7 @@ void Spline::priv_updateOutputVertices()
 						if (backwardAngle < forwardAngle)
 							backwardAngle += 2.f * pi;
 					}
-					for (unsigned int i{ 0u }; i <= (m_roundedThickCornerInterpolationLevel + 1u); ++i)
+					for (std::size_t i{ 0u }; i <= (m_roundedThickCornerInterpolationLevel + 1u); ++i)
 					{
 						const float ratio{ static_cast<float>(i) / (m_roundedThickCornerInterpolationLevel + 1u) };
 						const float angle{ linearInterpolation(backwardAngle, forwardAngle, ratio) };
@@ -1197,7 +1197,7 @@ void Spline::priv_updateOutputVertices()
 
 					if (useInsidePoint)
 					{
-						for (unsigned int i{ 0u }; i <= m_roundedThickCornerInterpolationLevel + 1u; ++i)
+						for (std::size_t i{ 0u }; i <= m_roundedThickCornerInterpolationLevel + 1u; ++i)
 							(itThick - i * 2u - (isClockwise ? 1u : 2u))->position = insidePoint;
 					}
 				}
@@ -1221,7 +1221,7 @@ void Spline::priv_updateOutputVertices()
 			const sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.end() - 1u) };
 			const sf::Vector2f normalUnit{ -vectorNormal(tangentUnit) };
 			const float normalAngle{ std::atan2(normalUnit.y, normalUnit.x) };
-			for (unsigned int i{ 0u }; i <= m_roundedThickEndCapInterpolationLevel; ++i)
+			for (std::size_t i{ 0u }; i <= m_roundedThickEndCapInterpolationLevel; ++i)
 			{
 				const float ratio{ static_cast<float>(m_roundedThickEndCapInterpolationLevel - i) / (m_roundedThickEndCapInterpolationLevel + 1u) };
 				const float angleOffset{ ratio * pi };

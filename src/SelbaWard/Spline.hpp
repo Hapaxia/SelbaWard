@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.6.0
+// SW Spline v1.6.1
 class Spline : public sf::Drawable
 {
 public:
@@ -68,12 +68,12 @@ public:
 		Vertex(sf::Vector2f newPosition) : position(newPosition), thickness(1.f), color(sf::Color::White), randomNormalOffsetRange(1.f) {}
 	};
 
-	Spline(unsigned int vertexCount = 0u, sf::Vector2f initialPosition = { 0.f, 0.f });
+	Spline(std::size_t vertexCount = 0u, sf::Vector2f initialPosition = { 0.f, 0.f });
 	Spline(std::initializer_list<sf::Vector2f> list); // pass vertices' positions (sf::Vector2f) to the constructor (sets size automatically)
 	void update();
 	void updateOutputVertices();
 
-	Vertex& operator[] (unsigned int index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
+	Vertex& operator[] (std::size_t index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
 
 	void connectFrontToFrontOf(const Spline& spline, bool rotateSpline = true, bool moveSpline = true);
 	void connectFrontToBackOf(const Spline& spline, bool rotateSpline = true, bool moveSpline = true);
@@ -98,51 +98,51 @@ public:
 
 	void setThickCornerType(ThickCornerType cornerType);
 	ThickCornerType getThickCornerType() const;
-	void setRoundedThickCornerInterpolationLevel(unsigned int roundedCornerInterpolationLevel);
-	unsigned int getRoundedThickCornerInterpolationLevel() const;
+	void setRoundedThickCornerInterpolationLevel(std::size_t roundedCornerInterpolationLevel);
+	std::size_t getRoundedThickCornerInterpolationLevel() const;
 
 	void setThickStartCapType(ThickCapType thickStartCapType);
 	ThickCapType getThickStartCapType() const;
-	void setRoundedThickStartCapInterpolationLevel(unsigned int roundedThickStartCapInterpolationLevel);
-	unsigned int getRoundedThickStartCapInterpolationLevel() const;
+	void setRoundedThickStartCapInterpolationLevel(std::size_t roundedThickStartCapInterpolationLevel);
+	std::size_t getRoundedThickStartCapInterpolationLevel() const;
 
 	void setThickEndCapType(ThickCapType thickEndCapType);
 	ThickCapType getThickEndCapType() const;
-	void setRoundedThickEndCapInterpolationLevel(unsigned int roundedThickEndCapInterpolationLevel);
-	unsigned int getRoundedThickEndCapInterpolationLevel() const;
+	void setRoundedThickEndCapInterpolationLevel(std::size_t roundedThickEndCapInterpolationLevel);
+	std::size_t getRoundedThickEndCapInterpolationLevel() const;
 
 	void setMaxCornerPointLength(float maxPointCornerLength);
 	float getMaxCornerPointLength() const;
 
-	unsigned int getVertexCount() const;
-	unsigned int getLastVertexIndex() const;
+	std::size_t getVertexCount() const;
+	std::size_t getLastVertexIndex() const;
 	float getLength() const; // returns the length of (linear) spline - the sum of the lengths of all of the lines between consecutive vertices
 	float getInterpolatedLength() const; // returns the actual length of the spline - the sum of the lengths of all of the line segments drawn
 
-	void reserveVertices(unsigned int numberOfVertices);
+	void reserveVertices(std::size_t numberOfVertices);
 
 	void addVertices(const std::vector<sf::Vector2f>& positions);
-	void addVertices(unsigned int index, const std::vector<sf::Vector2f>& positions); // inserts the new vertices before the vertex at the specified index
-	void addVertices(unsigned int numberOfVertices, sf::Vector2f position = { 0.f, 0.f });
-	void addVertices(unsigned int numberOfVertices, unsigned int index, sf::Vector2f position = { 0.f, 0.f }); // inserts the new vertices before the vertex at the specified index
+	void addVertices(std::size_t index, const std::vector<sf::Vector2f>& positions); // inserts the new vertices before the vertex at the specified index
+	void addVertices(std::size_t numberOfVertices, sf::Vector2f position = { 0.f, 0.f });
+	void addVertices(std::size_t numberOfVertices, std::size_t index, sf::Vector2f position = { 0.f, 0.f }); // inserts the new vertices before the vertex at the specified index
 	void addVertex(sf::Vector2f position = { 0.f, 0.f });
-	void addVertex(unsigned int index, sf::Vector2f position = { 0.f, 0.f }); // inserts the new vertex before the vertex at the specified index
-	void removeVertex(unsigned int index);
-	void removeVertices(unsigned int index, unsigned int numberOfVertices = 0u); // if numberOfVertices is zero (the default), removes all vertices from specified index until the end
+	void addVertex(std::size_t index, sf::Vector2f position = { 0.f, 0.f }); // inserts the new vertex before the vertex at the specified index
+	void removeVertex(std::size_t index);
+	void removeVertices(std::size_t index, std::size_t numberOfVertices = 0u); // if numberOfVertices is zero (the default), removes all vertices from specified index until the end
 	void reverseVertices();
 	
-	void setPosition(unsigned int index, sf::Vector2f position = { 0.f, 0.f });
-	void setPositions(unsigned int index, unsigned int numberOfVertices = 0u, sf::Vector2f position = { 0.f, 0.f }); // if numberOfVertices is zero (the default), sets positions of all vertices from specified index until the end
-	void setPositions(const std::vector<sf::Vector2f>& positions, unsigned int index = 0u);
-	sf::Vector2f getPosition(unsigned int index) const;
+	void setPosition(std::size_t index, sf::Vector2f position = { 0.f, 0.f });
+	void setPositions(std::size_t index, std::size_t numberOfVertices = 0u, sf::Vector2f position = { 0.f, 0.f }); // if numberOfVertices is zero (the default), sets positions of all vertices from specified index until the end
+	void setPositions(const std::vector<sf::Vector2f>& positions, std::size_t index = 0u);
+	sf::Vector2f getPosition(std::size_t index) const;
 
-	void setFrontHandle(unsigned int index, sf::Vector2f offset);
-	sf::Vector2f getFrontHandle(unsigned int index) const;
+	void setFrontHandle(std::size_t index, sf::Vector2f offset);
+	sf::Vector2f getFrontHandle(std::size_t index) const;
 
-	void setBackHandle(unsigned int index, sf::Vector2f offset);
-	sf::Vector2f getBackHandle(unsigned int index) const;
+	void setBackHandle(std::size_t index, sf::Vector2f offset);
+	sf::Vector2f getBackHandle(std::size_t index) const;
 
-	void resetHandles(unsigned int index = 0u, unsigned int numberOfVertices = 0u); // if numberOfVertices is zero (the default), reset handles for all vertices from specified index until the end. if no index is specified, all handles are reset
+	void resetHandles(std::size_t index = 0u, std::size_t numberOfVertices = 0u); // if numberOfVertices is zero (the default), reset handles for all vertices from specified index until the end. if no index is specified, all handles are reset
 
 	void smoothHandles();
 
@@ -153,23 +153,23 @@ public:
 	void setThickness(T thickness);
 	float getThickness() const;
 	template <class T>
-	void setThickness(unsigned int index, T thickness);
-	float getThickness(unsigned int index) const;
+	void setThickness(std::size_t index, T thickness);
+	float getThickness(std::size_t index) const;
 
 	template<class T>
 	void setRandomNormalOffsetRange(T randomNormalOffsetRange);
 	float getRandomNormalOffsetRange() const;
 	template<class T>
-	void setRandomNormalOffsetRange(unsigned int index, T randomNormalOffsetRange);
-	float getRandomNormalOffsetRange(unsigned int index) const;
+	void setRandomNormalOffsetRange(std::size_t index, T randomNormalOffsetRange);
+	float getRandomNormalOffsetRange(std::size_t index) const;
 
 	void setColor(sf::Color color);
 	sf::Color getColor() const;
-	void setColor(unsigned int index, sf::Color color);
-	sf::Color getColor(unsigned int index) const;
+	void setColor(std::size_t index, sf::Color color);
+	sf::Color getColor(std::size_t index) const;
 
-	void setInterpolationSteps(unsigned int interpolationSteps);
-	unsigned int getInterpolationSteps() const;
+	void setInterpolationSteps(std::size_t interpolationSteps);
+	std::size_t getInterpolationSteps() const;
 
 	void setHandleMirrorLock(bool handleMirrorLock = true);
 	void setHandleAngleLock(bool handleAngleLock = true);
@@ -180,12 +180,12 @@ public:
 	void setPrimitiveType(sf::PrimitiveType primitiveType);
 	sf::PrimitiveType getPrimitiveType() const;
 
-	sf::Vector2f getInterpolatedPosition(unsigned int interpolationOffset, unsigned int index = 0u) const; // index is control vertex offset
-	sf::Vector2f getInterpolatedPositionTangent(unsigned int interpolationOffset, unsigned int index = 0u) const; // index is control vertex offset
-	sf::Vector2f getInterpolatedPositionNormal(unsigned int interpolationOffset, unsigned int index = 0u) const; // index is control vertex offset
-	float getInterpolatedPositionThickness(unsigned int interpolationOffset, unsigned int index = 0u) const; // index is control vertex offset
-	float getInterpolatedPositionThicknessCorrectionScale(unsigned int interpolationOffset, unsigned int index = 0u) const; // index is control vertex offset
-	unsigned int getInterpolatedPositionCount() const;
+	sf::Vector2f getInterpolatedPosition(std::size_t interpolationOffset, std::size_t index = 0u) const; // index is control vertex offset
+	sf::Vector2f getInterpolatedPositionTangent(std::size_t interpolationOffset, std::size_t index = 0u) const; // index is control vertex offset
+	sf::Vector2f getInterpolatedPositionNormal(std::size_t interpolationOffset, std::size_t index = 0u) const; // index is control vertex offset
+	float getInterpolatedPositionThickness(std::size_t interpolationOffset, std::size_t index = 0u) const; // index is control vertex offset
+	float getInterpolatedPositionThicknessCorrectionScale(std::size_t interpolationOffset, std::size_t index = 0u) const; // index is control vertex offset
+	std::size_t getInterpolatedPositionCount() const;
 
 
 
@@ -200,9 +200,9 @@ private:
 	ThickCornerType m_thickCornerType;
 	ThickCapType m_thickStartCapType;
 	ThickCapType m_thickEndCapType;
-	unsigned int m_roundedThickCornerInterpolationLevel; // number of interpolations per corner (includes corners at interpolated points). does not include backward and forward line points - only the interpolation between them i.e. 0 interpolation looks equal to bevel.
-	unsigned int m_roundedThickStartCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
-	unsigned int m_roundedThickEndCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
+	std::size_t m_roundedThickCornerInterpolationLevel; // number of interpolations per corner (includes corners at interpolated points). does not include backward and forward line points - only the interpolation between them i.e. 0 interpolation looks equal to bevel.
+	std::size_t m_roundedThickStartCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
+	std::size_t m_roundedThickEndCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
 	float m_maxPointLength; // maximum length of point when limited or clipped. ignored when using other corner types including Point.
 	const bool m_automaticallyUpdateRandomNormalOffset;
 
@@ -215,7 +215,7 @@ private:
 	std::vector<sf::Vector2f> m_interpolatedVerticesUnitTangents;
 	std::vector<sf::Vertex> m_outputVertices;
 	sf::PrimitiveType m_primitiveType;
-	unsigned int m_interpolationSteps;
+	std::size_t m_interpolationSteps;
 	bool m_useBezier;
 
 	std::vector<sf::Vertex> m_handlesVertices;
@@ -224,11 +224,11 @@ private:
 	bool m_lockHandleAngle;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-	bool priv_isValidVertexIndex(unsigned int vertexIndex) const;
-	bool priv_testVertexIndex(unsigned int vertexIndex, const std::string& exceptionMessage) const;
+	bool priv_isValidVertexIndex(std::size_t vertexIndex) const;
+	bool priv_testVertexIndex(std::size_t vertexIndex, const std::string& exceptionMessage) const;
 	bool priv_isThick() const;
-	unsigned int priv_getNumberOfPointsPerVertex() const;
-	unsigned int priv_getInterpolatedIndex(const unsigned int interpolationOffset, const unsigned int index) const;
+	std::size_t priv_getNumberOfPointsPerVertex() const;
+	std::size_t priv_getInterpolatedIndex(const std::size_t interpolationOffset, const std::size_t index) const;
 	void priv_updateOutputVertices();
 };
 
@@ -244,12 +244,12 @@ inline float Spline::getThickness() const
 }
 
 template <class T>
-inline void Spline::setThickness(const unsigned int index, const T thickness)
+inline void Spline::setThickness(const std::size_t index, const T thickness)
 {
 	m_vertices[index].thickness = static_cast<float>(thickness);
 }
 
-inline float Spline::getThickness(const unsigned int index) const
+inline float Spline::getThickness(const std::size_t index) const
 {
 	return m_vertices[index].thickness;
 }
@@ -266,17 +266,17 @@ inline float Spline::getRandomNormalOffsetRange() const
 }
 
 template <class T>
-inline void Spline::setRandomNormalOffsetRange(const unsigned int index, const T randomNormalOffsetRange)
+inline void Spline::setRandomNormalOffsetRange(const std::size_t index, const T randomNormalOffsetRange)
 {
 	m_vertices[index].randomNormalOffsetRange = static_cast<float>(randomNormalOffsetRange);
 }
 
-inline float Spline::getRandomNormalOffsetRange(const unsigned int index) const
+inline float Spline::getRandomNormalOffsetRange(const std::size_t index) const
 {
 	return m_vertices[index].randomNormalOffsetRange;
 }
 
-inline Spline::Vertex& Spline::operator[] (const unsigned int index)
+inline Spline::Vertex& Spline::operator[] (const std::size_t index)
 {
 	return m_vertices[index];
 }
@@ -296,7 +296,7 @@ inline Spline::ThickCornerType Spline::getThickCornerType() const
 	return m_thickCornerType;
 }
 
-inline unsigned int Spline::getRoundedThickCornerInterpolationLevel() const
+inline std::size_t Spline::getRoundedThickCornerInterpolationLevel() const
 {
 	return m_roundedThickCornerInterpolationLevel;
 }
@@ -306,7 +306,7 @@ inline Spline::ThickCapType Spline::getThickStartCapType() const
 	return m_thickStartCapType;
 }
 
-inline unsigned int Spline::getRoundedThickStartCapInterpolationLevel() const
+inline std::size_t Spline::getRoundedThickStartCapInterpolationLevel() const
 {
 	return m_roundedThickStartCapInterpolationLevel;
 }
@@ -316,7 +316,7 @@ inline Spline::ThickCapType Spline::getThickEndCapType() const
 	return m_thickEndCapType;
 }
 
-inline unsigned int Spline::getRoundedThickEndCapInterpolationLevel() const
+inline std::size_t Spline::getRoundedThickEndCapInterpolationLevel() const
 {
 	return m_roundedThickEndCapInterpolationLevel;
 }
@@ -326,14 +326,14 @@ inline float Spline::getMaxCornerPointLength() const
 	return m_maxPointLength;
 }
 
-inline unsigned int Spline::getVertexCount() const
+inline std::size_t Spline::getVertexCount() const
 {
-	return static_cast<unsigned int>(m_vertices.size());
+	return m_vertices.size();
 }
 
-inline unsigned int Spline::getLastVertexIndex() const
+inline std::size_t Spline::getLastVertexIndex() const
 {
-	return static_cast<unsigned int>(m_vertices.size()) - 1u;
+	return m_vertices.size() - 1u;
 }
 
 inline bool Spline::getHandlesVisible() const
@@ -346,12 +346,12 @@ inline sf::Color Spline::getColor() const
 	return m_color;
 }
 
-inline sf::Color Spline::getColor(const unsigned int index) const
+inline sf::Color Spline::getColor(const std::size_t index) const
 {
 	return m_vertices[index].color;
 }
 
-inline unsigned int Spline::getInterpolationSteps() const
+inline std::size_t Spline::getInterpolationSteps() const
 {
 	return m_interpolationSteps;
 }
