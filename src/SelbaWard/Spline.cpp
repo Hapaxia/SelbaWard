@@ -804,7 +804,7 @@ sf::Vector2f Spline::getInterpolatedPositionNormal(const std::size_t interpolati
 	return vectorNormal(getInterpolatedPositionTangent(interpolationOffset, index));
 }
 
-float Spline::getInterpolatedPositionThickness(const unsigned int interpolationOffset, const std::size_t index) const
+float Spline::getInterpolatedPositionThickness(const std::size_t interpolationOffset, const std::size_t index) const
 {
 	if (!priv_isThick())
 		return 0.f;
@@ -898,8 +898,8 @@ void Spline::priv_updateOutputVertices()
 		for (std::vector<sf::Vertex>::iterator begin{ m_interpolatedVertices.begin() }, end{ m_interpolatedVertices.end() }, last{ end - 1u }, it{ begin }; it != end; ++it)
 		{
 			const std::size_t outputIndex{ static_cast<std::size_t>(it - begin) };
-			const unsigned int index{ outputIndex / priv_getNumberOfPointsPerVertex() };
-			const unsigned int interpolatedIndex{ index * priv_getNumberOfPointsPerVertex() };
+			const std::size_t index{ outputIndex / priv_getNumberOfPointsPerVertex() };
+			const std::size_t interpolatedIndex{ index * priv_getNumberOfPointsPerVertex() };
 			const float vertexRatio{ static_cast<float>(outputIndex - interpolatedIndex) / priv_getNumberOfPointsPerVertex() };
 
 			m_outputVertices[outputIndex] = *it;
