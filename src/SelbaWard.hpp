@@ -41,6 +41,7 @@
 #include "SelbaWard/PaletteEnums.hpp"
 #include "SelbaWard/PieChart.hpp"
 #include "SelbaWard/PixelDisplay.hpp"
+#include "SelbaWard/Polygon.hpp"
 #include "SelbaWard/ProgressBar.hpp"
 #include "SelbaWard/Ring.hpp"
 #include "SelbaWard/SpinningCard.hpp"
