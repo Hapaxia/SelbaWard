@@ -144,6 +144,26 @@ void Polygon::reverseVertices()
 	std::reverse(m_vertices.begin(), m_vertices.end());
 }
 
+void Polygon::importVertexPositions(const std::vector<sf::Vector2f>& positions)
+{
+	setNumberOfVertices(positions.size());
+	for (std::size_t i{ 0u }; i < positions.size(); ++i)
+		m_vertices[i].position = positions[i];
+}
+
+std::vector<sf::Vector2f> Polygon::exportTriangulatedPositions() const
+{
+	std::vector<sf::Vector2f> positions(m_triangles.size() * 3u);
+	for (std::size_t i{ 0u }; i < m_triangles.size(); ++i)
+	{
+		positions[i * 3u + 0u] = m_vertices[m_triangles[i][0u]].position;
+		positions[i * 3u + 1u] = m_vertices[m_triangles[i][1u]].position;
+		positions[i * 3u + 2u] = m_vertices[m_triangles[i][2u]].position;
+	}
+	return positions;
+}
+
+
 
 
 
