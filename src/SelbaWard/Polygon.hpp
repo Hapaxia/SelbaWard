@@ -39,7 +39,7 @@
 namespace selbaward
 {
 
-// SW Polygon v1.0
+// SW Polygon v1.1
 class Polygon : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -72,6 +72,9 @@ public:
 	sf::Vector2f getVertexPosition(std::size_t index) const;
 
 	void reverseVertices();
+
+	void importVertexPositions(const std::vector<sf::Vector2f>& position);
+	std::vector<sf::Vector2f> exportTriangulatedPositions() const;
 
 
 
