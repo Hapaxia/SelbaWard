@@ -13,6 +13,7 @@
 *.props
 *.vc.db
 *.vc.vc.opendb
+*.bak
 
 licence for header.txt
 
