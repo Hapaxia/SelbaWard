@@ -14,6 +14,7 @@
 *.vc.db
 *.vc.vc.opendb
 *.bak
+priv_*.*
 
 licence for header.txt
 
