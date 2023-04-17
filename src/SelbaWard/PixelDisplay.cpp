@@ -525,22 +525,24 @@ void PixelDisplay::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.texture = nullptr;
 	states.transform *= getTransform();
-	target.draw(m_vertices.data(), m_vertices.size(), sf::PrimitiveType::Quads, states);
+	target.draw(m_vertices.data(), m_vertices.size(), sf::PrimitiveType::Triangles, states);
 }
 
 void PixelDisplay::priv_updateVertices()
 {
-	m_vertices.resize(m_resolution.x * m_resolution.y * 4u);
+	m_vertices.resize(m_resolution.x * m_resolution.y * 6u);
 	for (unsigned int y{ 0u }; y < m_resolution.y; ++y)
 	{
 		for (unsigned int x{ 0u }; x < m_resolution.x; ++x)
 		{
 			const sf::Vector2f topLeft{ m_size.x * x / m_resolution.x, m_size.y * y / m_resolution.y };
 			const sf::Vector2f bottomRight{ m_size.x * (x + 1u) / m_resolution.x, m_size.y * (y + 1u) / m_resolution.y };
-			m_vertices[(y * m_resolution.x + x) * 4u + 0u].position = topLeft;
-			m_vertices[(y * m_resolution.x + x) * 4u + 1u].position = { bottomRight.x, topLeft.y };
-			m_vertices[(y * m_resolution.x + x) * 4u + 2u].position = bottomRight;
-			m_vertices[(y * m_resolution.x + x) * 4u + 3u].position = { topLeft.x, bottomRight.y };
+			m_vertices[((y * m_resolution.x + x) * 6u) + 0u].position = topLeft;
+			m_vertices[((y * m_resolution.x + x) * 6u) + 1u].position = { topLeft.x, bottomRight.y };
+			m_vertices[((y * m_resolution.x + x) * 6u) + 2u].position = { bottomRight.x, topLeft.y };
+			m_vertices[((y * m_resolution.x + x) * 6u) + 3u].position = bottomRight;
+			m_vertices[((y * m_resolution.x + x) * 6u) + 4u].position = m_vertices[((y * m_resolution.x + x) * 6u) + 2u].position;
+			m_vertices[((y * m_resolution.x + x) * 6u) + 5u].position = m_vertices[((y * m_resolution.x + x) * 6u) + 1u].position;
 		}
 	}
 }
@@ -554,12 +556,14 @@ void PixelDisplay::priv_updatePixels()
 
 void PixelDisplay::priv_updatePixel(const unsigned int index)
 {
-	const unsigned int baseVertexIndex{ index * 4u };
+	const unsigned int baseVertexIndex{ index * 6u };
 	const sf::Color rgb{ m_palette[m_pixels[index]] };
 	m_vertices[baseVertexIndex + 0u].color = rgb;
 	m_vertices[baseVertexIndex + 1u].color = rgb;
 	m_vertices[baseVertexIndex + 2u].color = rgb;
 	m_vertices[baseVertexIndex + 3u].color = rgb;
+	m_vertices[baseVertexIndex + 4u].color = rgb;
+	m_vertices[baseVertexIndex + 5u].color = rgb;
 }
 
 unsigned int PixelDisplay::priv_getRandomColor() const

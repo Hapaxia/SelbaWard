@@ -43,7 +43,7 @@ namespace
 
 const std::string exceptionPrefix{ "Console Screen: " };
 
-const sf::PrimitiveType primitiveType{ sf::PrimitiveType::Quads };
+const sf::PrimitiveType primitiveType{ sf::PrimitiveType::Triangles };
 
 const selbaward::ConsoleScreen::Color defaultColor(selbaward::ConsoleScreen::ColorCommand::Contrast);
 const selbaward::ConsoleScreen::Color defaultBackgroundColor(0);
@@ -722,7 +722,7 @@ void ConsoleScreen::setMode(sf::Vector2u mode)
 
 	m_mode = mode;
 	m_cells.resize(m_mode.x * m_mode.y, defaultCell);
-	m_display.resize(m_cells.size() * 4);
+	m_display.resize(m_cells.size() * 6u);
 	m_backgroundDisplay = m_display;
 
 	clear(Color(0));
@@ -811,12 +811,12 @@ void ConsoleScreen::setUseCursorColor(const bool useCursorColor)
 
 void ConsoleScreen::update()
 {
-	if (m_display.size() != (m_mode.x * m_mode.y * 4))
+	if (m_display.size() != (m_mode.x * m_mode.y * 6u))
 		return;
 	if (m_backgroundDisplay.size() != m_display.size())
 		m_backgroundDisplay.resize(m_display.size());
 
-	if (m_display.size() < 4)
+	if (m_display.size() < 6u)
 	{
 		if (m_do.throwExceptions)
 			throw Exception(exceptionPrefix + "Cannot update display.\nNo cells available.");
@@ -2412,15 +2412,15 @@ void ConsoleScreen::draw(sf::RenderTarget& target, sf::RenderStates states) cons
 	if (m_do.showBackround && m_backgroundDisplay.size() > 0)
 	{
 		states.texture = nullptr;
-		target.draw(&m_backgroundDisplay.front(), m_backgroundDisplay.size(), primitiveType, states);
+		target.draw(m_backgroundDisplay.data(), m_backgroundDisplay.size(), primitiveType, states);
 	}
 	states.texture = m_texture;
-	if (m_underDisplay.size() > 0)
-		target.draw(&m_underDisplay.front(), m_underDisplay.size(), primitiveType, states);
-	if (m_display.size() > 0)
-		target.draw(&m_display.front(), m_display.size(), primitiveType, states);
-	if (m_overDisplay.size() > 0)
-		target.draw(&m_overDisplay.front(), m_overDisplay.size(), primitiveType, states);
+	if (m_underDisplay.size() > 0u)
+		target.draw(m_underDisplay.data(), m_underDisplay.size(), primitiveType, states);
+	if (m_display.size() > 0u)
+		target.draw(m_display.data(), m_display.size(), primitiveType, states);
+	if (m_overDisplay.size() > 0u)
+		target.draw(m_overDisplay.data(), m_overDisplay.size(), primitiveType, states);
 }
 
 void ConsoleScreen::priv_setVerticesFromCell(unsigned int index, int baseVertex, const bool overLayer)
@@ -2515,28 +2515,33 @@ void ConsoleScreen::priv_setVerticesFromCell(unsigned int index, int baseVertex,
 	const float textureBottom{ static_cast<float>(m_textureOffset.y + (textureCell.y + (!useCursorValue && cell.stretch == StretchType::Top ? 0.5f : 1.f)) * m_tileSize.y) };
 
 	if (mainLayer)
-		baseVertex = index * 4;
+		baseVertex = index * 6u;
 	
 	// main display
 	sf::Vertex* const pVertex1{ (mainLayer ? &m_display[baseVertex] : overLayer ? &m_overDisplay[baseVertex] : &m_underDisplay[baseVertex]) };
-	sf::Vertex* const pVertex2{ pVertex1 + 1 };
-	sf::Vertex* const pVertex3{ pVertex1 + 2 };
-	sf::Vertex* const pVertex4{ pVertex1 + 3 };
+	sf::Vertex* const pVertex2{ pVertex1 + 1u };
+	sf::Vertex* const pVertex3{ pVertex1 + 2u };
+	sf::Vertex* const pVertex4{ pVertex1 + 3u };
+	sf::Vertex* const pVertex5{ pVertex1 + 4u };
+	sf::Vertex* const pVertex6{ pVertex1 + 5u };
 
 	pVertex1->position = { left, top };
-	pVertex2->position = { right, top };
-	pVertex3->position = { right, bottom };
-	pVertex4->position = { left, bottom };
+	pVertex2->position = { left, bottom };
+	pVertex3->position = { right, top };
+	pVertex4->position = { right, bottom };
 
 	pVertex1->texCoords = { textureLeft, textureTop };
-	pVertex2->texCoords = { textureRight, textureTop };
-	pVertex3->texCoords = { textureRight, textureBottom };
-	pVertex4->texCoords = { textureLeft, textureBottom };
+	pVertex2->texCoords = { textureLeft, textureBottom };
+	pVertex3->texCoords = { textureRight, textureTop };
+	pVertex4->texCoords = { textureRight, textureBottom };
 
 	pVertex1->color = cellColor;
 	pVertex2->color = cellColor;
 	pVertex3->color = cellColor;
 	pVertex4->color = cellColor;
+
+	*pVertex5 = *pVertex3;
+	*pVertex6 = *pVertex2;
 
 	// background display
 	if (mainLayer)
@@ -2545,16 +2550,22 @@ void ConsoleScreen::priv_setVerticesFromCell(unsigned int index, int baseVertex,
 		sf::Vertex* const pBackgroundVertex2{ pBackgroundVertex1 + 1 };
 		sf::Vertex* const pBackgroundVertex3{ pBackgroundVertex1 + 2 };
 		sf::Vertex* const pBackgroundVertex4{ pBackgroundVertex1 + 3 };
+		sf::Vertex* const pBackgroundVertex5{ pBackgroundVertex1 + 4 };
+		sf::Vertex* const pBackgroundVertex6{ pBackgroundVertex1 + 5 };
 
 		pBackgroundVertex1->position = pVertex1->position;
 		pBackgroundVertex2->position = pVertex2->position;
 		pBackgroundVertex3->position = pVertex3->position;
 		pBackgroundVertex4->position = pVertex4->position;
+		pBackgroundVertex5->position = pVertex5->position;
+		pBackgroundVertex6->position = pVertex6->position;
 
 		pBackgroundVertex1->color = backgroundColor;
 		pBackgroundVertex2->color = backgroundColor;
 		pBackgroundVertex3->color = backgroundColor;
 		pBackgroundVertex4->color = backgroundColor;
+		pBackgroundVertex5->color = backgroundColor;
+		pBackgroundVertex6->color = backgroundColor;
 	}
 }
 
@@ -2563,14 +2574,14 @@ void ConsoleScreen::priv_updateCell(const unsigned int index)
 	if (!priv_isCellIndexInRange(index))
 		return;
 
-	if (m_display.size() != (m_mode.x * m_mode.y * 4))
+	if (m_display.size() != (m_mode.x * m_mode.y * 6u))
 	{
 		if (m_do.throwExceptions)
 			throw Exception(exceptionPrefix + "Bug: display does not match cells.");
 		return;
 	}
 
-	if (m_display.size() < 4)
+	if (m_display.size() < 6u)
 	{
 		if (m_do.throwExceptions)
 			throw Exception(exceptionPrefix + "Bug: cannot update cell. No cells available.");
@@ -2582,7 +2593,7 @@ void ConsoleScreen::priv_updateCell(const unsigned int index)
 
 void ConsoleScreen::priv_updateUnderCells()
 {
-	m_underDisplay.resize(m_underCells.size() * 4);
+	m_underDisplay.resize(m_underCells.size() * 6u);
 	unsigned int outOfRangeCells{ 0u };
 	unsigned int baseVertex{ 0u };
 	for (unsigned int i{ 0u }; i < m_underCells.size(); ++i)
@@ -2595,15 +2606,15 @@ void ConsoleScreen::priv_updateUnderCells()
 
 		priv_setVerticesFromCell(i, baseVertex, false);
 
-		baseVertex += 4;
+		baseVertex += 6u;
 	}
-	if (outOfRangeCells > 0)
+	if (outOfRangeCells > 0u)
 		m_underDisplay.resize(baseVertex);
 }
 
 void ConsoleScreen::priv_updateOverCells()
 {
-	m_overDisplay.resize(m_overCells.size() * 4);
+	m_overDisplay.resize(m_overCells.size() * 6u);
 	unsigned int outOfRangeCells{ 0u };
 	unsigned int baseVertex{ 0u };
 	for (unsigned int i{ 0u }; i < m_overCells.size(); ++i)
@@ -2616,9 +2627,9 @@ void ConsoleScreen::priv_updateOverCells()
 
 		priv_setVerticesFromCell(i, baseVertex, true);
 
-		baseVertex += 4;
+		baseVertex += 6u;
 	}
-	if (outOfRangeCells > 0)
+	if (outOfRangeCells > 0u)
 		m_overDisplay.resize(baseVertex);
 }
 

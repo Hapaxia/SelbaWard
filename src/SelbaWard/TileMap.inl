@@ -50,7 +50,7 @@ TileMap<T>::TileMap()
 	, m_camera({ 0.f, 0.f })
 	, m_cameraTarget({ 0.f, 0.f })
 	, m_color(sf::Color::White)
-	, m_primitiveType(sf::PrimitiveType::Quads)
+	, m_primitiveType(sf::PrimitiveType::Triangles)
 	, m_size()
 	, m_texture(nullptr)
 	, m_numberOfTextureTilesPerRow(16u)
@@ -59,7 +59,7 @@ TileMap<T>::TileMap()
 	, m_vertices()
 	, m_redrawRequired(true)
 	, m_renderTexture()
-	, m_render(4)
+	, m_render(4u)
 {
 	priv_recreateRenderTexture();
 }
@@ -384,7 +384,7 @@ void TileMap<T>::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	states.texture = &m_renderTexture.getTexture();
 	states.transform = getTransform();
 
-	target.draw(&m_render.front(), 4, sf::PrimitiveType::Quads, states); // final render is always 4 vertices & quad
+	target.draw(m_render.data(), 4u, sf::PrimitiveType::TriangleStrip, states); // final render is always 4 vertices & quad
 }
 
 template <class T>
@@ -401,11 +401,16 @@ void TileMap<T>::priv_updateVertices() const
 			const unsigned int tileIndex{ y * m_gridSize.x + x };
 			const unsigned long int tileValue{ m_grid[tileIndex] };
 			const sf::Vector2u textureTilePosition{ static_cast<unsigned int>(tileValue % m_numberOfTextureTilesPerRow * m_textureTileSize.x), static_cast<unsigned int>(tileValue / m_numberOfTextureTilesPerRow * m_textureTileSize.y) };
-			sf::Vertex* pVertex{ &m_vertices[tileIndex * 4] };
+			sf::Vertex* pVertex{ &m_vertices[tileIndex * 6u] };
 
 			// top-left
 			pVertex->position = { static_cast<float>(m_textureTileSize.x * x), static_cast<float>(m_textureTileSize.y * y) };
 			pVertex->texCoords = sf::Vector2f(m_textureOffset + textureTilePosition);
+			pVertex++->color = m_color;
+
+			// bottom-left
+			pVertex->position = { static_cast<float>(m_textureTileSize.x * x), static_cast<float>(m_textureTileSize.y * (y + 1)) };
+			pVertex->texCoords = { static_cast<float>(m_textureOffset.x + textureTilePosition.x), static_cast<float>(m_textureOffset.y + textureTilePosition.y + m_textureTileSize.y) };
 			pVertex++->color = m_color;
 
 			// top-right
@@ -418,10 +423,11 @@ void TileMap<T>::priv_updateVertices() const
 			pVertex->texCoords = sf::Vector2f(m_textureOffset + textureTilePosition + m_textureTileSize);
 			pVertex++->color = m_color;
 
-			// bottom-left
-			pVertex->position = { static_cast<float>(m_textureTileSize.x * x), static_cast<float>(m_textureTileSize.y * (y + 1)) };
-			pVertex->texCoords = { static_cast<float>(m_textureOffset.x + textureTilePosition.x), static_cast<float>(m_textureOffset.y + textureTilePosition.y + m_textureTileSize.y) };
-			pVertex++->color = m_color;
+			// repeated top-right
+			*(pVertex++) = *(pVertex - 2u);
+
+			// repeated bottom-left
+			*(pVertex++) = *(pVertex - 4u);
 		}
 	}
 
@@ -434,15 +440,15 @@ void TileMap<T>::priv_updateVertices() const
 template <class T>
 void TileMap<T>::priv_updateRender() const
 {
-	m_render[0].position = { 0.f, 0.f };
-	m_render[1].position = { m_size.x, 0.f };
-	m_render[2].position = m_size;
-	m_render[3].position = { 0.f, m_size.y };
+	m_render[0u].position = { 0.f, 0.f };
+	m_render[1u].position = { 0.f, m_size.y };
+	m_render[2u].position = { m_size.x, 0.f };
+	m_render[3u].position = m_size;
 	const sf::Vector2f size{ m_renderTexture.getSize() };
-	m_render[0].texCoords = { 0.f, 0.f };
-	m_render[1].texCoords = { size.x, 0.f };
-	m_render[2].texCoords = size;
-	m_render[3].texCoords = { 0.f, size.y };
+	m_render[0u].texCoords = { 0.f, 0.f };
+	m_render[1u].texCoords = { 0.f, size.y };
+	m_render[2u].texCoords = { size.x, 0.f };
+	m_render[3u].texCoords = size;
 
 	if (m_do.scrollSmoothly)
 	{
@@ -458,7 +464,7 @@ void TileMap<T>::priv_updateRender() const
 	m_renderTexture.clear(sf::Color::Transparent);
 	const unsigned int numberOfVertices{ static_cast<unsigned int>(m_vertices.size()) };
 	if (numberOfVertices > 0)
-		m_renderTexture.draw(&m_vertices.front(), numberOfVertices, m_primitiveType, m_texture);
+		m_renderTexture.draw(m_vertices.data(), numberOfVertices, m_primitiveType, m_texture);
 	m_renderTexture.display();
 
 	m_renderTexture.setSmooth(m_is.smooth);

@@ -144,8 +144,8 @@ namespace selbaward
 {
 
 NinePatch::NinePatch()
-	: m_primitiveType{ sf::PrimitiveType::Quads }
-	, m_vertices(36, sf::Vertex({ 0.f, 0.f }))
+	: m_primitiveType{ sf::PrimitiveType::TriangleStrip }
+	, m_vertices(22u, sf::Vertex({ 0.f, 0.f }))
 	, m_texture{ nullptr }
 	, m_trimmedSize({ 0.f, 0.f })
 	, m_size({ 0.f, 0.f })
@@ -244,7 +244,7 @@ void NinePatch::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.texture = m_texture;
 	states.transform *= getTransform();
-	target.draw(&m_vertices.front(), 36, m_primitiveType, states);
+	target.draw(m_vertices.data(), 22u, m_primitiveType, states);
 }
 
 void NinePatch::priv_updateVertices()
@@ -257,107 +257,74 @@ void NinePatch::priv_updateVerticesPositions()
 {
 	const sf::Vector2f newBottomRightScaled{ m_size - (m_trimmedSize - m_scaleBottomRight) };
 
-	// top row
-	m_vertices[0].position = { 0.f, 0.f };
-	m_vertices[1].position = { m_scaleTopLeft.x, 0.f };
-	m_vertices[2].position = m_scaleTopLeft;
-	m_vertices[3].position = { 0.f, m_scaleTopLeft.y };
+	const float x0{ 0.f };
+	const float x1{ m_scaleTopLeft.x };
+	const float x2{ newBottomRightScaled.x };
+	const float x3{ m_size.x };
+	const float y0{ 0.f };
+	const float y1{ m_scaleTopLeft.y };
+	const float y2{ newBottomRightScaled.y };
+	const float y3{ m_size.y };
 
-	m_vertices[4].position = { m_scaleTopLeft.x, 0.f };
-	m_vertices[5].position = { newBottomRightScaled.x, 0.f };
-	m_vertices[6].position = { newBottomRightScaled.x, m_scaleTopLeft.y };
-	m_vertices[7].position = m_scaleTopLeft;
-
-	m_vertices[8].position = { newBottomRightScaled.x, 0.f };
-	m_vertices[9].position = { m_size.x, 0.f };
-	m_vertices[10].position = { m_size.x, m_scaleTopLeft.y };
-	m_vertices[11].position = { newBottomRightScaled.x, m_scaleTopLeft.y };
-
-	// centre row
-	m_vertices[12].position = { 0.f, m_scaleTopLeft.y };
-	m_vertices[13].position = { m_scaleTopLeft.x, m_scaleTopLeft.y };
-	m_vertices[14].position = { m_scaleTopLeft.x, newBottomRightScaled.y };
-	m_vertices[15].position = { 0.f, newBottomRightScaled.y };
-
-	m_vertices[16].position = { m_scaleTopLeft.x, m_scaleTopLeft.y };
-	m_vertices[17].position = { newBottomRightScaled.x, m_scaleTopLeft.y };
-	m_vertices[18].position = { newBottomRightScaled.x, newBottomRightScaled.y };
-	m_vertices[19].position = { m_scaleTopLeft.x, newBottomRightScaled.y };
-
-	m_vertices[20].position = { newBottomRightScaled.x, m_scaleTopLeft.y };
-	m_vertices[21].position = { m_size.x, m_scaleTopLeft.y };
-	m_vertices[22].position = { m_size.x, newBottomRightScaled.y };
-	m_vertices[23].position = { newBottomRightScaled.x, newBottomRightScaled.y };
-
-	// bottom row
-	m_vertices[24].position = { 0.f, newBottomRightScaled.y };
-	m_vertices[25].position = { m_scaleTopLeft.x, newBottomRightScaled.y };
-	m_vertices[26].position = { m_scaleTopLeft.x, m_size.y };
-	m_vertices[27].position = { 0.f, m_size.y };
-
-	m_vertices[28].position = { m_scaleTopLeft.x, newBottomRightScaled.y };
-	m_vertices[29].position = { newBottomRightScaled.x, newBottomRightScaled.y };
-	m_vertices[30].position = { newBottomRightScaled.x, m_size.y };
-	m_vertices[31].position = { m_scaleTopLeft.x, m_size.y };
-
-	m_vertices[32].position = { newBottomRightScaled.x, newBottomRightScaled.y };
-	m_vertices[33].position = { m_size.x, newBottomRightScaled.y };
-	m_vertices[34].position = { m_size.x, m_size.y };
-	m_vertices[35].position = { newBottomRightScaled.x, m_size.y };
-
+	m_vertices[0u].position = { x0, y0 };
+	m_vertices[1u].position = { x0, y1 };
+	m_vertices[2u].position = { x1, y0 };
+	m_vertices[3u].position = { x1, y1 };
+	m_vertices[4u].position = { x2, y0 };
+	m_vertices[5u].position = { x2, y1 };
+	m_vertices[6u].position = { x3, y0 };
+	m_vertices[7u].position = { x3, y1 };
+	m_vertices[8u].position = { x3, y2 };
+	m_vertices[9u].position = { x2, y1 };
+	m_vertices[10u].position = { x2, y2 };
+	m_vertices[11u].position = { x1, y1 };
+	m_vertices[12u].position = { x1, y2 };
+	m_vertices[13u].position = { x0, y1 };
+	m_vertices[14u].position = { x0, y2 };
+	m_vertices[15u].position = { x0, y3 };
+	m_vertices[16u].position = { x1, y2 };
+	m_vertices[17u].position = { x1, y3 };
+	m_vertices[18u].position = { x2, y2 };
+	m_vertices[19u].position = { x2, y3 };
+	m_vertices[20u].position = { x3, y2 };
+	m_vertices[21u].position = { x3, y3 };
 }
 
 void NinePatch::priv_updateVerticesTexCoords()
 {
 	const sf::Vector2f textureBottomRight{ m_trimmedSize };
 
-	// top row
-	m_vertices[0].texCoords = { 0.f, 0.f };
-	m_vertices[1].texCoords = { m_scaleTopLeft.x, 0.f };
-	m_vertices[2].texCoords = m_scaleTopLeft;
-	m_vertices[3].texCoords = { 0.f, m_scaleTopLeft.y };
+	const float x0{ 0.f };
+	const float x1{ m_scaleTopLeft.x };
+	const float x2{ m_scaleBottomRight.x };
+	const float x3{ textureBottomRight.x };
+	const float y0{ 0.f };
+	const float y1{ m_scaleTopLeft.y };
+	const float y2{ m_scaleBottomRight.y };
+	const float y3{ textureBottomRight.y };
 
-	m_vertices[4].texCoords = { m_scaleTopLeft.x, 0.f };
-	m_vertices[5].texCoords = { m_scaleBottomRight.x, 0.f };
-	m_vertices[6].texCoords = { m_scaleBottomRight.x, m_scaleTopLeft.y };
-	m_vertices[7].texCoords = m_scaleTopLeft;
-
-	m_vertices[8].texCoords = { m_scaleBottomRight.x, 0.f };
-	m_vertices[9].texCoords = { textureBottomRight.x, 0.f };
-	m_vertices[10].texCoords = { textureBottomRight.x, m_scaleTopLeft.y };
-	m_vertices[11].texCoords = { m_scaleBottomRight.x, m_scaleTopLeft.y };
-
-	// centre row
-	m_vertices[12].texCoords = { 0.f, m_scaleTopLeft.y };
-	m_vertices[13].texCoords = m_scaleTopLeft;
-	m_vertices[14].texCoords = { m_scaleTopLeft.x, m_scaleBottomRight.y };
-	m_vertices[15].texCoords = { 0.f, m_scaleBottomRight.y };
-
-	m_vertices[16].texCoords = m_scaleTopLeft;
-	m_vertices[17].texCoords = { m_scaleBottomRight.x, m_scaleTopLeft.y };
-	m_vertices[18].texCoords = m_scaleBottomRight;
-	m_vertices[19].texCoords = { m_scaleTopLeft.x, m_scaleBottomRight.y };
-
-	m_vertices[20].texCoords = { m_scaleBottomRight.x, m_scaleTopLeft.y };
-	m_vertices[21].texCoords = { textureBottomRight.x, m_scaleTopLeft.y };
-	m_vertices[22].texCoords = { textureBottomRight.x, m_scaleBottomRight.y };
-	m_vertices[23].texCoords = m_scaleBottomRight;
-
-	// bottom row
-	m_vertices[24].texCoords = { 0.f, m_scaleBottomRight.y };
-	m_vertices[25].texCoords = { m_scaleTopLeft.x, m_scaleBottomRight.y };
-	m_vertices[26].texCoords = { m_scaleTopLeft.x, textureBottomRight.y };
-	m_vertices[27].texCoords = { 0.f, textureBottomRight.y };
-
-	m_vertices[28].texCoords = { m_scaleTopLeft.x, m_scaleBottomRight.y };
-	m_vertices[29].texCoords = m_scaleBottomRight;
-	m_vertices[30].texCoords = { m_scaleBottomRight.x, textureBottomRight.y };
-	m_vertices[31].texCoords = { m_scaleTopLeft.x, textureBottomRight.y };
-
-	m_vertices[32].texCoords = m_scaleBottomRight;
-	m_vertices[33].texCoords = { textureBottomRight.x, m_scaleBottomRight.y };
-	m_vertices[34].texCoords = textureBottomRight;
-	m_vertices[35].texCoords = { m_scaleBottomRight.x, textureBottomRight.y };
+	m_vertices[0u].texCoords = { x0, y0 };
+	m_vertices[1u].texCoords = { x0, y1 };
+	m_vertices[2u].texCoords = { x1, y0 };
+	m_vertices[3u].texCoords = { x1, y1 };
+	m_vertices[4u].texCoords = { x2, y0 };
+	m_vertices[5u].texCoords = { x2, y1 };
+	m_vertices[6u].texCoords = { x3, y0 };
+	m_vertices[7u].texCoords = { x3, y1 };
+	m_vertices[8u].texCoords = { x3, y2 };
+	m_vertices[9u].texCoords = { x2, y1 };
+	m_vertices[10u].texCoords = { x2, y2 };
+	m_vertices[11u].texCoords = { x1, y1 };
+	m_vertices[12u].texCoords = { x1, y2 };
+	m_vertices[13u].texCoords = { x0, y1 };
+	m_vertices[14u].texCoords = { x0, y2 };
+	m_vertices[15u].texCoords = { x0, y3 };
+	m_vertices[16u].texCoords = { x1, y2 };
+	m_vertices[17u].texCoords = { x1, y3 };
+	m_vertices[18u].texCoords = { x2, y2 };
+	m_vertices[19u].texCoords = { x2, y3 };
+	m_vertices[20u].texCoords = { x3, y2 };
+	m_vertices[21u].texCoords = { x3, y3 };
 
 	// offset trim and texture rectangle
 	const sf::Vector2f textureRectangleOffset{ static_cast<float>(m_textureRectangle.left), static_cast<float>(m_textureRectangle.top) };
