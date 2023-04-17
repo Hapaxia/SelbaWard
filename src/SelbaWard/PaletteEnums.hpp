@@ -5,7 +5,7 @@
 //
 // Palette Enums
 //
-// Copyright(c) 2016-2022 M.J.Silk
+// Copyright(c) 2016-2023 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
