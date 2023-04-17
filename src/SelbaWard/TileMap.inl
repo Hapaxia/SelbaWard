@@ -390,7 +390,7 @@ void TileMap<T>::draw(sf::RenderTarget& target, sf::RenderStates states) const
 template <class T>
 void TileMap<T>::priv_updateVertices() const
 {
-	m_vertices.resize(m_gridSize.x * m_gridSize.y * 4);
+	m_vertices.resize(m_gridSize.x * m_gridSize.y * 6u);
 	if (m_gridSize.x == 0 || m_gridSize.y == 0)
 		return;
 
