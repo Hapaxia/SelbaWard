@@ -41,7 +41,7 @@
 namespace selbaward
 {
 
-// SW Line v1.2.2
+// SW Line v1.2.3
 class Line : public sf::Drawable, public sf::Transformable
 {
 public:
