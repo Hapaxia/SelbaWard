@@ -97,7 +97,7 @@ sf::FloatRect Line::getLocalBounds() const
 		float minX, maxX, minY, maxY;
 		minX = maxX = m_quad[0].position.x;
 		minY = maxY = m_quad[0].position.y;
-		for (unsigned int v{ 1u }; v < 6u; ++v)
+		for (unsigned int v{ 1u }; v < 4u; ++v)
 		{
 			minX = std::min(minX, m_quad[v].position.x);
 			maxX = std::max(maxX, m_quad[v].position.x);
@@ -129,7 +129,7 @@ sf::FloatRect Line::getGlobalBounds() const
 		float minX, maxX, minY, maxY;
 		minX = maxX = transformedPosition0.x;
 		minY = maxY = transformedPosition0.y;
-		for (unsigned int v{ 1u }; v < 6u; ++v)
+		for (unsigned int v{ 1u }; v < 4u; ++v)
 		{
 			const sf::Vector2f transformedPosition{ transform.transformPoint(m_quad[v].position) };
 			minX = std::min(minX, transformedPosition.x);
@@ -177,8 +177,6 @@ void Line::setColor(const sf::Color& color)
 	m_quad[1u].color = color;
 	m_quad[2u].color = color;
 	m_quad[3u].color = color;
-	m_quad[4u].color = color;
-	m_quad[5u].color = color;
 }
 
 void Line::setTexture(const sf::Texture& texture)
