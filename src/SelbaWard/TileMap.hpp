@@ -40,6 +40,7 @@
 #include <cmath>
 
 #include <SFML/Graphics/RenderTexture.hpp>
+#include <SFML/Graphics/Transformable.hpp>
 
 namespace selbaward
 {
@@ -120,8 +121,8 @@ private:
 		Deque,
 		Raw
 	} m_levelContainerType;
-	unsigned long int m_levelWidth;
-	unsigned long int m_levelSize;
+	std::size_t m_levelWidth;
+	std::size_t m_levelSize;
 	const void* m_pLevel;
 
 	// data
@@ -150,7 +151,7 @@ private:
 	mutable sf::RenderTexture m_renderTexture;
 	mutable std::vector<sf::Vertex> m_render;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
 	void priv_updateVertices() const;
 	void priv_updateRender() const;
 	void priv_recreateRenderTexture();

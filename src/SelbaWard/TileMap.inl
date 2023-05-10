@@ -76,14 +76,14 @@ void TileMap<T>::update()
 
 	const sf::Vector2f actualCamera{ priv_getActualCamera() };
 	const sf::Vector2i levelOffset{ static_cast<int>(std::floor(actualCamera.x)), static_cast<int>(std::floor(actualCamera.y)) };
-	const unsigned int height{ m_levelWidth > 0u ? m_levelSize / m_levelWidth : 0u };
+	const std::size_t height{ m_levelWidth > 0u ? m_levelSize / m_levelWidth : 0u };
 
-	for (unsigned int y{ 0 }; y < m_gridSize.y; ++y)
+	for (std::size_t y{ 0 }; y < m_gridSize.y; ++y)
 	{
-		for (unsigned int x{ 0 }; x < m_gridSize.x; ++x)
+		for (std::size_t x{ 0 }; x < m_gridSize.x; ++x)
 		{
-			const unsigned int gridIndex{ y * m_gridSize.x + x };
-			const unsigned int levelIndex{ (levelOffset.y + y) * m_levelWidth + levelOffset.x + x };
+			const std::size_t gridIndex{ y * m_gridSize.x + x };
+			const std::size_t levelIndex{ (levelOffset.y + y) * m_levelWidth + levelOffset.x + x };
 			if (levelOffset.x + x >= 0 && levelOffset.x + x < m_levelWidth &&
 				levelOffset.y + y >= 0 && levelOffset.y + y < height)
 			{
@@ -372,7 +372,7 @@ void TileMap<T>::redraw()
 // PRIVATE
 
 template <class T>
-void TileMap<T>::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void TileMap<T>::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
 	if (m_redrawRequired)
 	{
@@ -381,6 +381,7 @@ void TileMap<T>::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		m_redrawRequired = false;
 	}
 
+	sf::RenderStates states{ inStates };
 	states.texture = &m_renderTexture.getTexture();
 	states.transform = getTransform();
 
@@ -473,10 +474,11 @@ void TileMap<T>::priv_updateRender() const
 template <class T>
 void TileMap<T>::priv_recreateRenderTexture()
 {
+	bool createSucceeded{ false };
 	if (m_gridSize.x < 2 || m_gridSize.y < 2)
-		m_renderTexture.create(1, 1);
+		createSucceeded = m_renderTexture.create({ 1u, 1u });
 	else
-		m_renderTexture.create((m_gridSize.x - 1) * m_textureTileSize.x, (m_gridSize.y - 1) * m_textureTileSize.y);
+		createSucceeded = m_renderTexture.create({ (m_gridSize.x - 1) * m_textureTileSize.x, (m_gridSize.y - 1) * m_textureTileSize.y });
 
 	m_redrawRequired = true;
 }

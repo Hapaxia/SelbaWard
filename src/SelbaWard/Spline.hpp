@@ -204,7 +204,7 @@ private:
 	std::size_t m_roundedThickStartCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
 	std::size_t m_roundedThickEndCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
 	float m_maxPointLength; // maximum length of point when limited or clipped. ignored when using other corner types including Point.
-	const bool m_automaticallyUpdateRandomNormalOffset;
+	bool m_automaticallyUpdateRandomNormalOffset;
 
 	std::vector<Vertex> m_vertices;
 	sf::Color m_color;
@@ -223,7 +223,7 @@ private:
 	bool m_lockHandleMirror;
 	bool m_lockHandleAngle;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
 	bool priv_isValidVertexIndex(std::size_t vertexIndex) const;
 	bool priv_testVertexIndex(std::size_t vertexIndex, const std::string& exceptionMessage) const;
 	bool priv_isThick() const;

@@ -205,8 +205,9 @@ float Ring::getSectorOffset() const
 
 // PRIVATE
 
-void Ring::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void Ring::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	states.texture = m_texture;
 	states.transform *= getTransform();
 

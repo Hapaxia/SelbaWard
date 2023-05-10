@@ -138,8 +138,9 @@ sf::FloatRect PieChart::getGlobalBounds() const
 
 // PRIVATE
 
-void PieChart::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void PieChart::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	states.transform *= getTransform();
 
 	if (m_vertices.size() > 0)

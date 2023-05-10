@@ -75,7 +75,7 @@ public:
 	void setDepth(float depth);
 
 private:
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
 	sf::VertexArray m_vertices;
 	const sf::Texture* m_pTexture;
 	sf::FloatRect m_initial;

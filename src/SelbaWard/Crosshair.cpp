@@ -138,7 +138,7 @@ sf::Vector2f Crosshair::getPosition() const
 
 // PRIVATE
 
-void Crosshair::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void Crosshair::draw(sf::RenderTarget& target, const sf::RenderStates& states) const
 {
 	if (updateVertices(m_vertices, m_window, m_horizontalColor, m_verticalColor))
 		target.draw(m_vertices, states);

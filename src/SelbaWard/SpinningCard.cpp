@@ -129,8 +129,9 @@ void SpinningCard::setDepth(float depth)
 	m_depth = depth;
 }
 
-void SpinningCard::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void SpinningCard::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	states.transform *= getTransform();
 	states.texture = m_pTexture;
 	target.draw(m_vertices, states);

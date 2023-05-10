@@ -66,14 +66,14 @@ public:
 	// manual shifting/scrolling
 	void shiftLeft(unsigned int amount = 1u, unsigned int startIndex = 0u, unsigned int numberOfPixels = 0u);
 	void shiftRight(unsigned int amount = 1u, unsigned int startIndex = 0u, unsigned int numberOfPixels = 0u);
-	void scrollUp(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { 0, 0, 0, 0 });
-	void scrollDown(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { 0, 0, 0, 0 });
-	void scrollLeft(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { 0, 0, 0, 0 });
-	void scrollRight(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { 0, 0, 0, 0 });
-	void scrollWrapUp(unsigned int amount = 1u, sf::IntRect selectionRectangle = { 0, 0, 0, 0 });
-	void scrollWrapDown(unsigned int amount = 1u, sf::IntRect selectionRectangle = { 0, 0, 0, 0 });
-	void scrollWrapLeft(unsigned int amount = 1u, sf::IntRect selectionRectangle = { 0, 0, 0, 0 });
-	void scrollWrapRight(unsigned int amount = 1u, sf::IntRect selectionRectangle = { 0, 0, 0, 0 });
+	void scrollUp(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollDown(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollLeft(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollRight(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollWrapUp(unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollWrapDown(unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollWrapLeft(unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollWrapRight(unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
 
 	// palette
 	void setPalette(const std::vector<sf::Color>& palette);
@@ -117,7 +117,7 @@ private:
 	};
 	std::vector<Buffer> m_buffers;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
 	void priv_updateVertices();
 	void priv_updatePixels();
 	void priv_updatePixel(const unsigned int index);

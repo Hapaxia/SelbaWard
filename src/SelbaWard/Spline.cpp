@@ -180,11 +180,7 @@ Spline::Spline(const std::size_t vertexCount, const sf::Vector2f initialPosition
 	, m_interpolatedVertices()
 	, m_interpolatedVerticesUnitTangents()
 	, m_outputVertices()
-#ifdef USE_SFML_PRE_2_4
-	, m_primitiveType(sf::PrimitiveType::LinesStrip)
-#else // USE_SFML_PRE_2_4
 	, m_primitiveType(sf::PrimitiveType::LineStrip)
-#endif // USE_SFML_PRE_2_4
 	, m_interpolationSteps{ 0u }
 	, m_useBezier{ false }
 	, m_handlesVertices()
@@ -841,8 +837,9 @@ float Spline::getInterpolatedPositionThicknessCorrectionScale(const std::size_t 
 
 // PRIVATE
 
-void Spline::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void Spline::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	states.texture = nullptr;
 	if (m_outputVertices.size() > 0)
 		target.draw(m_outputVertices.data(), m_outputVertices.size(), (priv_isThick() ? thickPrimitiveType : m_primitiveType), states);

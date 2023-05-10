@@ -58,7 +58,7 @@ private:
 	sf::Vector2f m_size;
 	sf::Color m_color;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
 };
 
 } // namespace selbaward

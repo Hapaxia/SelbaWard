@@ -96,12 +96,12 @@ void BitmapText::setScale(unsigned int scale)
 
 void BitmapText::setScale(sf::Vector2u scale)
 {
-	setScale(scale.x, scale.y);
+	this->Transformable::setScale(sf::Vector2f(scale));
 }
 
 void BitmapText::setScale(unsigned int scaleX, unsigned int scaleY)
 {
-	this->Transformable::setScale(static_cast<float>(scaleX), static_cast<float>(scaleY));
+	setScale({ scaleX, scaleY });
 }
 
 sf::FloatRect BitmapText::getGlobalBounds() const
@@ -118,11 +118,12 @@ sf::FloatRect BitmapText::getLocalBounds() const
 
 // PRIVATE
 
-void BitmapText::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void BitmapText::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
 	if (m_vertices.getVertexCount() == 0)
 		return;
 
+	sf::RenderStates states{ inStates };
 	states.transform *= getTransform();
 	states.texture = m_pBitmapFont->getTexture();
 	target.draw(m_vertices, states);
@@ -133,7 +134,7 @@ void BitmapText::priv_updateVertices()
 	if (m_pBitmapFont == nullptr)
 	{
 		m_vertices.clear();
-		m_bounds = { 0.f, 0.f, 0.f, 0.f };
+		m_bounds = { { 0.f, 0.f }, { 0.f, 0.f } };
 	}
 
 	m_vertices.resize(m_string.length() * 6u);

@@ -211,8 +211,9 @@ sf::FloatRect Line::getTextureRect() const
 
 // PRIVATE
 
-void Line::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void Line::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	states.transform *= getTransform();
 	states.texture = nullptr;
 	if (isThick())

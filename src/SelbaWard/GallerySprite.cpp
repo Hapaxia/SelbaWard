@@ -247,8 +247,9 @@ void GallerySprite::operator-=(const unsigned int exhibits)
 
 // PRIVATE
 
-void GallerySprite::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void GallerySprite::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	states.texture = m_pTexture;
 	states.transform *= getTransform();
 	target.draw(&m_vertices.front(), numberOfVertices, primitiveType, states);
@@ -282,7 +283,7 @@ GallerySprite::Exhibit GallerySprite::priv_getExhibit(unsigned int exhibitNumber
 		return Exhibit();
 
 	if (exhibitNumber == 0u)
-		return{ { 0.f, 0.f, static_cast<float>(m_pTexture->getSize().x), static_cast<float>(m_pTexture->getSize().y) }, { 0.f, 0.f } };
+		return{ { { 0.f, 0.f }, { static_cast<float>(m_pTexture->getSize().x), static_cast<float>(m_pTexture->getSize().y) } }, { 0.f, 0.f } };
 
 	return m_exhibits[exhibitNumber - 1];
 }

@@ -106,7 +106,7 @@ private:
 	sf::IntRect m_textureRectangle;
 	sf::IntRect m_backgroundTextureRectangle;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
 	void priv_updateGraphics();
 };
 

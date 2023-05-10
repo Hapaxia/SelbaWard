@@ -135,9 +135,9 @@ inline sf::Color encodeFloatAsColor(const float f)
 {
 	return
 	{
-		static_cast<sf::Uint8>(static_cast<unsigned int>(f / 256) & 0xFF),
-		static_cast<sf::Uint8>(static_cast<unsigned int>(f) & 0xFF),
-		static_cast<sf::Uint8>(static_cast<unsigned int>(f * 256) & 0xFF),
+		static_cast<uint8_t>(static_cast<unsigned int>(f / 256) & 0xFF),
+		static_cast<uint8_t>(static_cast<unsigned int>(f) & 0xFF),
+		static_cast<uint8_t>(static_cast<unsigned int>(f * 256) & 0xFF),
 		0u
 	};
 }
@@ -305,7 +305,7 @@ sf::Color ElasticSprite::getColor() const
 	const unsigned int totalG{ static_cast<unsigned int>(m_vertices[0].color.g) + m_vertices[1].color.g + m_vertices[2].color.g + m_vertices[3].color.g };
 	const unsigned int totalB{ static_cast<unsigned int>(m_vertices[0].color.b) + m_vertices[1].color.b + m_vertices[2].color.b + m_vertices[3].color.b };
 	const unsigned int totalA{ static_cast<unsigned int>(m_vertices[0].color.a) + m_vertices[1].color.a + m_vertices[2].color.a + m_vertices[3].color.a };
-	return{ static_cast<sf::Uint8>(totalR / 4), static_cast<sf::Uint8>(totalG / 4), static_cast<sf::Uint8>(totalB / 4), static_cast<sf::Uint8>(totalA / 4) };
+	return{ static_cast<uint8_t>(totalR / 4), static_cast<uint8_t>(totalG / 4), static_cast<uint8_t>(totalB / 4), static_cast<uint8_t>(totalA / 4) };
 }
 
 sf::Color ElasticSprite::getVertexColor(const unsigned int vertexIndex) const
@@ -413,8 +413,9 @@ sf::FloatRect ElasticSprite::getBaseGlobalBounds() const
 
 // PRIVATE
 
-void ElasticSprite::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void ElasticSprite::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	if (m_requiresVerticesUpdate)
 		priv_updateVertices(states.transform);
 	states.transform = sf::Transform::Identity;

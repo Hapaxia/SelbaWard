@@ -35,8 +35,10 @@
 
 #include "Common.hpp"
 
+#include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/Graphics/Color.hpp>
 
 namespace selbaward
 {
@@ -64,7 +66,7 @@ private:
 	sf::Color m_verticalColor;
 	mutable sf::VertexArray m_vertices;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
 };
 
 } // namespace selbaward

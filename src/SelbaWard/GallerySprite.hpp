@@ -48,7 +48,7 @@ public:
 		sf::FloatRect rectangle;
 		sf::Vector2f anchor;
 
-		Exhibit(const sf::FloatRect& newRectangle = { 0.f, 0.f, 0.f, 0.f }, const sf::Vector2f& newAnchor = { 0u, 0u }) : rectangle(newRectangle), anchor(newAnchor) { }
+		Exhibit(const sf::FloatRect& newRectangle = { { 0.f, 0.f }, { 0.f, 0.f } }, const sf::Vector2f& newAnchor = { 0u, 0u }) : rectangle(newRectangle), anchor(newAnchor) { }
 	};
 
 	GallerySprite();
@@ -94,7 +94,7 @@ private:
 	unsigned int m_currentExhibit;
 	std::vector<Exhibit> m_exhibits;
 
-	virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
+	virtual void draw(sf::RenderTarget&, const sf::RenderStates&) const;
 	void priv_updateVertices();
 	Exhibit priv_getCurrentExhibit() const;
 	Exhibit priv_getExhibit(unsigned int exhibitNumber) const;

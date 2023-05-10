@@ -92,7 +92,7 @@ private:
 
 	const bool m_throwExceptions;
 
-	virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
+	virtual void draw(sf::RenderTarget&, const sf::RenderStates&) const;
 	void priv_update();
 	void priv_updateOutputVertices();
 	void priv_triangulate();

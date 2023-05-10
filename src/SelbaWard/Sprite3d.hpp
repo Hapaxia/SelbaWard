@@ -181,7 +181,7 @@ private:
 
 	void createPointGrid() const; // needs to be const to allow dynamic subdivision
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
 	void updateTransformedPoints() const;
 	void updateVertices() const;
 	void updateGlobalCorners() const;

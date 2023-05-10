@@ -147,7 +147,7 @@ Sprite3d::Sprite3d(const sf::Sprite& sprite)
 	this->setColor(sprite.getColor());
 	this->setOrigin(sprite.getOrigin());
 	this->setPosition(sprite.getPosition());
-	this->setRotation(sprite.getRotation());
+	this->setRotation(sprite.getRotation().asDegrees());
 	this->setScale(sprite.getScale());
 }
 
@@ -263,12 +263,12 @@ float Sprite3d::getYaw() const
 
 float Sprite3d::getRoll() const
 {
-	return this->getRotation();
+	return this->getRotation().asDegrees();
 }
 
 sf::Vector3f Sprite3d::getRotation3d() const
 {
-	return{ m_pitch, m_yaw, this->Transformable::getRotation() };
+	return{ m_pitch, m_yaw, this->Transformable::getRotation().asDegrees()};
 }
 
 sf::Vector3f Sprite3d::getOrigin3d() const
@@ -297,7 +297,7 @@ void Sprite3d::setYaw(const float yaw)
 
 void Sprite3d::setRoll(const float roll)
 {
-	this->Transformable::setRotation(roll);
+	this->Transformable::setRotation(sf::degrees(roll));
 }
 
 void Sprite3d::setRotation(const float rotation)
@@ -473,8 +473,9 @@ float Sprite3d::getDepth() const
 	return m_depth;
 }
 
-void Sprite3d::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void Sprite3d::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	if (m_pTexture != nullptr)
 	{
 		updateTransformedPoints();

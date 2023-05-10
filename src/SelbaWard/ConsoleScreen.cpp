@@ -93,7 +93,7 @@ inline sf::Color sepiaColor(const float alpha)
 	const unsigned int r{ static_cast<unsigned int>(linearInterpolation(0.f, 344.505f, alpha)) };
 	const unsigned int g{ static_cast<unsigned int>(linearInterpolation(0.f, 306.765f, alpha)) };
 	const unsigned int b{ static_cast<unsigned int>(linearInterpolation(0.f, 238.935f, alpha)) };
-	return sf::Color((r > 255 ? 255u : static_cast<sf::Uint8>(r)), (g > 255 ? 255u : static_cast<sf::Uint8>(g)), (b > 255 ? 255u : static_cast<sf::Uint8>(b)));
+	return sf::Color((r > 255 ? 255u : static_cast<uint8_t>(r)), (g > 255 ? 255u : static_cast<uint8_t>(g)), (b > 255 ? 255u : static_cast<uint8_t>(b)));
 }
 
 inline float relativeLuminance(const sf::Color& color)
@@ -170,21 +170,21 @@ void addPalette8ColorRgb(std::vector<sf::Color>& palette)
 
 void addPalette16ColorGreenscale(std::vector<sf::Color>& palette)
 {
-	for (sf::Uint8 i{ 0u }; i < 16u; ++i)
-		addColorToPalette(palette, sf::Color(0, i * 17u, 0));
+	for (uint8_t i{ 0u }; i < 16u; ++i)
+		addColorToPalette(palette, sf::Color(0u, i * 17u, 0u));
 }
 
 void addPalette16ColorGrayscale(std::vector<sf::Color>& palette)
 {
-	for (sf::Uint8 i{ 0u }; i < 16u; ++i)
+	for (uint8_t i{ 0u }; i < 16u; ++i)
 		addColorToPalette(palette, sf::Color(i * 17u, i * 17u, i * 17u));
 }
 
 void addPalette16ColorSepia(std::vector<sf::Color>& palette)
 {
-	const unsigned int numberOfColors{ 16 };
-	for (unsigned int i{ 0 }; i < numberOfColors; ++i)
-		addColorToPalette(palette, sepiaColor(static_cast<float>(i) / (numberOfColors - 1)));
+	constexpr unsigned int numberOfColors{ 16u };
+	for (unsigned int i{ 0u }; i < numberOfColors; ++i)
+		addColorToPalette(palette, sepiaColor(static_cast<float>(i) / (numberOfColors - 1u)));
 }
 
 void addPalette16ColorCga(std::vector<sf::Color>& palette)
@@ -294,11 +294,11 @@ void addPalette16Color16Html(std::vector<sf::Color>& palette)
 
 void addPalette216ColorWebSafe(std::vector<sf::Color>& palette)
 {
-	for (sf::Uint8 r{ 0u }; r < 6; ++r)
+	for (uint8_t r{ 0u }; r < 6; ++r)
 	{
-		for (sf::Uint8 g{ 0u }; g < 6; ++g)
+		for (uint8_t g{ 0u }; g < 6; ++g)
 		{
-			for (sf::Uint8 b{ 0u }; b < 6; ++b)
+			for (uint8_t b{ 0u }; b < 6; ++b)
 				addColorToPalette(palette, sf::Color(r * 51u, g * 51u, b * 51u));
 		}
 	}
@@ -306,21 +306,21 @@ void addPalette216ColorWebSafe(std::vector<sf::Color>& palette)
 
 void addPalette256ColorGreenscale(std::vector<sf::Color>& palette)
 {
-	for (unsigned int i{ 0u }; i < 256; ++i)
-		addColorToPalette(palette, sf::Color(0, static_cast<sf::Uint8>(i), 0));
+	for (unsigned int i{ 0u }; i < 256u; ++i)
+		addColorToPalette(palette, sf::Color(0, static_cast<uint8_t>(i), 0));
 }
 
 void addPalette256ColorGrayscale(std::vector<sf::Color>& palette)
 {
-	for (unsigned int i{ 0 }; i < 256; ++i)
-		addColorToPalette(palette, sf::Color(static_cast<sf::Uint8>(i), static_cast<sf::Uint8>(i), static_cast<sf::Uint8>(i)));
+	for (unsigned int i{ 0u }; i < 256u; ++i)
+		addColorToPalette(palette, sf::Color(static_cast<uint8_t>(i), static_cast<uint8_t>(i), static_cast<uint8_t>(i)));
 }
 
 void addPalette256ColorSepia(std::vector<sf::Color>& palette)
 {
-	const unsigned int numberOfColors{ 256 };
-	for (unsigned int i{ 0 }; i < numberOfColors; ++i)
-		addColorToPalette(palette, sepiaColor(static_cast<float>(i) / (numberOfColors - 1)));
+	constexpr unsigned int numberOfColors{ 256u };
+	for (unsigned int i{ 0u }; i < numberOfColors; ++i)
+		addColorToPalette(palette, sepiaColor(static_cast<float>(i) / (numberOfColors - 1u)));
 }
 
 } // namespace
@@ -1935,7 +1935,7 @@ sf::Color ConsoleScreen::getPaletteColor(const Color color) const
 		return sf::Color::Transparent;
 	}
 
-	return m_is.rgbMode ? sf::Color(static_cast<sf::Uint8>(color.id / 65536), static_cast<sf::Uint8>((color.id % 65536) / 256), static_cast<sf::Uint8>(color.id % 256)) : m_palette[color.id];
+	return m_is.rgbMode ? sf::Color(static_cast<uint8_t>(color.id / 65536), static_cast<uint8_t>((color.id % 65536) / 256), static_cast<uint8_t>(color.id % 256)) : m_palette[color.id];
 }
 
 void ConsoleScreen::setPaletteSize(const unsigned long int size)
@@ -2405,8 +2405,9 @@ ConsoleScreen::Cell& ConsoleScreen::bufferCell(const unsigned int bufferIndex, c
 
 // PRIVATE
 
-void ConsoleScreen::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void ConsoleScreen::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	states.transform *= getTransform();
 
 	if (m_do.showBackround && m_backgroundDisplay.size() > 0)
@@ -3014,9 +3015,9 @@ void ConsoleScreen::priv_modifyCellUsingPrintProperties(const unsigned int index
 
 void ConsoleScreen::priv_makeColorDark(sf::Color& color)
 {
-	color.r = static_cast<sf::Uint8>(m_darkAttributeMultiplier * color.r);
-	color.g = static_cast<sf::Uint8>(m_darkAttributeMultiplier * color.g);
-	color.b = static_cast<sf::Uint8>(m_darkAttributeMultiplier * color.b);
+	color.r = static_cast<uint8_t>(m_darkAttributeMultiplier * color.r);
+	color.g = static_cast<uint8_t>(m_darkAttributeMultiplier * color.g);
+	color.b = static_cast<uint8_t>(m_darkAttributeMultiplier * color.b);
 }
 
 } // namespace selbaward

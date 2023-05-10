@@ -74,7 +74,7 @@ private:
 	const sf::Texture* m_texture;
 	sf::IntRect m_textureRect;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
 	void priv_updateVertices();
 };
 

@@ -531,7 +531,7 @@ private:
 	sf::Vector2u m_tileSize;
 	unsigned int m_numberOfTilesPerRow;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
 	void priv_setVerticesFromCell(unsigned int index, int baseVertex = -1, bool overLayer = true);
 	void priv_updateCell(unsigned int index);
 	void priv_updateUnderCells();

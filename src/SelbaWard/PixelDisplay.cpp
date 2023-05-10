@@ -521,8 +521,9 @@ sf::Vector2u PixelDisplay::getSizeOfBuffer(const unsigned int index) const
 
 // PRIVATE
 
-void PixelDisplay::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void PixelDisplay::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	states.texture = nullptr;
 	states.transform *= getTransform();
 	target.draw(m_vertices.data(), m_vertices.size(), sf::PrimitiveType::Triangles, states);

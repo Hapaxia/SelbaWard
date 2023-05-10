@@ -170,12 +170,13 @@ std::vector<sf::Vector2f> Polygon::exportTriangulatedPositions() const
 
 // PRIVATE
 
-void Polygon::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void Polygon::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	states.texture = nullptr;
 	states.transform *= getTransform();
 	if (m_outputVertices.size() > 0)
-		target.draw(m_outputVertices.data(), m_outputVertices.size(), sf::Triangles, states);
+		target.draw(m_outputVertices.data(), m_outputVertices.size(), sf::PrimitiveType::Triangles, states);
 }
 
 void Polygon::priv_update()

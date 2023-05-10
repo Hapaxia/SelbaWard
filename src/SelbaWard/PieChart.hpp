@@ -67,7 +67,7 @@ private:
 	std::vector<sf::Vertex> m_vertices;
 	sf::Vector2f m_size;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
 };
 
 inline void PieChart::setSize(sf::Vector2f size)

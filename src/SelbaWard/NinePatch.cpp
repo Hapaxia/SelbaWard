@@ -32,6 +32,8 @@
 
 #include "NinePatch.hpp"
 
+#include <SFML/Graphics/Image.hpp>
+
 namespace
 {
 
@@ -49,7 +51,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 	{
 		if (!foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + x, textureRectangle.top) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.left + x, textureRectangle.top)) == sf::Color::Black)
 			{
 				foundStart = true;
 				topLeft.x = x - 1.f;
@@ -59,7 +61,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 		}
 		if (foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + x, textureRectangle.top) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.left + x, textureRectangle.top)) == sf::Color::Black)
 				bottomRight.x = x - 1.f;
 			else
 				break;
@@ -71,7 +73,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 	{
 		if (!foundStart)
 		{
-			if (image.getPixel(textureRectangle.left, textureRectangle.top + y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.left, textureRectangle.top + y)) == sf::Color::Black)
 			{
 				foundStart = true;
 				topLeft.y = y - 1.f;
@@ -81,7 +83,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 		}
 		if (foundStart)
 		{
-			if (image.getPixel(textureRectangle.left, textureRectangle.top + y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.left, textureRectangle.top + y)) == sf::Color::Black)
 				bottomRight.y = y - 1.f;
 			else
 				break;
@@ -98,7 +100,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 	{
 		if (!foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + x, textureRectangle.top + textureBottomRightPixel.y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.left + x, textureRectangle.top + textureBottomRightPixel.y)) == sf::Color::Black)
 			{
 				foundStart = true;
 				contentTopLeft.x = x - 1.f;
@@ -108,7 +110,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 		}
 		if (foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + x, textureRectangle.top + textureBottomRightPixel.y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.left + x, textureRectangle.top + textureBottomRightPixel.y)) == sf::Color::Black)
 				contentBottomRight.x = x - 1.f;
 			else
 				break;
@@ -120,7 +122,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 	{
 		if (!foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + textureBottomRightPixel.x, textureRectangle.top + y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.left + textureBottomRightPixel.x, textureRectangle.top + y)) == sf::Color::Black)
 			{
 				foundStart = true;
 				contentTopLeft.y = y - 1.f;
@@ -130,7 +132,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 		}
 		if (foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + textureBottomRightPixel.x, textureRectangle.top + y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.left + textureBottomRightPixel.x, textureRectangle.top + y)) == sf::Color::Black)
 				contentBottomRight.y = y - 1.f;
 			else
 				break;
@@ -153,7 +155,7 @@ NinePatch::NinePatch()
 	, m_scaleBottomRight({ 0.f, 0.f })
 	, m_contentTopLeft({ 0.f, 0.f })
 	, m_contentBottomRight({ 0.f, 0.f })
-	, m_textureRectangle({ 0, 0, 3, 3 })
+	, m_textureRectangle({ { 0, 0 }, { 3, 3 } })
 {
 }
 
@@ -240,8 +242,9 @@ bool NinePatch::isPointInsideTransformedContentArea(const sf::Vector2f point) co
 
 // PRIVATE
 
-void NinePatch::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void NinePatch::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
 {
+	sf::RenderStates states{ inStates };
 	states.texture = m_texture;
 	states.transform *= getTransform();
 	target.draw(m_vertices.data(), 22u, m_primitiveType, states);
