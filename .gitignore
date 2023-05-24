@@ -27,6 +27,7 @@ backup/
 backup_*/
 test/
 test_*/
+test-*/
 temp/
 temp_*/
 temp_storage/
