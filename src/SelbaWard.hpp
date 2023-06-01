@@ -47,6 +47,7 @@
 #include "SelbaWard/Spline.hpp"
 #include "SelbaWard/Sprite3d.hpp"
 #include "SelbaWard/Starfield.hpp"
+#include "SelbaWard/Starfield3d.hpp"
 #include "SelbaWard/TileMap.hpp"
 
 #endif // SELBAWARD_HPP
