@@ -40,11 +40,11 @@
 namespace selbaward
 {
 
-// SW Starfield3d v1.0.0
+// SW Starfield3d v1.0.1
 class Starfield3d : public sf::Drawable, public sf::Transformable
 {
 public:
-	Starfield3d(sf::Vector2f size = { 0.f, 0.f }, std::size_t numberOfStars = 400u, float maxDepth = 1000000.f, const sf::Color& frontColor = sf::Color(255u, 255u, 255u, 255u), const sf::Color& backColor = sf::Color(0u, 0u, 0u, 255u), float frontScale = 0.f, float backScale = 0.f);
+	Starfield3d(sf::Vector2f size = { 0.f, 0.f }, std::size_t numberOfStars = 400u, float maxDepth = 1000000.f, const sf::Color& frontColor = sf::Color(255u, 255u, 255u, 255u), const sf::Color& backColor = sf::Color(0u, 0u, 0u, 255u), float frontScale = 1.f, float backScale = 0.f);
 	void regenerate();
 	void regenerate(sf::Vector2f size);
 	void regenerate(sf::Vector2f size, std::size_t numberOfStars);
