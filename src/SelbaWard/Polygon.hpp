@@ -39,13 +39,14 @@
 namespace selbaward
 {
 
-// SW Polygon v1.1.1
+// SW Polygon v1.2
 class Polygon : public sf::Drawable, public sf::Transformable
 {
 public:
 	enum class TriangulationMethod
 	{
 		BasicEarClip,
+		EarClip,
 	};
 	enum class MeshRefinementMethod
 	{
@@ -76,6 +77,14 @@ public:
 	void importVertexPositions(const std::vector<sf::Vector2f>& position);
 	std::vector<sf::Vector2f> exportTriangulatedPositions() const;
 
+	// holes must not overlap and must be specified in opposite direction to outer polygon
+	void addHoleStartIndex(std::size_t index);
+	void clearHoleStartIndices();
+	void setHoleStartIndices(const std::vector<std::size_t>& indices);
+
+
+
+
 
 
 
@@ -85,6 +94,7 @@ private:
 	std::vector<sf::Vertex> m_vertices;
 	std::vector<TriangleIndices> m_triangles;
 	std::vector<sf::Vertex> m_outputVertices;
+	std::vector<std::size_t> m_holeStartIndices;
 	sf::Color m_color;
 
 	TriangulationMethod m_triangulationMethod;
@@ -96,6 +106,7 @@ private:
 	void priv_update();
 	void priv_updateOutputVertices();
 	void priv_triangulate();
+	void priv_triangulateEarClip();
 	void priv_triangulateBasicEarClip();
 	bool priv_isValidVertexIndex(std::size_t vertexIndex) const;
 	bool priv_testVertexIndex(std::size_t vertexIndex, const std::string& exceptionMessage) const;

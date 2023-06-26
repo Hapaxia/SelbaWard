@@ -34,6 +34,7 @@
 
 #include <assert.h>
 #include <functional>
+#include <algorithm>
 
 namespace
 {
@@ -54,6 +55,16 @@ inline bool pointIsInsideTriangle(const std::vector<sf::Vector2f>& points, sf::V
 	return a >= 0.f && a <= 1.f && b >= 0.f && b <= 1.f && c >= 0.f && c <= 1.f;
 }
 
+inline float crossProduct(const sf::Vector2f& a, const sf::Vector2f& b)
+{
+	return (a.x * b.y) - (a.y * b.x);
+}
+
+inline float lengthSquared(const sf::Vector2f& a)
+{
+	return (a.x * a.x) + (a.y * a.y);
+}
+
 } // namespace
 
 namespace selbaward
@@ -62,6 +73,7 @@ namespace selbaward
 Polygon::Polygon()
 	: m_outputVertices()
 	, m_vertices()
+	, m_holeStartIndices()
 	, m_color{ sf::Color::White }
 	, m_triangulationMethod{ TriangulationMethod::BasicEarClip }
 	, m_meshRefinementMethod{ MeshRefinementMethod::None }
@@ -140,6 +152,21 @@ sf::Vector2f Polygon::getVertexPosition(const std::size_t index) const
 	return m_vertices[index].position;
 }
 
+void Polygon::addHoleStartIndex(const std::size_t index)
+{
+	m_holeStartIndices.push_back(index);
+}
+
+void Polygon::clearHoleStartIndices()
+{
+	m_holeStartIndices.clear();
+}
+
+void Polygon::setHoleStartIndices(const std::vector<std::size_t>& indices)
+{
+	m_holeStartIndices = indices;
+}
+
 void Polygon::reverseVertices()
 {
 	std::reverse(m_vertices.begin(), m_vertices.end());
@@ -208,6 +235,325 @@ void Polygon::priv_triangulate()
 	case TriangulationMethod::BasicEarClip:
 		priv_triangulateBasicEarClip();
 		break;
+	case TriangulationMethod::EarClip:
+		priv_triangulateEarClip();
+		break;
+	}
+}
+
+void Polygon::priv_triangulateEarClip()
+{
+	constexpr std::size_t stopAfterThisNumberOfTrianglesHaveBeenCreated{ 100u };
+
+	// ear clipping method
+	// polygon points must be anti-clockwise
+	// hole points must be clockwise
+	// number of triangles will always be (number of points - 2)
+
+	// vertexNumbers is the order of the vertices (can re-use vertices)
+	// this is a single stream of vertices creating the polygon (after the holes are added, this becomes a single polygon)
+	std::vector<std::size_t> vertexNumbers(m_vertices.size());
+	std::size_t vertexNumbersSize{ vertexNumbers.size() };
+	for (std::size_t i{ 0u }; i < vertexNumbersSize; ++i)
+		vertexNumbers[i] = i;
+
+	if (!m_holeStartIndices.empty())
+	{
+		std::sort(m_holeStartIndices.begin(), m_holeStartIndices.end());
+		vertexNumbersSize = m_holeStartIndices[0u];
+	}
+	const std::vector<std::size_t> holeVertexNumbers(vertexNumbers.begin() + vertexNumbersSize, vertexNumbers.end());
+	const std::size_t holeVertexNumbersSize{ holeVertexNumbers.size() };
+	vertexNumbers.erase(vertexNumbers.begin() + vertexNumbersSize, vertexNumbers.end());
+	// now, vertexNumbers is polygon vertex numbers (including any hole already cut in - later on) and holeVertexNumbers is the hole vertex numbers (all of them - no need to remove or rearrange this)
+
+	// indices is the list of indices of the vertex numbers in order
+	// each index is treated as a separate vertex, even if it's technically the same vertex as another (same vertex numbers)
+	std::vector<std::size_t> indices(vertexNumbersSize);
+	std::size_t indicesSize{ indices.size() };
+	for (std::size_t i{ 0u }; i < indicesSize; ++i)
+		indices[i] = i;
+
+	// points lists (to keep track of their state)
+	// note that these store indices - their numbers refer to which index to access: e.g. m_vertices[vertexNumbers[indices[reflex]]]
+	std::vector<std::size_t> reflex;
+	std::vector<std::size_t> convex;
+	std::vector<std::size_t> ear;
+
+	std::function<bool(std::size_t, std::size_t, std::size_t, std::size_t)> isEar =
+		[&](const std::size_t i, const std::size_t p, const std::size_t n, const std::size_t current)
+	{
+		bool aPointIsInside{ false };
+		for (std::size_t other{ 0u }; other < vertexNumbers.size(); ++other)
+		{
+			if ((vertexNumbers[other] == vertexNumbers[i]) || (vertexNumbers[other] == vertexNumbers[p]) || (vertexNumbers[other] == vertexNumbers[n]) || (vertexNumbers[other] == vertexNumbers[current]))
+				continue;
+
+			if (pointIsInsideTriangle({ m_vertices[vertexNumbers[p]].position, m_vertices[vertexNumbers[i]].position, m_vertices[vertexNumbers[n]].position }, m_vertices[vertexNumbers[other]].position))
+			{
+				aPointIsInside = true;
+				break;
+			}
+		}
+		return !aPointIsInside;
+	};
+
+	std::function<bool(std::size_t, std::size_t, std::size_t)> isEarAnalysis =
+		[&](const std::size_t i, const std::size_t p, const std::size_t n)
+	{
+		return isEar(i, p, n, i);
+	};
+
+	std::function<void(std::size_t, std::size_t, std::size_t, std::size_t)> retest =
+		[&](const std::size_t i, const std::size_t p, const std::size_t n, const std::size_t current)
+	{
+		std::vector<std::size_t>::iterator reflexIt{ std::find(reflex.begin(), reflex.end(), indices[i]) };
+		if (reflexIt != reflex.end())
+		{
+			// if reflex, re-test
+			const sf::Vector2f pLine{ m_vertices[vertexNumbers[indices[i]]].position - m_vertices[vertexNumbers[indices[p]]].position };
+			const sf::Vector2f nLine{ m_vertices[vertexNumbers[indices[n]]].position - m_vertices[vertexNumbers[indices[i]]].position };
+
+			if (isSecondVectorAntiClockwiseOfFirstVector(pLine, nLine))
+			{
+				reflex.erase(reflexIt);
+				convex.push_back(indices[i]);
+			}
+		}
+
+		std::vector<std::size_t>::iterator convexIt{ std::find(convex.begin(), convex.end(), indices[i]) };
+		if (convexIt != convex.end())
+		{
+			// if convex, re-test for ear only (must still be convex)
+			const bool isNowEar{ isEar(indices[i], indices[p], indices[n], indices[current]) };
+			const std::vector<std::size_t>::iterator it{ std::find(ear.begin(), ear.end(), indices[i]) };
+			if (isNowEar && (it == ear.end()))
+				ear.push_back(indices[i]);
+			else if (!isNowEar && (it != ear.end()))
+				ear.erase(it);
+		}
+	};
+
+	std::function<void()> analysePoints =
+		[&]()
+	{
+		for (std::size_t i{ 0u }; i < indicesSize; ++i)
+		{
+			const std::size_t prev{ (i > 0u) ? (i - 1u) : (indicesSize - 1u) };
+			const std::size_t next{ (i < (indicesSize - 1u)) ? (i + 1u) : 0u };
+
+			const sf::Vector2f prevLine{ m_vertices[vertexNumbers[indices[i]]].position - m_vertices[vertexNumbers[indices[prev]]].position };
+			const sf::Vector2f nextLine{ m_vertices[vertexNumbers[indices[next]]].position - m_vertices[vertexNumbers[indices[i]]].position };
+
+			if (!isSecondVectorAntiClockwiseOfFirstVector(prevLine, nextLine))
+				reflex.push_back(indices[i]);
+			else
+			{
+				convex.push_back(indices[i]);
+				if (isEarAnalysis(indices[i], indices[prev], indices[next]))
+					ear.push_back(indices[i]);
+			}
+		}
+	};
+
+	reflex.reserve(m_vertices.size() - 3u); // impossible for vertices to be reflex without enough convex (need at least 3 convex to make a polygon)
+	convex.reserve(m_vertices.size()); // any number (up to all) of the vertices may be convex although at least 3 are required
+	ear.reserve(m_vertices.size() - 2u); // with one ear per vertex, the final ear requires 3 vertices
+
+	analysePoints();
+
+	if (!m_holeStartIndices.empty())
+	{
+		struct Hole
+		{
+			std::size_t start;
+			std::size_t length;
+			float maxX;
+		};
+		std::vector<Hole> holeInfo(m_holeStartIndices.size());
+
+		for (std::size_t h{ 0u }; h < holeInfo.size(); ++h)
+		{
+			holeInfo[h].start = m_holeStartIndices[h] - vertexNumbersSize;
+			if (h < (holeInfo.size() - 1u))
+				holeInfo[h].length = m_holeStartIndices[h + 1u] - m_holeStartIndices[h];
+			else
+				holeInfo[h].length = holeVertexNumbersSize - (m_holeStartIndices[h] - vertexNumbersSize);
+			holeInfo[h].maxX = m_vertices[holeVertexNumbers[holeInfo[h].start]].position.x;
+			for (std::size_t v{ 1u }; v < holeInfo[h].length; ++v)
+				holeInfo[h].maxX = std::max(holeInfo[h].maxX, m_vertices[holeVertexNumbers[holeInfo[h].start + v]].position.x);
+		}
+		// sort order from the furthest right so that first hole is furthest right
+		std::sort(holeInfo.begin(), holeInfo.end(), [](const Hole& left, const Hole& right) { return left.maxX > right.maxX; });
+
+
+		float vertexMinX{ m_vertices[0u].position.x };
+		float vertexMaxX{ m_vertices[0u].position.x };
+		for (std::size_t v{ 1u }; v < m_vertices.size(); ++v)
+		{
+			vertexMinX = std::min(vertexMinX, m_vertices[v].position.x);
+			vertexMaxX = std::max(vertexMaxX, m_vertices[v].position.x);
+		}
+		const float maxWidth{ vertexMaxX - vertexMinX };
+
+		const sf::Vector2f rayVector{ 1.f, 0.f };
+
+		for (std::size_t h{ 0u }; h < holeInfo.size(); ++h)
+		{
+			const std::size_t holeStart{ holeInfo[h].start };
+			const std::size_t holeLength{ holeInfo[h].length };
+
+			// choose where the cut appears
+			std::size_t cutPolygonVertexNumber;
+			std::size_t cutHoleVertexNumber;
+			std::size_t cutHoleHoleIndex;
+
+
+
+			// hole vertex (the easy bit)
+			float furthestRight{ m_vertices[holeVertexNumbers[holeStart]].position.x };
+			for (std::size_t v{ 1u }; v < holeLength; ++v)
+			{
+				const float currentRight{ m_vertices[holeVertexNumbers[holeStart + v]].position.x };
+				if (currentRight > furthestRight)
+				{
+					furthestRight = currentRight;
+					cutHoleHoleIndex = holeStart + v;
+				}
+			}
+			cutHoleVertexNumber = holeVertexNumbers[cutHoleHoleIndex];
+
+
+
+			// polygon vertex (the hard bit)
+			const sf::Vector2f rayOrigin{ m_vertices[cutHoleVertexNumber].position };
+			sf::Vector2f pointOfIntersection{ 0.f, 0.f };
+
+			// find closest edge (to the right)
+			std::size_t candidateIndex{ 0u };
+			float distance{ maxWidth };
+			for (std::size_t v{ 0u }; v < vertexNumbersSize; ++v)
+			{
+				const std::size_t edgeStartIndex{ v };
+				const std::size_t edgeEndIndex{ (v < (vertexNumbersSize - 1u)) ? v + 1u : 0u };
+
+				const sf::Vector2f edgeStart{ m_vertices[vertexNumbers[edgeStartIndex]].position };
+				const sf::Vector2f edgeEnd{ m_vertices[vertexNumbers[edgeEndIndex]].position };
+				const sf::Vector2f edgeVector{ edgeEnd - edgeStart };
+
+				if (((edgeStart.x < rayOrigin.x) && (edgeEnd.x < rayOrigin.x)) || (edgeStart.y < rayOrigin.y) || (edgeEnd.y > rayOrigin.y))
+					continue;
+
+				// calculate distance (of intersection of edge)
+				const float d{ crossProduct((edgeStart - rayOrigin), edgeVector) / crossProduct(rayVector, edgeVector) };
+
+				if (d < distance)
+				{
+					distance = d;
+					if (edgeStart.x > edgeEnd.x)
+						candidateIndex = edgeStartIndex;
+					else
+						candidateIndex = edgeEndIndex;
+					pointOfIntersection = { rayOrigin.x + d, rayOrigin.y };
+				}
+			}
+
+			const std::size_t candidateVertexNumber{ vertexNumbers[candidateIndex] };
+			std::vector<std::size_t> insideTriangle;
+			for (auto& r : reflex)
+			{
+				if ((candidateIndex == r) || (r >= vertexNumbersSize))
+					continue;
+
+				if (pointIsInsideTriangle({ m_vertices[candidateVertexNumber].position, rayOrigin, pointOfIntersection }, m_vertices[vertexNumbers[r]].position))
+					insideTriangle.push_back(r);
+			}
+
+			if (insideTriangle.empty())
+				cutPolygonVertexNumber = vertexNumbers[candidateIndex];
+			else
+			{
+				// choose the closest point to the ray origin within the triangle formed by the ray to intersection and the candidate vertex
+				float distanceSquared{ maxWidth * maxWidth };
+				for (auto& inside : insideTriangle)
+				{
+					const float thisLengthSquared{ lengthSquared(m_vertices[vertexNumbers[inside]].position - rayOrigin) };
+					if (thisLengthSquared < distanceSquared)
+					{
+						distanceSquared = thisLengthSquared;
+						cutPolygonVertexNumber = vertexNumbers[inside];
+					}
+				}
+			}
+
+
+
+			// automatically insert vertices for the cut
+			const std::size_t holeIndexOffsetCut{ cutHoleHoleIndex - holeStart };
+			// prepare vertices to insert around the cut
+			std::vector<std::size_t> holeInsertVertices(holeLength + 2u);
+			holeInsertVertices[0u] = cutPolygonVertexNumber;
+			for (std::size_t i{ 0u }; i <= holeLength; ++i)
+				holeInsertVertices[i + 1u] = holeVertexNumbers[holeStart + ((holeIndexOffsetCut + i) % holeLength)];
+			// then add them around the cut
+			vertexNumbers.insert(std::find(vertexNumbers.begin(), vertexNumbers.end(), cutPolygonVertexNumber), holeInsertVertices.begin(), holeInsertVertices.end());
+
+			// indices for each of the vertex numbers (allowing re-using of vertices - needed for cutting polygon)
+			vertexNumbersSize = vertexNumbers.size();
+			indices.resize(vertexNumbersSize);
+			indicesSize = indices.size();
+			for (std::size_t i{ 0u }; i < indicesSize; ++i)
+				indices[i] = i;
+
+
+
+			//clear lists to allow re-analysis of entire new arrangement
+			reflex.clear();
+			convex.clear();
+			ear.clear();
+
+			// re-analyse points
+			analysePoints();
+		}
+	}
+
+
+
+	// avoid movement in memory when resizing
+	m_triangles.clear();
+	m_triangles.reserve(m_vertices.size() - 2u);
+
+
+
+	// process
+	while (indices.size() > 3u)
+	{
+		std::size_t currentPoint{ ear.front() };
+		std::vector<std::size_t>::iterator currentIt{ std::find(indices.begin(), indices.end(), currentPoint) };
+		std::size_t current{ static_cast<std::size_t>(std::distance(indices.begin(), currentIt)) };
+		std::size_t prev{ (current > 0u) ? (current - 1u) : (indices.size() - 1u) };
+		std::size_t next{ (current < (indices.size() - 1u)) ? (current + 1u) : 0u };
+
+		TriangleIndices triangle{ vertexNumbers[indices[prev]], vertexNumbers[indices[current]], vertexNumbers[indices[next]] };
+		m_triangles.push_back(triangle);
+
+		retest(prev, ((prev > 0u) ? (prev - 1u) : (indices.size() - 1u)), next, current);
+		retest(next, prev, ((next < (indices.size() - 1u)) ? (next + 1u) : 0u), current);
+
+		// remove current (the one we clipped)
+		convex.erase(std::find(convex.begin(), convex.end(), indices[current]));
+		ear.erase(std::find(ear.begin(), ear.end(), indices[current]));
+		indices.erase(currentIt);
+
+		if (m_triangles.size() == stopAfterThisNumberOfTrianglesHaveBeenCreated)
+			break;
+	}
+
+	// 3 vertices remaining; add final triangle
+	if (m_triangles.size() < stopAfterThisNumberOfTrianglesHaveBeenCreated)
+	{
+		TriangleIndices triangle{ vertexNumbers[indices[0u]], vertexNumbers[indices[1u]], vertexNumbers[indices[2u]] };
+		m_triangles.push_back(triangle);
 	}
 }
 
