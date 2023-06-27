@@ -39,7 +39,7 @@
 namespace selbaward
 {
 
-// SW Polygon v1.2.2
+// SW Polygon v1.2.3
 class Polygon : public sf::Drawable, public sf::Transformable
 {
 public:
