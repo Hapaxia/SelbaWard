@@ -433,7 +433,7 @@ void Polygon::priv_triangulateEarClip()
 			// choose where the cut appears
 			std::size_t cutPolygonVertexNumber;
 			std::size_t cutHoleVertexNumber;
-			std::size_t cutHoleHoleIndex;
+			std::size_t cutHoleHoleIndex{ holeStart };
 
 
 
