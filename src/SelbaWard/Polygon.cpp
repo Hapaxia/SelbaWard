@@ -432,6 +432,7 @@ void Polygon::priv_triangulateEarClip()
 			// find closest edge (to the right)
 			std::size_t candidateIndex{ 0u };
 			float distance{ maxWidth };
+			bool isEndIndex{ false };
 			for (std::size_t v{ 0u }; v < vertexNumbersSize; ++v)
 			{
 				const std::size_t edgeStartIndex{ v };
@@ -453,7 +454,10 @@ void Polygon::priv_triangulateEarClip()
 					if (edgeStart.x > edgeEnd.x)
 						candidateIndex = edgeStartIndex;
 					else
+					{
 						candidateIndex = edgeEndIndex;
+						isEndIndex = true;
+					}
 					pointOfIntersection = { rayOrigin.x + d, rayOrigin.y };
 				}
 			}
@@ -462,7 +466,7 @@ void Polygon::priv_triangulateEarClip()
 			std::vector<std::size_t> insideTriangle;
 			for (auto& r : reflex)
 			{
-				if ((candidateIndex == r) || (r >= vertexNumbersSize))
+				if ((candidateIndex == r) || (vertexNumbers[r] >= vertexNumbersSize))
 					continue;
 
 				if (pointIsInsideTriangle({ m_vertices[candidateVertexNumber].position, rayOrigin, pointOfIntersection }, m_vertices[vertexNumbers[r]].position))
@@ -482,6 +486,7 @@ void Polygon::priv_triangulateEarClip()
 					{
 						distanceSquared = thisLengthSquared;
 						cutPolygonVertexNumber = vertexNumbers[inside];
+						isEndIndex = false;
 					}
 				}
 			}
@@ -496,7 +501,17 @@ void Polygon::priv_triangulateEarClip()
 			for (std::size_t i{ 0u }; i <= holeLength; ++i)
 				holeInsertVertices[i + 1u] = holeVertexNumbers[holeStart + ((holeIndexOffsetCut + i) % holeLength)];
 			// then add them around the cut
-			vertexNumbers.insert(std::find(vertexNumbers.begin(), vertexNumbers.end(), cutPolygonVertexNumber), holeInsertVertices.begin(), holeInsertVertices.end());
+			if (isEndIndex)
+			{
+				vertexNumbers.insert(std::find(vertexNumbers.begin(), vertexNumbers.end(), cutPolygonVertexNumber), holeInsertVertices.begin(), holeInsertVertices.end());
+			}
+			else
+			{
+				std::vector<std::size_t>::reverse_iterator vnRIt{ std::find(vertexNumbers.rbegin(), vertexNumbers.rend(), cutPolygonVertexNumber) };
+				std::vector<std::size_t>::iterator vnIt{ (vnRIt + 1u).base() };
+				//vertexNumbers.insert(std::find(vertexNumbers.rbegin(), vertexNumbers.rend(), cutPolygonVertexNumber).base() + 1u, holeInsertVertices.begin(), holeInsertVertices.end());
+				vertexNumbers.insert(vnIt, holeInsertVertices.begin(), holeInsertVertices.end());
+			}
 
 			// indices for each of the vertex numbers (allowing re-using of vertices - needed for cutting polygon)
 			vertexNumbersSize = vertexNumbers.size();
