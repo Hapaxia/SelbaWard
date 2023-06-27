@@ -570,6 +570,9 @@ void Polygon::priv_triangulateEarClip()
 	// process
 	while (indices.size() > 3u)
 	{
+		if (ear.empty())
+			throw Exception("Polygon - ERROR: 0001");
+
 		std::size_t currentPoint{ ear.front() };
 		std::vector<std::size_t>::iterator currentIt{ std::find(indices.begin(), indices.end(), currentPoint) };
 		std::size_t current{ static_cast<std::size_t>(std::distance(indices.begin(), currentIt)) };
