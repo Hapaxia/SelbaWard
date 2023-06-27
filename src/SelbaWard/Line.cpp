@@ -49,8 +49,8 @@ namespace selbaward
 {
 
 Line::Line()
-	: m_vertices(sf::Lines, 2)
-	, m_quad(sf::Quads, 4)
+	: m_vertices(sf::PrimitiveType::Lines, 2u)
+	, m_quad(sf::PrimitiveType::TriangleStrip, 4u)
 	, m_thickness{ 0.f }
 	, m_texture{ nullptr }
 	, m_textureRect()
@@ -97,7 +97,7 @@ sf::FloatRect Line::getLocalBounds() const
 		float minX, maxX, minY, maxY;
 		minX = maxX = m_quad[0].position.x;
 		minY = maxY = m_quad[0].position.y;
-		for (unsigned int v{ 1u }; v < 4; ++v)
+		for (unsigned int v{ 1u }; v < 6u; ++v)
 		{
 			minX = std::min(minX, m_quad[v].position.x);
 			maxX = std::max(maxX, m_quad[v].position.x);
@@ -129,7 +129,7 @@ sf::FloatRect Line::getGlobalBounds() const
 		float minX, maxX, minY, maxY;
 		minX = maxX = transformedPosition0.x;
 		minY = maxY = transformedPosition0.y;
-		for (unsigned int v{ 1u }; v < 4; ++v)
+		for (unsigned int v{ 1u }; v < 6u; ++v)
 		{
 			const sf::Vector2f transformedPosition{ transform.transformPoint(m_quad[v].position) };
 			minX = std::min(minX, transformedPosition.x);
@@ -171,13 +171,14 @@ sf::Color Line::getColor() const
 
 void Line::setColor(const sf::Color& color)
 {
-	//m_color = color;
-	m_vertices[0].color = color;
-	m_vertices[1].color = color;
-	m_quad[0].color = color;
-	m_quad[1].color = color;
-	m_quad[2].color = color;
-	m_quad[3].color = color;
+	m_vertices[0u].color = color;
+	m_vertices[1u].color = color;
+	m_quad[0u].color = color;
+	m_quad[1u].color = color;
+	m_quad[2u].color = color;
+	m_quad[3u].color = color;
+	m_quad[4u].color = color;
+	m_quad[5u].color = color;
 }
 
 void Line::setTexture(const sf::Texture& texture)
@@ -233,21 +234,21 @@ bool Line::isThick() const
 
 void Line::updateQuad()
 {
-	const sf::Vector2f lineVector{ m_vertices[0].position - m_vertices[1].position };
+	const sf::Vector2f lineVector{ m_vertices[0u].position - m_vertices[1u].position };
 	const float lineLength{ std::sqrt(lineVector.x * lineVector.x + lineVector.y * lineVector.y) };
 	const sf::Vector2f unitVector{ lineVector / lineLength };
 	const sf::Vector2f unitNormalVector{ unitVector.y, -unitVector.x };
 	const sf::Vector2f normalVector{ unitNormalVector * m_thickness / 2.f };
 
-	m_quad[0].position = m_vertices[0].position - normalVector;
-	m_quad[1].position = m_vertices[1].position - normalVector;
-	m_quad[2].position = m_vertices[1].position + normalVector;
-	m_quad[3].position = m_vertices[0].position + normalVector;
+	m_quad[0u].position = m_vertices[0u].position + normalVector;
+	m_quad[1u].position = m_vertices[0u].position - normalVector;
+	m_quad[2u].position = m_vertices[1u].position + normalVector;
+	m_quad[3u].position = m_vertices[1u].position - normalVector;
 
-	m_quad[0].texCoords = { m_textureRect.left, m_textureRect.top };
-	m_quad[1].texCoords = { m_textureRect.left + m_textureRect.width, m_textureRect.top };
-	m_quad[2].texCoords = { m_textureRect.left + m_textureRect.width, m_textureRect.top + m_textureRect.height };
-	m_quad[3].texCoords = { m_textureRect.left, m_textureRect.top + m_textureRect.height };
+	m_quad[0u].texCoords = { m_textureRect.left, m_textureRect.top };
+	m_quad[1u].texCoords = { m_textureRect.left, m_textureRect.top + m_textureRect.height };
+	m_quad[2u].texCoords = { m_textureRect.left + m_textureRect.width, m_textureRect.top };
+	m_quad[3u].texCoords = { m_textureRect.left + m_textureRect.width, m_textureRect.top + m_textureRect.height };
 }
 
 } // selbaward

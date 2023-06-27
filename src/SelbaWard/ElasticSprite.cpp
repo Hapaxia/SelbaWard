@@ -43,7 +43,7 @@
 namespace
 {
 
-const sf::PrimitiveType primitiveType{ sf::PrimitiveType::Quads };
+const sf::PrimitiveType primitiveType{ sf::PrimitiveType::TriangleFan };
 bool areShadersLoaded{ false };
 sf::Shader bilinearShader;
 sf::Shader perspectiveShader;
@@ -149,9 +149,9 @@ namespace selbaward
 
 ElasticSprite::ElasticSprite()
 	: m_requiresVerticesUpdate{ false }
-	, m_vertices(4)
-	, m_weights(0)
-	, m_offsets(4)
+	, m_vertices(4u)
+	, m_weights(0u)
+	, m_offsets(4u)
 	, m_pTexture{ nullptr }
 	, m_baseTextureRect()
 	, m_actualTextureRect()

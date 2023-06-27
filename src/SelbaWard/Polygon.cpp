@@ -46,11 +46,28 @@ inline bool isSecondVectorAntiClockwiseOfFirstVector(const sf::Vector2f& first, 
 
 inline bool pointIsInsideTriangle(const std::vector<sf::Vector2f>& points, sf::Vector2f point)
 {
+	long double point1X{ static_cast<double>(points[0].x) };
+	long double point1Y{ static_cast<double>(points[0].y) };
+	long double point2X{ static_cast<double>(points[1].x) };
+	long double point2Y{ static_cast<double>(points[1].y) };
+	long double point3X{ static_cast<double>(points[2].x) };
+	long double point3Y{ static_cast<double>(points[2].y) };
+	long double pointX{ static_cast<double>(point.x) };
+	long double pointY{ static_cast<double>(point.y) };
+
+	long double denominatorMultiplier{ 1.l / ((point2Y - point3Y) * (point1X - point3X) + (point3X - point2X) * (point1Y - point3Y)) };
+	long double a{ ((point2Y - point3Y) * (pointX - point3X) + (point3X - point2X) * (pointY - point3Y)) * denominatorMultiplier };
+	long double b{ ((point3Y - point1Y) * (pointX - point3X) + (point1X - point3X) * (pointY - point3Y)) * denominatorMultiplier };
+	long double c{ 1.l - a - b };
+	return a >= 0.l && a <= 1.l && b >= 0.l && b <= 1.l && c >= 0.l && c <= 1.l;
+
+	/*
 	float denominatorMultiplier{ 1.f / ((points[1u].y - points[2u].y) * (points[0u].x - points[2u].x) + (points[2u].x - points[1u].x) * (points[0u].y - points[2u].y)) };
 	float a{ ((points[1u].y - points[2u].y) * (point.x - points[2u].x) + (points[2u].x - points[1u].x) * (point.y - points[2u].y)) * denominatorMultiplier };
 	float b{ ((points[2u].y - points[0u].y) * (point.x - points[2u].x) + (points[0u].x - points[2u].x) * (point.y - points[2u].y)) * denominatorMultiplier };
 	float c{ 1.f - a - b };
 	return a >= 0.f && a <= 1.f && b >= 0.f && b <= 1.f && c >= 0.f && c <= 1.f;
+	*/
 }
 
 } // namespace

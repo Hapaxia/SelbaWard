@@ -41,7 +41,7 @@
 namespace selbaward
 {
 
-// SW Progress Bar 1.1.1
+// SW Progress Bar 1.1.2
 class ProgressBar : public sf::Drawable, public sf::Transformable
 {
 public:

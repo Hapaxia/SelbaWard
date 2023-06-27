@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.6.2
+// SW Spline v1.7.0
 class Spline : public sf::Drawable
 {
 public:
@@ -70,6 +70,9 @@ public:
 
 	Spline(std::size_t vertexCount = 0u, sf::Vector2f initialPosition = { 0.f, 0.f });
 	Spline(std::initializer_list<sf::Vector2f> list); // pass vertices' positions (sf::Vector2f) to the constructor (sets size automatically)
+	Spline(const Spline& spline);
+	void operator=(const Spline& spline);
+
 	void update();
 	void updateOutputVertices();
 
@@ -186,6 +189,9 @@ public:
 	float getInterpolatedPositionThickness(std::size_t interpolationOffset, std::size_t index = 0u) const; // index is control vertex offset
 	float getInterpolatedPositionThicknessCorrectionScale(std::size_t interpolationOffset, std::size_t index = 0u) const; // index is control vertex offset
 	std::size_t getInterpolatedPositionCount() const;
+
+	std::vector<sf::Vector2f> exportAllPositions() const;
+	std::vector<sf::Vector2f> exportAllInterpolatedPositions() const;
 
 
 

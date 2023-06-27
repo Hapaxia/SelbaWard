@@ -41,7 +41,7 @@ ProgressBar::ProgressBar(const sf::Vector2f size)
 	, m_showBackground{ false }
 	, m_size(size)
 	, m_color(sf::Color::White)
-	, m_bar(4)
+	, m_bar(4u)
 	, m_backgroundAndFrame(size)
 	, m_texture{ nullptr }
 	, m_backgroundTexture{ nullptr }
@@ -203,7 +203,7 @@ void ProgressBar::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	if (m_showBar)
 	{
 		states.texture = m_texture;
-		target.draw(&m_bar.front(), 4, sf::PrimitiveType::Quads, states);
+		target.draw(&m_bar.front(), 4u, sf::PrimitiveType::TriangleStrip, states);
 	}
 }
 
@@ -214,16 +214,16 @@ void ProgressBar::priv_updateGraphics()
 	m_backgroundAndFrame.setTextureRect(m_backgroundTextureRectangle);
 
 	const float width{ m_size.x * m_amount };
-	m_bar[0].position = { 0.f, 0.f };
-	m_bar[1].position = { width, 0.f };
-	m_bar[2].position = { width, m_size.y };
-	m_bar[3].position = { 0.f, m_size.y };
+	m_bar[0u].position = { 0.f, 0.f };
+	m_bar[1u].position = { 0.f, m_size.y };
+	m_bar[2u].position = { width, 0.f };
+	m_bar[3u].position = { width, m_size.y };
 	sf::FloatRect textureRect{ m_textureRectangle };
 	textureRect.width = textureRect.width * m_amount;
-	m_bar[0].texCoords = { textureRect.left, textureRect.top };
-	m_bar[1].texCoords = { textureRect.left + textureRect.width, textureRect.top };
-	m_bar[2].texCoords = { textureRect.left + textureRect.width, textureRect.top + textureRect.height };
-	m_bar[3].texCoords = { textureRect.left, textureRect.top + textureRect.height };
+	m_bar[0u].texCoords = { textureRect.left, textureRect.top };
+	m_bar[1u].texCoords = { textureRect.left, textureRect.top + textureRect.height };
+	m_bar[2u].texCoords = { textureRect.left + textureRect.width, textureRect.top };
+	m_bar[3u].texCoords = { textureRect.left + textureRect.width, textureRect.top + textureRect.height };
 	for (auto& vertex : m_bar)
 		vertex.color = m_color;
 }
