@@ -216,12 +216,12 @@ void addPalette16ColorWindows(std::vector<sf::Color>& palette)
 	addColorToPalette(palette, sf::Color(0, 0, 128));
 	addColorToPalette(palette, sf::Color(128, 0, 128));
 	addColorToPalette(palette, sf::Color(0, 128, 128));
-	addColorToPalette(palette, sf::Color(128, 128, 128));
 	addColorToPalette(palette, sf::Color(192, 192, 192));
+	addColorToPalette(palette, sf::Color(128, 128, 128));
 	addColorToPalette(palette, sf::Color(255, 0, 0));
-	addColorToPalette(palette, sf::Color(0, 0, 255));
-	addColorToPalette(palette, sf::Color(255, 255, 0));
 	addColorToPalette(palette, sf::Color(0, 255, 0));
+	addColorToPalette(palette, sf::Color(255, 255, 0));
+	addColorToPalette(palette, sf::Color(0, 0, 255));
 	addColorToPalette(palette, sf::Color(255, 0, 255));
 	addColorToPalette(palette, sf::Color(0, 255, 255));
 	addColorToPalette(palette, sf::Color(255, 255, 255));
