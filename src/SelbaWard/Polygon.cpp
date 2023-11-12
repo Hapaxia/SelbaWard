@@ -82,26 +82,6 @@ inline float lengthSquared(const sf::Vector2f& a)
 	return (a.x * a.x) + (a.y * a.y);
 }
 
-inline float crossProduct(const sf::Vector2f& a, const sf::Vector2f& b)
-{
-	return (a.x * b.y) - (a.y * b.x);
-}
-
-inline float lengthSquared(const sf::Vector2f& a)
-{
-	return (a.x * a.x) + (a.y * a.y);
-}
-
-inline float crossProduct(const sf::Vector2f& a, const sf::Vector2f& b)
-{
-	return (a.x * b.y) - (a.y * b.x);
-}
-
-inline float lengthSquared(const sf::Vector2f& a)
-{
-	return (a.x * a.x) + (a.y * a.y);
-}
-
 } // namespace
 
 namespace selbaward

@@ -76,8 +76,6 @@ public:
 	void update();
 	void updateOutputVertices();
 
-	Spline& operator=(const Spline& spline);
-
 	Vertex& operator[] (std::size_t index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
 
 	void connectFrontToFrontOf(const Spline& spline, bool rotateSpline = true, bool moveSpline = true);

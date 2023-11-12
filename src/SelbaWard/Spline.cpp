@@ -377,35 +377,6 @@ void Spline::updateOutputVertices()
 	priv_updateOutputVertices();
 }
 
-Spline& Spline::operator=(const Spline& spline)
-{
-	m_throwExceptions = spline.m_throwExceptions;
-	m_isClosed = spline.m_isClosed;
-	m_isRandomNormalOffsetsActivated = spline.m_isRandomNormalOffsetsActivated;
-	m_thickCornerType = spline.m_thickCornerType;
-	m_thickStartCapType = spline.m_thickStartCapType;
-	m_thickEndCapType = spline.m_thickEndCapType;
-	m_roundedThickCornerInterpolationLevel = spline.m_roundedThickCornerInterpolationLevel;
-	m_roundedThickStartCapInterpolationLevel = spline.m_roundedThickStartCapInterpolationLevel;
-	m_roundedThickEndCapInterpolationLevel = spline.m_roundedThickEndCapInterpolationLevel;
-	m_maxPointLength = spline.m_maxPointLength;
-	m_vertices = spline.m_vertices;
-	m_color = spline.m_color;
-	m_thickness = spline.m_thickness;
-	m_randomNormalOffsetRange = spline.m_randomNormalOffsetRange;
-	m_interpolatedVerticesUnitTangents = spline.m_interpolatedVerticesUnitTangents;
-	m_outputVertices = spline.m_outputVertices;
-	m_primitiveType = spline.m_primitiveType;
-	m_interpolationSteps = spline.m_interpolationSteps;
-	m_useBezier = spline.m_useBezier;
-	m_handlesVertices = spline.m_handlesVertices;
-	m_showHandles = spline.m_showHandles;
-	m_lockHandleMirror = spline.m_lockHandleMirror;
-	m_lockHandleAngle = spline.m_lockHandleAngle;
-
-	return *this;
-}
-
 void Spline::connectFrontToFrontOf(const Spline& spline, const bool rotateSpline, const bool moveSpline)
 {
 	if (!moveSpline && !rotateSpline)
