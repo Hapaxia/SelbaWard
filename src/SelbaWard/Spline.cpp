@@ -237,7 +237,7 @@ Spline::Spline(const Spline& spline)
 	m_handlesVertices = spline.m_handlesVertices;
 }
 
-void Spline::operator=(const Spline& spline)
+Spline& Spline::operator=(const Spline& spline)
 {
 	m_throwExceptions = spline.m_throwExceptions;
 	m_isClosed = spline.m_isClosed;
@@ -249,21 +249,21 @@ void Spline::operator=(const Spline& spline)
 	m_roundedThickStartCapInterpolationLevel = spline.m_roundedThickStartCapInterpolationLevel;
 	m_roundedThickEndCapInterpolationLevel = spline.m_roundedThickEndCapInterpolationLevel;
 	m_maxPointLength = spline.m_maxPointLength;
+	m_vertices = spline.m_vertices;
 	m_color = spline.m_color;
 	m_thickness = spline.m_thickness;
 	m_randomNormalOffsetRange = spline.m_randomNormalOffsetRange;
+	m_interpolatedVerticesUnitTangents = spline.m_interpolatedVerticesUnitTangents;
+	m_outputVertices = spline.m_outputVertices;
 	m_primitiveType = spline.m_primitiveType;
 	m_interpolationSteps = spline.m_interpolationSteps;
 	m_useBezier = spline.m_useBezier;
+	m_handlesVertices = spline.m_handlesVertices;
 	m_showHandles = spline.m_showHandles;
 	m_lockHandleMirror = spline.m_lockHandleMirror;
 	m_lockHandleAngle = spline.m_lockHandleAngle;
 
-	m_vertices = spline.m_vertices;
-	m_interpolatedVertices = spline.m_interpolatedVertices;
-	m_interpolatedVerticesUnitTangents = spline.m_interpolatedVerticesUnitTangents;
-	m_outputVertices = spline.m_outputVertices;
-	m_handlesVertices = spline.m_handlesVertices;
+	return *this;
 }
 
 float Spline::getLength() const
@@ -375,35 +375,6 @@ void Spline::update()
 void Spline::updateOutputVertices()
 {
 	priv_updateOutputVertices();
-}
-
-Spline& Spline::operator=(const Spline& spline)
-{
-	m_throwExceptions = spline.m_throwExceptions;
-	m_isClosed = spline.m_isClosed;
-	m_isRandomNormalOffsetsActivated = spline.m_isRandomNormalOffsetsActivated;
-	m_thickCornerType = spline.m_thickCornerType;
-	m_thickStartCapType = spline.m_thickStartCapType;
-	m_thickEndCapType = spline.m_thickEndCapType;
-	m_roundedThickCornerInterpolationLevel = spline.m_roundedThickCornerInterpolationLevel;
-	m_roundedThickStartCapInterpolationLevel = spline.m_roundedThickStartCapInterpolationLevel;
-	m_roundedThickEndCapInterpolationLevel = spline.m_roundedThickEndCapInterpolationLevel;
-	m_maxPointLength = spline.m_maxPointLength;
-	m_vertices = spline.m_vertices;
-	m_color = spline.m_color;
-	m_thickness = spline.m_thickness;
-	m_randomNormalOffsetRange = spline.m_randomNormalOffsetRange;
-	m_interpolatedVerticesUnitTangents = spline.m_interpolatedVerticesUnitTangents;
-	m_outputVertices = spline.m_outputVertices;
-	m_primitiveType = spline.m_primitiveType;
-	m_interpolationSteps = spline.m_interpolationSteps;
-	m_useBezier = spline.m_useBezier;
-	m_handlesVertices = spline.m_handlesVertices;
-	m_showHandles = spline.m_showHandles;
-	m_lockHandleMirror = spline.m_lockHandleMirror;
-	m_lockHandleAngle = spline.m_lockHandleAngle;
-
-	return *this;
 }
 
 void Spline::connectFrontToFrontOf(const Spline& spline, const bool rotateSpline, const bool moveSpline)
@@ -578,6 +549,27 @@ void Spline::rotate(const float angle, const sf::Vector2f origin)
 		vertex.frontHandle = rotatePoint(vertex.frontHandle, c, s);
 		vertex.backHandle = rotatePoint(vertex.backHandle, c, s);
 	}
+}
+
+void Spline::scale(const float scale, const sf::Vector2f origin, const bool scaleThickness, const bool scaleHandles)
+{
+	for (auto& vertex : m_vertices)
+	{
+		vertex.position = ((vertex.position - origin) * scale) + origin;
+		if (scaleHandles)
+		{
+			vertex.frontHandle *= scale;
+			vertex.backHandle *= scale;
+		}
+	}
+	if (scaleThickness)
+		m_thickness *= scale;
+}
+
+void Spline::move(const sf::Vector2f offset)
+{
+	for (auto& vertex : m_vertices)
+		vertex.position += offset;
 }
 
 void Spline::setRandomNormalOffsetsActivated(const bool randomNormalOffsetsActivated)

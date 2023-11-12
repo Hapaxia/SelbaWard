@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.6.3
+// SW Spline v1.7.0-
 class Spline : public sf::Drawable
 {
 public:
@@ -71,12 +71,10 @@ public:
 	Spline(std::size_t vertexCount = 0u, sf::Vector2f initialPosition = { 0.f, 0.f });
 	Spline(std::initializer_list<sf::Vector2f> list); // pass vertices' positions (sf::Vector2f) to the constructor (sets size automatically)
 	Spline(const Spline& spline);
-	void operator=(const Spline& spline);
+	Spline& operator=(const Spline& spline);
 
 	void update();
 	void updateOutputVertices();
-
-	Spline& operator=(const Spline& spline);
 
 	Vertex& operator[] (std::size_t index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
 
@@ -97,6 +95,8 @@ public:
 	bool getClosed() const;
 
 	void rotate(float rotation, sf::Vector2f origin);
+	void scale(float scale, sf::Vector2f origin, bool scaleThickness = true, bool scaleHandles = true);
+	void move(sf::Vector2f offset);
 
 	void setRandomNormalOffsetsActivated(bool randomNormalOffsetsActivated);
 	bool getRandomNormalOffsetsActivated() const;
