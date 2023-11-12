@@ -580,7 +580,7 @@ void PixelDisplay::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const
 	for (unsigned int y{ 0u }; y < rectangle.height; ++y)
 	{
 		for (unsigned int x{ 0u }; x < buffer.width; ++x)
-			buffer.pixels[y * buffer.width + x] = m_pixels[x + rectangle.left, y + rectangle.top];
+			buffer.pixels[y * buffer.width + x] = m_pixels[(y + rectangle.top) * buffer.width + (x + rectangle.left)];
 	}
 }
 

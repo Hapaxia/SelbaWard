@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW PixelDisplay v1.0.1
+// SW PixelDisplay v1.0.2
 class PixelDisplay : public sf::Drawable, public sf::Transformable
 {
 public:

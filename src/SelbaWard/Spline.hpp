@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.7.0-
+// SW Spline v1.7.0
 class Spline : public sf::Drawable
 {
 public:
@@ -75,6 +75,8 @@ public:
 
 	void update();
 	void updateOutputVertices();
+
+	Spline& operator=(const Spline& spline);
 
 	Vertex& operator[] (std::size_t index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
 

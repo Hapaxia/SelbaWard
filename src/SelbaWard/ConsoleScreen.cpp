@@ -216,12 +216,12 @@ void addPalette16ColorWindows(std::vector<sf::Color>& palette)
 	addColorToPalette(palette, sf::Color(0, 0, 128));
 	addColorToPalette(palette, sf::Color(128, 0, 128));
 	addColorToPalette(palette, sf::Color(0, 128, 128));
-	addColorToPalette(palette, sf::Color(128, 128, 128));
 	addColorToPalette(palette, sf::Color(192, 192, 192));
+	addColorToPalette(palette, sf::Color(128, 128, 128));
 	addColorToPalette(palette, sf::Color(255, 0, 0));
-	addColorToPalette(palette, sf::Color(0, 0, 255));
-	addColorToPalette(palette, sf::Color(255, 255, 0));
 	addColorToPalette(palette, sf::Color(0, 255, 0));
+	addColorToPalette(palette, sf::Color(255, 255, 0));
+	addColorToPalette(palette, sf::Color(0, 0, 255));
 	addColorToPalette(palette, sf::Color(255, 0, 255));
 	addColorToPalette(palette, sf::Color(0, 255, 255));
 	addColorToPalette(palette, sf::Color(255, 255, 255));
@@ -2509,10 +2509,10 @@ void ConsoleScreen::priv_setVerticesFromCell(unsigned int index, int baseVertex,
 	const float bottom{ offset.y + linearInterpolation(0.f, m_size.y, static_cast<float>(cellY + (cell.attributes.flipY ? 0 : 1)) / m_mode.y) };
 
 	sf::Vector2u textureCell{ cellValue % m_numberOfTilesPerRow, cellValue / m_numberOfTilesPerRow };
-	const float textureLeft{ static_cast<float>(m_textureOffset.x + textureCell.x * m_tileSize.x) };
-	const float textureTop{ static_cast<float>(m_textureOffset.y + (textureCell.y + (!useCursorValue && cell.stretch == StretchType::Bottom ? 0.5f : 0.f)) * m_tileSize.y) };
-	const float textureRight{ static_cast<float>(m_textureOffset.x + (textureCell.x + 1) * m_tileSize.x) };
-	const float textureBottom{ static_cast<float>(m_textureOffset.y + (textureCell.y + (!useCursorValue && cell.stretch == StretchType::Top ? 0.5f : 1.f)) * m_tileSize.y) };
+	const float textureLeft{ 0.1f + static_cast<float>(m_textureOffset.x + textureCell.x * m_tileSize.x) };
+	const float textureTop{ 0.1f + static_cast<float>(m_textureOffset.y + (textureCell.y + (!useCursorValue && cell.stretch == StretchType::Bottom ? 0.5f : 0.f)) * m_tileSize.y) };
+	const float textureRight{ -0.1f + static_cast<float>(m_textureOffset.x + (textureCell.x + 1) * m_tileSize.x) };
+	const float textureBottom{ -0.1f + static_cast<float>(m_textureOffset.y + (textureCell.y + (!useCursorValue && cell.stretch == StretchType::Top ? 0.5f : 1.f)) * m_tileSize.y) };
 
 	if (mainLayer)
 		baseVertex = index * 6u;
