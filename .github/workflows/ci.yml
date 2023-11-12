@@ -30,6 +30,12 @@ jobs:
         - { name: Debug }
 
     steps:
+    - name: Get CMake and Ninja
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: 3.22
+        ninjaVersion: latest
+        
     - name: Install Linux Dependencies
       if: runner.os == 'Linux'
       run: |
