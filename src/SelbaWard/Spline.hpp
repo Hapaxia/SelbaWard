@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.6.2
+// SW Spline v1.6.3
 class Spline : public sf::Drawable
 {
 public:
@@ -72,6 +72,8 @@ public:
 	Spline(std::initializer_list<sf::Vector2f> list); // pass vertices' positions (sf::Vector2f) to the constructor (sets size automatically)
 	void update();
 	void updateOutputVertices();
+
+	Spline& operator=(const Spline& spline);
 
 	Vertex& operator[] (std::size_t index); // direct access to the spline's vertices (sw::Spline::Vertex) using the [] operator. no checks are performed. using with an invalid index results in undefined behaviour
 
