@@ -46,6 +46,7 @@
 #include "SelbaWard/SpinningCard.hpp"
 #include "SelbaWard/Spline.hpp"
 #include "SelbaWard/Sprite3d.hpp"
+#include "SelbaWard/SpriteBatch.hpp"
 #include "SelbaWard/Starfield.hpp"
 #include "SelbaWard/Starfield3d.hpp"
 #include "SelbaWard/TileMap.hpp"
