@@ -5,7 +5,7 @@
 //
 // Polygon
 //
-// Copyright(c) 2022-2023 M.J.Silk
+// Copyright(c) 2022-2024 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
