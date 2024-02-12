@@ -39,7 +39,7 @@
 namespace selbaward
 {
 
-// SW Polygon v1.2.3
+// SW Polygon v1.3.0
 class Polygon : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -72,6 +72,15 @@ public:
 	void setVertexPosition(std::size_t index, sf::Vector2f position);
 	sf::Vector2f getVertexPosition(std::size_t index) const;
 
+	void setTriangleLimit(std::size_t triangleLimit);
+	std::size_t getTriangleLimit() const;
+
+	void setShowWireframe(bool showWireframe);
+	bool getShowWireframe() const;
+
+	void setWireframeColor(sf::Color wireframeColor);
+	sf::Color getWireframeColor() const;
+
 	void reverseVertices();
 
 	void importVertexPositions(const std::vector<sf::Vector2f>& position);
@@ -97,8 +106,14 @@ private:
 	std::vector<std::size_t> m_holeStartIndices;
 	sf::Color m_color;
 
+	bool m_showWireframe;
+	std::vector<sf::Vertex> m_wireframeVertices;
+	sf::Color m_wireframeColor;
+
 	TriangulationMethod m_triangulationMethod;
 	MeshRefinementMethod m_meshRefinementMethod;
+
+	std::size_t m_triangleLimit;
 
 	const bool m_throwExceptions;
 
@@ -110,6 +125,7 @@ private:
 	void priv_triangulateBasicEarClip();
 	bool priv_isValidVertexIndex(std::size_t vertexIndex) const;
 	bool priv_testVertexIndex(std::size_t vertexIndex, const std::string& exceptionMessage) const;
+	void priv_buildWireframe();
 };
 
 } // namespace selbaward

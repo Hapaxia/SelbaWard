@@ -46,30 +46,22 @@ inline bool isSecondVectorAntiClockwiseOfFirstVector(const sf::Vector2f& first, 
 	return (first.x * second.y) < (first.y * second.x);
 }
 
-inline bool pointIsInsideTriangle(const std::vector<sf::Vector2f>& points, sf::Vector2f point)
+inline bool pointIsInsideTriangle(const std::vector<sf::Vector2f>& points, const sf::Vector2f point)
 {
-	long double point1X{ static_cast<double>(points[0].x) };
-	long double point1Y{ static_cast<double>(points[0].y) };
-	long double point2X{ static_cast<double>(points[1].x) };
-	long double point2Y{ static_cast<double>(points[1].y) };
-	long double point3X{ static_cast<double>(points[2].x) };
-	long double point3Y{ static_cast<double>(points[2].y) };
-	long double pointX{ static_cast<double>(point.x) };
-	long double pointY{ static_cast<double>(point.y) };
+	long double point1X{ static_cast<long double>(points[0].x) };
+	long double point1Y{ static_cast<long double>(points[0].y) };
+	long double point2X{ static_cast<long double>(points[1].x) };
+	long double point2Y{ static_cast<long double>(points[1].y) };
+	long double point3X{ static_cast<long double>(points[2].x) };
+	long double point3Y{ static_cast<long double>(points[2].y) };
+	long double pointX{ static_cast<long double>(point.x) };
+	long double pointY{ static_cast<long double>(point.y) };
 
 	long double denominatorMultiplier{ 1.l / ((point2Y - point3Y) * (point1X - point3X) + (point3X - point2X) * (point1Y - point3Y)) };
 	long double a{ ((point2Y - point3Y) * (pointX - point3X) + (point3X - point2X) * (pointY - point3Y)) * denominatorMultiplier };
 	long double b{ ((point3Y - point1Y) * (pointX - point3X) + (point1X - point3X) * (pointY - point3Y)) * denominatorMultiplier };
 	long double c{ 1.l - a - b };
 	return a >= 0.l && a <= 1.l && b >= 0.l && b <= 1.l && c >= 0.l && c <= 1.l;
-
-	/*
-	float denominatorMultiplier{ 1.f / ((points[1u].y - points[2u].y) * (points[0u].x - points[2u].x) + (points[2u].x - points[1u].x) * (points[0u].y - points[2u].y)) };
-	float a{ ((points[1u].y - points[2u].y) * (point.x - points[2u].x) + (points[2u].x - points[1u].x) * (point.y - points[2u].y)) * denominatorMultiplier };
-	float b{ ((points[2u].y - points[0u].y) * (point.x - points[2u].x) + (points[0u].x - points[2u].x) * (point.y - points[2u].y)) * denominatorMultiplier };
-	float c{ 1.f - a - b };
-	return a >= 0.f && a <= 1.f && b >= 0.f && b <= 1.f && c >= 0.f && c <= 1.f;
-	*/
 }
 
 inline float crossProduct(const sf::Vector2f& a, const sf::Vector2f& b)
@@ -92,8 +84,12 @@ Polygon::Polygon()
 	, m_vertices()
 	, m_holeStartIndices()
 	, m_color{ sf::Color::White }
+	, m_showWireframe{ false }
+	, m_wireframeVertices{}
+	, m_wireframeColor{ sf::Color::White }
 	, m_triangulationMethod{ TriangulationMethod::BasicEarClip }
 	, m_meshRefinementMethod{ MeshRefinementMethod::None }
+	, m_triangleLimit{ 10000u }
 	, m_throwExceptions{ true }
 {
 
@@ -169,6 +165,36 @@ sf::Vector2f Polygon::getVertexPosition(const std::size_t index) const
 	return m_vertices[index].position;
 }
 
+void Polygon::setTriangleLimit(const std::size_t triangleLimit)
+{
+	m_triangleLimit = triangleLimit;
+}
+
+std::size_t Polygon::getTriangleLimit() const
+{
+	return m_triangleLimit;
+}
+
+void Polygon::setShowWireframe(bool showWireframe)
+{
+	m_showWireframe = showWireframe;
+}
+
+bool Polygon::getShowWireframe() const
+{
+	return m_showWireframe;
+}
+
+void Polygon::setWireframeColor(sf::Color wireframeColor)
+{
+	m_wireframeColor = wireframeColor;
+}
+
+sf::Color Polygon::getWireframeColor() const
+{
+	return m_wireframeColor;
+}
+
 void Polygon::addHoleStartIndex(const std::size_t index)
 {
 	m_holeStartIndices.push_back(index);
@@ -219,8 +245,10 @@ void Polygon::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.texture = nullptr;
 	states.transform *= getTransform();
-	if (m_outputVertices.size() > 0)
+	if (!m_outputVertices.empty())
 		target.draw(m_outputVertices.data(), m_outputVertices.size(), sf::Triangles, states);
+	if (m_showWireframe && !m_wireframeVertices.empty())
+		target.draw(m_wireframeVertices.data(), m_wireframeVertices.size(), sf::Lines, states);
 }
 
 void Polygon::priv_update()
@@ -241,6 +269,8 @@ void Polygon::priv_updateOutputVertices()
 			m_outputVertices[baseIndex + v].color = m_color;
 		}
 	}
+
+	priv_buildWireframe();
 }
 
 void Polygon::priv_triangulate()
@@ -260,8 +290,6 @@ void Polygon::priv_triangulate()
 
 void Polygon::priv_triangulateEarClip()
 {
-	constexpr std::size_t stopAfterThisNumberOfTrianglesHaveBeenCreated{ 100u };
-
 	// ear clipping method
 	// polygon points must be anti-clockwise
 	// hole points must be clockwise
@@ -580,12 +608,12 @@ void Polygon::priv_triangulateEarClip()
 		ear.erase(std::find(ear.begin(), ear.end(), indices[current]));
 		indices.erase(currentIt);
 
-		if (m_triangles.size() == stopAfterThisNumberOfTrianglesHaveBeenCreated)
+		if (m_triangles.size() == m_triangleLimit)
 			break;
 	}
 
 	// 3 vertices remaining; add final triangle
-	if (m_triangles.size() < stopAfterThisNumberOfTrianglesHaveBeenCreated)
+	if (m_triangles.size() < m_triangleLimit)
 	{
 		TriangleIndices triangle{ vertexNumbers[indices[0u]], vertexNumbers[indices[1u]], vertexNumbers[indices[2u]] };
 		m_triangles.push_back(triangle);
@@ -594,8 +622,6 @@ void Polygon::priv_triangulateEarClip()
 
 void Polygon::priv_triangulateBasicEarClip()
 {
-	constexpr std::size_t stopAfterThisNumberOfTrianglesHaveBeenCreated{ 100u };
-
 	// ear clipping method
 	// polygon points must be anti-clockwise
 	// number of triangles will always be (number of points - 2)
@@ -711,11 +737,11 @@ void Polygon::priv_triangulateBasicEarClip()
 		ear.erase(std::find(ear.begin(), ear.end(), indices[current]));
 		indices.erase(currentIt);
 
-		if (m_triangles.size() == stopAfterThisNumberOfTrianglesHaveBeenCreated)
+		if (m_triangles.size() == m_triangleLimit)
 			break;
 	}
 
-	if (m_triangles.size() < stopAfterThisNumberOfTrianglesHaveBeenCreated)
+	if (m_triangles.size() < m_triangleLimit)
 	{
 		TriangleIndices triangle{ indices[0u], indices[1u], indices[2u] };
 		m_triangles.push_back(triangle);
@@ -736,6 +762,30 @@ bool Polygon::priv_testVertexIndex(const std::size_t vertexIndex, const std::str
 		return false;
 	}
 	return true;
+}
+
+void Polygon::priv_buildWireframe()
+{
+	if (!m_showWireframe)
+	{
+		m_wireframeVertices.clear();
+		return;
+	}
+
+	m_wireframeVertices.resize(m_triangles.size() * 6u);
+
+	for (std::size_t t{ 0u }; t < m_triangles.size(); ++t)
+	{
+		const std::size_t baseTriangleIndex{ t * 6u };
+		for (std::size_t l{ 0u }; l < 3u; ++l)
+		{
+			const std::size_t baseLineIndex{ l * 2u };
+			m_wireframeVertices[baseTriangleIndex + baseLineIndex + 0u].position = m_vertices[m_triangles[t][l]].position;
+			m_wireframeVertices[baseTriangleIndex + baseLineIndex + 1u].position = m_vertices[m_triangles[t][(l < 2u) ? l + 1u : 0u]].position;
+			m_wireframeVertices[baseTriangleIndex + baseLineIndex + 0u].color = m_wireframeColor;
+			m_wireframeVertices[baseTriangleIndex + baseLineIndex + 1u].color = m_wireframeColor;
+		}
+	}
 }
 
 } // namespace selbaward
