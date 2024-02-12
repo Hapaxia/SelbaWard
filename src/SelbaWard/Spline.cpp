@@ -1015,6 +1015,9 @@ void Spline::priv_updateOutputVertices()
 			else if (m_isClosed)
 				nextVertex = m_vertices.begin();
 
+			const sf::Color color{ m_color * linearInterpolation(currentVertex->color, nextVertex->color, vertexRatio) };
+			m_outputVertices[outputIndex].color = color;
+
 			sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.begin() + (it - begin)) };
 			if (m_isClosed || it != last)
 			{
