@@ -35,11 +35,29 @@
 #include <assert.h>
 #include <functional>
 #include <algorithm>
+#include <cmath>
 
 namespace
 {
 
+constexpr bool doThrowExceptions{ true };
+
 const std::string exceptionPrefix{ "Polygon: " };
+
+inline float crossProduct(const sf::Vector2f& a, const sf::Vector2f& b)
+{
+	return (a.x * b.y) - (a.y * b.x);
+}
+
+inline float lengthSquared(const sf::Vector2f& v)
+{
+	return (v.x * v.x) + (v.y * v.y);
+}
+
+inline float length(const sf::Vector2f& v)
+{
+	return std::sqrt(lengthSquared(v));
+}
 
 inline bool isSecondVectorAntiClockwiseOfFirstVector(const sf::Vector2f& first, const sf::Vector2f& second)
 {
@@ -64,14 +82,16 @@ inline bool pointIsInsideTriangle(const std::vector<sf::Vector2f>& points, const
 	return a >= 0.l && a <= 1.l && b >= 0.l && b <= 1.l && c >= 0.l && c <= 1.l;
 }
 
-inline float crossProduct(const sf::Vector2f& a, const sf::Vector2f& b)
+inline float areaOfTriangle(const std::vector<sf::Vector2f>& points)
 {
-	return (a.x * b.y) - (a.y * b.x);
-}
-
-inline float lengthSquared(const sf::Vector2f& a)
-{
-	return (a.x * a.x) + (a.y * a.y);
+	const sf::Vector2f a{ points[0u] };
+	const sf::Vector2f b{ points[1u] };
+	const sf::Vector2f c{ points[2u] };
+	const float ab{ length(b - a) };
+	const float bc{ length(c - b) };
+	const float ca{ length(a - c) };
+	const float halfPerimeter{ (ab + bc + ca) / 2.f };
+	return std::sqrt(halfPerimeter * (halfPerimeter - ab) * (halfPerimeter - bc) * (halfPerimeter - ca));
 }
 
 } // namespace
@@ -80,9 +100,11 @@ namespace selbaward
 {
 
 Polygon::Polygon()
-	: m_outputVertices()
-	, m_vertices()
-	, m_holeStartIndices()
+	: m_texture{ nullptr }
+	, m_vertices{}
+	, m_triangles{}
+	, m_outputVertices{}
+	, m_holeStartIndices{}
 	, m_color{ sf::Color::White }
 	, m_showWireframe{ false }
 	, m_wireframeVertices{}
@@ -90,9 +112,54 @@ Polygon::Polygon()
 	, m_triangulationMethod{ TriangulationMethod::BasicEarClip }
 	, m_meshRefinementMethod{ MeshRefinementMethod::None }
 	, m_triangleLimit{ 10000u }
-	, m_throwExceptions{ true }
+	, m_reverseDirection{ false }
 {
 
+}
+
+Polygon::Polygon(std::initializer_list<sf::Vector2f> list)
+	: Polygon()
+{
+	m_vertices.resize(list.size());
+	std::size_t index{ 0u };
+	for (auto& position : list)
+		m_vertices[index++].position = position;
+}
+
+Polygon::Polygon(const Polygon& other)
+	: m_texture{ other.m_texture }
+	, m_vertices{ other.m_vertices }
+	, m_triangles{ other.m_triangles }
+	, m_outputVertices{ other.m_outputVertices }
+	, m_holeStartIndices{ other.m_holeStartIndices }
+	, m_color{ other.m_color }
+	, m_showWireframe{ other.m_showWireframe }
+	, m_wireframeVertices{ other.m_wireframeVertices }
+	, m_wireframeColor{ other.m_wireframeColor }
+	, m_triangulationMethod{ other.m_triangulationMethod }
+	, m_meshRefinementMethod{ other.m_meshRefinementMethod }
+	, m_triangleLimit{ other.m_triangleLimit }
+	, m_reverseDirection{ other.m_reverseDirection }
+{
+}
+
+Polygon& Polygon::operator=(const Polygon& other)
+{
+	m_texture = other.m_texture;
+	m_vertices = other.m_vertices;
+	m_triangles = other.m_triangles;
+	m_outputVertices = other.m_outputVertices;
+	m_holeStartIndices = other.m_holeStartIndices;
+	m_color = other.m_color;
+	m_showWireframe = other.m_showWireframe;
+	m_wireframeVertices = other.m_wireframeVertices;
+	m_wireframeColor = other.m_wireframeColor;
+	m_triangulationMethod = other.m_triangulationMethod;
+	m_meshRefinementMethod = other.m_meshRefinementMethod;
+	m_triangleLimit = other.m_triangleLimit;
+	m_reverseDirection = other.m_reverseDirection;
+
+	return *this;
 }
 
 void Polygon::update()
@@ -130,6 +197,16 @@ Polygon::MeshRefinementMethod Polygon::getMeshRefinementMethod() const
 	return m_meshRefinementMethod;
 }
 
+void Polygon::setReverseDirection(const bool reverseDirection)
+{
+	m_reverseDirection = reverseDirection;
+}
+
+bool Polygon::getReverseDirection() const
+{
+	return m_reverseDirection;
+}
+
 void Polygon::reserveVertices(const std::size_t numberOfVertices)
 {
 	if (numberOfVertices == 0)
@@ -165,6 +242,48 @@ sf::Vector2f Polygon::getVertexPosition(const std::size_t index) const
 	return m_vertices[index].position;
 }
 
+void Polygon::setVertexColor(const std::size_t index, const sf::Color color)
+{
+	if (!priv_testVertexIndex(index, "Cannot set vertex colour."))
+		return;
+
+	m_vertices[index].color = color;
+}
+
+sf::Color Polygon::getVertexColor(const std::size_t index) const
+{
+	if (!priv_testVertexIndex(index, "Cannot get vertex colour."))
+		return sf::Color{};
+
+	return m_vertices[index].color;
+}
+
+void Polygon::setVertexTexCoords(std::size_t index, sf::Vector2f texCoords)
+{
+	if (!priv_testVertexIndex(index, "Cannot set vertex texcoords."))
+		return;
+
+	m_vertices[index].texCoords = texCoords;
+}
+
+sf::Vector2f Polygon::getVertexTexCoords(std::size_t index) const
+{
+	if (!priv_testVertexIndex(index, "Cannot get vertex texcoords."))
+		return{ 0.f, 0.f };
+
+	return m_vertices[index].texCoords;
+}
+
+void Polygon::setTexture(const sf::Texture& texture)
+{
+	m_texture = &texture;
+}
+
+void Polygon::setTexture()
+{
+	m_texture = nullptr;
+}
+
 void Polygon::setTriangleLimit(const std::size_t triangleLimit)
 {
 	m_triangleLimit = triangleLimit;
@@ -195,6 +314,109 @@ sf::Color Polygon::getWireframeColor() const
 	return m_wireframeColor;
 }
 
+float Polygon::getPerimeter() const
+{
+	const std::size_t numberOfVertices{ m_vertices.size() };
+	float perimeter{ 0.f };
+	const bool hasHoles{ !m_holeStartIndices.empty()};
+	for (std::size_t i{ 0u }; i < numberOfVertices; ++i)
+	{
+		std::size_t nextI{ i + 1u };
+
+		const auto holeIt{ std::find(m_holeStartIndices.begin(), m_holeStartIndices.end(), nextI) };
+		if (hasHoles && (holeIt != m_holeStartIndices.end()))
+		{
+			if (holeIt == m_holeStartIndices.begin())
+				nextI = 0u;
+			else
+				nextI = *(holeIt - 1u);
+		}
+
+		if ((nextI + 1u) > numberOfVertices)
+			nextI = 0u;
+
+		perimeter += length(m_vertices[(nextI < numberOfVertices) ? nextI : 0u].position - m_vertices[i].position);
+	}
+	return perimeter;
+}
+
+float Polygon::getArea() const
+{
+	float area{ 0.f };
+	for (auto& triangle : m_triangles)
+		area += areaOfTriangle({ m_vertices[triangle[0u]].position, m_vertices[triangle[1u]].position, m_vertices[triangle[2u]].position });
+	return area;
+}
+
+bool Polygon::isPointInside(const sf::Vector2f point) const
+{
+	for (const auto& triangle : m_triangles)
+	{
+		if (pointIsInsideTriangle({ m_vertices[triangle[0u]].position, m_vertices[triangle[1u]].position, m_vertices[triangle[2u]].position }, point))
+			return true;
+	}
+	return false;
+}
+
+sf::FloatRect Polygon::getLocalBounds() const
+{
+	if (m_vertices.empty())
+		return {};
+
+	const std::size_t numberOfVertices{ getHoleStartIndex(0u) };
+	sf::Vector2f topLeft{ m_vertices[0u].position };
+	sf::Vector2f bottomRight{ topLeft };
+	for (std::size_t i{ 1u }; i < numberOfVertices; ++i)
+	{
+		const sf::Vector2f position{ m_vertices[i].position };
+		topLeft.x = std::min(topLeft.x, position.x);
+		topLeft.y = std::min(topLeft.y, position.y);
+		bottomRight.x = std::max(bottomRight.x, position.x);
+		bottomRight.y = std::max(bottomRight.y, position.y);
+	}
+	return { topLeft, bottomRight - topLeft };
+}
+
+sf::FloatRect Polygon::getGlobalBounds() const
+{
+	return getTransform().transformRect(getLocalBounds());
+}
+
+sf::Vector2f Polygon::getCentroid() const
+{
+	const std::size_t numberOfVerticesToUse{ getHoleStartIndex(0u) };
+	sf::Vector2f total{ 0.f, 0.f };
+	for (std::size_t i{ 0u }; i < numberOfVerticesToUse; ++i)
+		total += m_vertices[i].position;
+	return total / static_cast<float>(numberOfVerticesToUse);
+}
+
+sf::Vector2f Polygon::getCenterOfMass() const
+{
+	float totalArea{ 0.f };
+	sf::Vector2f total{ 0.f, 0.f };
+	for (const auto& triangle : m_triangles)
+	{
+		const sf::Vector2f point1{ m_vertices[triangle[0u]].position };
+		const sf::Vector2f point2{ m_vertices[triangle[1u]].position };
+		const sf::Vector2f point3{ m_vertices[triangle[2u]].position };
+		const sf::Vector2f current{ point1 + point2 + point3 };
+		const float area{ areaOfTriangle({ point1, point2, point3 }) };
+		total += (current * area);
+		totalArea += area;
+	}
+	//const float numberOfTriangles{ static_cast<float>(m_triangles.size()) };
+	//return (total / (numberOfTriangles * 3u)) / (totalArea / numberOfTriangles);
+	/*
+	c = (t / 3n) / (a / n)
+	= n(t / 3n) / a
+	= (nt / 3n) / a
+	= (t / 3) / a
+	= t / 3a
+	*/
+	return total / (totalArea * 3.f);
+}
+
 void Polygon::addHoleStartIndex(const std::size_t index)
 {
 	m_holeStartIndices.push_back(index);
@@ -210,6 +432,31 @@ void Polygon::setHoleStartIndices(const std::vector<std::size_t>& indices)
 	m_holeStartIndices = indices;
 }
 
+void Polygon::setNumberOfHoles(std::size_t numberOfHoles)
+{
+	m_holeStartIndices.resize(numberOfHoles);
+}
+
+void Polygon::setHoleStartIndex(const std::size_t holeIndex, const std::size_t holeStartIndex)
+{
+	if (!priv_testHoleIndex(holeIndex, "Cannot set hole start index."))
+		return;
+
+	m_holeStartIndices[holeIndex] = holeStartIndex;
+}
+
+std::size_t Polygon::getNumberOfHoles() const
+{
+	return m_holeStartIndices.size();
+}
+
+std::size_t Polygon::getHoleStartIndex(const std::size_t holeIndex) const
+{
+	if (holeIndex >= m_holeStartIndices.size())
+		return m_vertices.size();
+	return m_holeStartIndices[holeIndex];
+}
+
 void Polygon::reverseVertices()
 {
 	std::reverse(m_vertices.begin(), m_vertices.end());
@@ -220,6 +467,35 @@ void Polygon::importVertexPositions(const std::vector<sf::Vector2f>& positions)
 	setNumberOfVertices(positions.size());
 	for (std::size_t i{ 0u }; i < positions.size(); ++i)
 		m_vertices[i].position = positions[i];
+}
+
+std::vector<sf::Vector2f> Polygon::exportVertexPositions() const
+{
+	const std::size_t numberOfVertices{ m_vertices.size() };
+	std::vector<sf::Vector2f> positions(numberOfVertices);
+	for (std::size_t i{ 0u }; i < numberOfVertices; ++i)
+		positions[i] = m_vertices[i].position;
+	return positions;
+}
+
+std::vector<sf::Vector2f> Polygon::exportVertexPositionsOuterOnly() const
+{
+	const std::size_t numberOfVertices{ getHoleStartIndex(0u) };
+	std::vector<sf::Vector2f> positions(numberOfVertices);
+	for (std::size_t i{ 0u }; i < numberOfVertices; ++i)
+		positions[i] = m_vertices[i].position;
+	return positions;
+}
+
+std::vector<sf::Vector2f> Polygon::exportVertexPositionsHoleOnly(std::size_t holeIndex) const
+{
+	const std::size_t startIndex{ getHoleStartIndex(holeIndex) };
+	const std::size_t endIndex{ getHoleStartIndex(holeIndex + 1u) };
+	const std::size_t numberOfVertices{ endIndex - startIndex };
+	std::vector<sf::Vector2f> positions(numberOfVertices);
+	for (std::size_t i{ 0u }; i < numberOfVertices; ++i)
+		positions[i] = m_vertices[startIndex + i].position;
+	return positions;
 }
 
 std::vector<sf::Vector2f> Polygon::exportTriangulatedPositions() const
@@ -234,6 +510,14 @@ std::vector<sf::Vector2f> Polygon::exportTriangulatedPositions() const
 	return positions;
 }
 
+std::vector<sf::Vector2f> Polygon::exportWireframePositions() const
+{
+	std::vector<sf::Vector2f> positions(m_wireframeVertices.size());
+	for (std::size_t i{ 0u }; i < m_wireframeVertices.size(); ++i)
+		positions[i] = m_wireframeVertices[i].position;
+	return positions;
+}
+
 
 
 
@@ -243,12 +527,15 @@ std::vector<sf::Vector2f> Polygon::exportTriangulatedPositions() const
 
 void Polygon::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	states.texture = nullptr;
+	states.texture = m_texture;
 	states.transform *= getTransform();
 	if (!m_outputVertices.empty())
 		target.draw(m_outputVertices.data(), m_outputVertices.size(), sf::Triangles, states);
 	if (m_showWireframe && !m_wireframeVertices.empty())
+	{
+		states.texture = nullptr;
 		target.draw(m_wireframeVertices.data(), m_wireframeVertices.size(), sf::Lines, states);
+	}
 }
 
 void Polygon::priv_update()
@@ -266,7 +553,8 @@ void Polygon::priv_updateOutputVertices()
 		for (std::size_t v{ 0u }; v < 3u; ++v)
 		{
 			m_outputVertices[baseIndex + v].position = m_vertices[m_triangles[t][v]].position;
-			m_outputVertices[baseIndex + v].color = m_color;
+			m_outputVertices[baseIndex + v].color = m_color * m_vertices[m_triangles[t][v]].color;
+			m_outputVertices[baseIndex + v].texCoords = m_vertices[m_triangles[t][v]].texCoords;
 		}
 	}
 
@@ -359,7 +647,7 @@ void Polygon::priv_triangulateEarClip()
 			const sf::Vector2f pLine{ m_vertices[vertexNumbers[indices[i]]].position - m_vertices[vertexNumbers[indices[p]]].position };
 			const sf::Vector2f nLine{ m_vertices[vertexNumbers[indices[n]]].position - m_vertices[vertexNumbers[indices[i]]].position };
 
-			if (isSecondVectorAntiClockwiseOfFirstVector(pLine, nLine))
+			if (m_reverseDirection != isSecondVectorAntiClockwiseOfFirstVector(pLine, nLine))
 			{
 				reflex.erase(reflexIt);
 				convex.push_back(indices[i]);
@@ -390,7 +678,7 @@ void Polygon::priv_triangulateEarClip()
 			const sf::Vector2f prevLine{ m_vertices[vertexNumbers[indices[i]]].position - m_vertices[vertexNumbers[indices[prev]]].position };
 			const sf::Vector2f nextLine{ m_vertices[vertexNumbers[indices[next]]].position - m_vertices[vertexNumbers[indices[i]]].position };
 
-			if (!isSecondVectorAntiClockwiseOfFirstVector(prevLine, nextLine))
+			if (m_reverseDirection != !isSecondVectorAntiClockwiseOfFirstVector(prevLine, nextLine))
 				reflex.push_back(indices[i]);
 			else
 			{
@@ -589,7 +877,13 @@ void Polygon::priv_triangulateEarClip()
 	while (indices.size() > 3u)
 	{
 		if (ear.empty())
-			throw Exception("Polygon - ERROR: 0001");
+		{
+			if (doThrowExceptions)
+				throw Exception("Polygon - ERROR: 0001");
+			else
+				return;
+		}
+			
 
 		std::size_t currentPoint{ ear.front() };
 		std::vector<std::size_t>::iterator currentIt{ std::find(indices.begin(), indices.end(), currentPoint) };
@@ -678,7 +972,7 @@ void Polygon::priv_triangulateBasicEarClip()
 			const sf::Vector2f pLine{ m_vertices[indices[i]].position - m_vertices[indices[p]].position };
 			const sf::Vector2f nLine{ m_vertices[indices[n]].position - m_vertices[indices[i]].position };
 
-			if (isSecondVectorAntiClockwiseOfFirstVector(pLine, nLine))
+			if (m_reverseDirection != isSecondVectorAntiClockwiseOfFirstVector(pLine, nLine))
 			{
 				reflex.erase(reflexIt);
 				convex.push_back(indices[i]);
@@ -707,7 +1001,7 @@ void Polygon::priv_triangulateBasicEarClip()
 		const sf::Vector2f prevLine{ m_vertices[indices[i]].position - m_vertices[indices[prev]].position };
 		const sf::Vector2f nextLine{ m_vertices[indices[next]].position - m_vertices[indices[i]].position };
 
-		if (!isSecondVectorAntiClockwiseOfFirstVector(prevLine, nextLine))
+		if (m_reverseDirection != !isSecondVectorAntiClockwiseOfFirstVector(prevLine, nextLine))
 			reflex.push_back(indices[i]);
 		else
 		{
@@ -753,12 +1047,28 @@ bool Polygon::priv_isValidVertexIndex(const std::size_t vertexIndex) const
 	return vertexIndex < m_vertices.size();
 }
 
+bool Polygon::priv_isValidHoleIndex(const std::size_t holeIndex) const
+{
+	return holeIndex < m_holeStartIndices.size();
+}
+
 bool Polygon::priv_testVertexIndex(const std::size_t vertexIndex, const std::string& exceptionMessage) const
 {
 	if (!priv_isValidVertexIndex(vertexIndex))
 	{
-		if (m_throwExceptions)
+		if (doThrowExceptions)
 			throw Exception(exceptionPrefix + exceptionMessage + " Vertex index (" + std::to_string(vertexIndex) + ") out of range");
+		return false;
+	}
+	return true;
+}
+
+bool Polygon::priv_testHoleIndex(std::size_t holeIndex, const std::string& exceptionMessage) const
+{
+	if (!priv_isValidHoleIndex(holeIndex))
+	{
+		if (doThrowExceptions)
+			throw Exception(exceptionPrefix + exceptionMessage + " Hole index (" + std::to_string(holeIndex) + ") out of range");
 		return false;
 	}
 	return true;
