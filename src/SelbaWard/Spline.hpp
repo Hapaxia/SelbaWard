@@ -5,7 +5,7 @@
 //
 // Spline
 //
-// Copyright(c) 2014-2023 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.6.2
+// SW Spline v1.7.0
 class Spline : public sf::Drawable
 {
 public:
@@ -70,6 +70,9 @@ public:
 
 	Spline(std::size_t vertexCount = 0u, sf::Vector2f initialPosition = { 0.f, 0.f });
 	Spline(std::initializer_list<sf::Vector2f> list); // pass vertices' positions (sf::Vector2f) to the constructor (sets size automatically)
+	Spline(const Spline& spline);
+	Spline& operator=(const Spline& spline);
+
 	void update();
 	void updateOutputVertices();
 
@@ -92,6 +95,8 @@ public:
 	bool getClosed() const;
 
 	void rotate(float rotation, sf::Vector2f origin);
+	void scale(float scale, sf::Vector2f origin, bool scaleThickness = true, bool scaleHandles = true);
+	void move(sf::Vector2f offset);
 
 	void setRandomNormalOffsetsActivated(bool randomNormalOffsetsActivated);
 	bool getRandomNormalOffsetsActivated() const;
@@ -130,7 +135,7 @@ public:
 	void removeVertex(std::size_t index);
 	void removeVertices(std::size_t index, std::size_t numberOfVertices = 0u); // if numberOfVertices is zero (the default), removes all vertices from specified index until the end
 	void reverseVertices();
-	
+
 	void setPosition(std::size_t index, sf::Vector2f position = { 0.f, 0.f });
 	void setPositions(std::size_t index, std::size_t numberOfVertices = 0u, sf::Vector2f position = { 0.f, 0.f }); // if numberOfVertices is zero (the default), sets positions of all vertices from specified index until the end
 	void setPositions(const std::vector<sf::Vector2f>& positions, std::size_t index = 0u);
@@ -187,6 +192,9 @@ public:
 	float getInterpolatedPositionThicknessCorrectionScale(std::size_t interpolationOffset, std::size_t index = 0u) const; // index is control vertex offset
 	std::size_t getInterpolatedPositionCount() const;
 
+	std::vector<sf::Vector2f> exportAllPositions() const;
+	std::vector<sf::Vector2f> exportAllInterpolatedPositions() const;
+
 
 
 
@@ -204,7 +212,7 @@ private:
 	std::size_t m_roundedThickStartCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
 	std::size_t m_roundedThickEndCapInterpolationLevel; // number of interpolations. 0 is flat (same as no cap), 1 is triangle, 2+ circular.
 	float m_maxPointLength; // maximum length of point when limited or clipped. ignored when using other corner types including Point.
-	bool m_automaticallyUpdateRandomNormalOffset;
+	const bool m_automaticallyUpdateRandomNormalOffset;
 
 	std::vector<Vertex> m_vertices;
 	sf::Color m_color;
@@ -223,7 +231,7 @@ private:
 	bool m_lockHandleMirror;
 	bool m_lockHandleAngle;
 
-	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	bool priv_isValidVertexIndex(std::size_t vertexIndex) const;
 	bool priv_testVertexIndex(std::size_t vertexIndex, const std::string& exceptionMessage) const;
 	bool priv_isThick() const;

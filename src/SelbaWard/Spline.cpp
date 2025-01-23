@@ -5,7 +5,7 @@
 //
 // Spline
 //
-// Copyright(c) 2014-2023 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -180,7 +180,11 @@ Spline::Spline(const std::size_t vertexCount, const sf::Vector2f initialPosition
 	, m_interpolatedVertices()
 	, m_interpolatedVerticesUnitTangents()
 	, m_outputVertices()
+#ifdef USE_SFML_PRE_2_4
+	, m_primitiveType(sf::PrimitiveType::LinesStrip)
+#else // USE_SFML_PRE_2_4
 	, m_primitiveType(sf::PrimitiveType::LineStrip)
+#endif // USE_SFML_PRE_2_4
 	, m_interpolationSteps{ 0u }
 	, m_useBezier{ false }
 	, m_handlesVertices()
@@ -197,6 +201,69 @@ Spline::Spline(std::initializer_list<sf::Vector2f> list)
 	std::size_t index{ 0u };
 	for (auto& position : list)
 		m_vertices[index++].position = position;
+}
+
+Spline::Spline(const Spline& spline)
+	: m_throwExceptions{ spline.m_throwExceptions }
+	, m_isClosed{ spline.m_isClosed }
+	, m_isRandomNormalOffsetsActivated{ spline.m_isRandomNormalOffsetsActivated }
+	, m_thickCornerType{ spline.m_thickCornerType }
+	, m_thickStartCapType{ spline.m_thickStartCapType }
+	, m_thickEndCapType{ spline.m_thickEndCapType }
+	, m_roundedThickCornerInterpolationLevel{ spline.m_roundedThickCornerInterpolationLevel }
+	, m_roundedThickStartCapInterpolationLevel{ spline.m_roundedThickStartCapInterpolationLevel }
+	, m_roundedThickEndCapInterpolationLevel{ spline.m_roundedThickEndCapInterpolationLevel }
+	, m_maxPointLength{ spline.m_maxPointLength }
+	, m_automaticallyUpdateRandomNormalOffset{ spline.m_automaticallyUpdateRandomNormalOffset }
+	//, m_vertices(vertexCount, Vertex(initialPosition))
+	, m_color{ spline.m_color }
+	, m_thickness{ spline.m_thickness }
+	, m_randomNormalOffsetRange{ spline.m_randomNormalOffsetRange }
+	//, m_interpolatedVertices()
+	//, m_interpolatedVerticesUnitTangents()
+	//, m_outputVertices()
+	, m_primitiveType{ spline.m_primitiveType }
+	, m_interpolationSteps{ spline.m_interpolationSteps }
+	, m_useBezier{ spline.m_useBezier }
+	//, m_handlesVertices()
+	, m_showHandles{ spline.m_showHandles }
+	, m_lockHandleMirror{ spline.m_lockHandleMirror }
+	, m_lockHandleAngle{ spline.m_lockHandleAngle }
+{
+	m_vertices = spline.m_vertices;
+	m_interpolatedVertices = spline.m_interpolatedVertices;
+	m_interpolatedVerticesUnitTangents = spline.m_interpolatedVerticesUnitTangents;
+	m_outputVertices = spline.m_outputVertices;
+	m_handlesVertices = spline.m_handlesVertices;
+}
+
+Spline& Spline::operator=(const Spline& spline)
+{
+	m_throwExceptions = spline.m_throwExceptions;
+	m_isClosed = spline.m_isClosed;
+	m_isRandomNormalOffsetsActivated = spline.m_isRandomNormalOffsetsActivated;
+	m_thickCornerType = spline.m_thickCornerType;
+	m_thickStartCapType = spline.m_thickStartCapType;
+	m_thickEndCapType = spline.m_thickEndCapType;
+	m_roundedThickCornerInterpolationLevel = spline.m_roundedThickCornerInterpolationLevel;
+	m_roundedThickStartCapInterpolationLevel = spline.m_roundedThickStartCapInterpolationLevel;
+	m_roundedThickEndCapInterpolationLevel = spline.m_roundedThickEndCapInterpolationLevel;
+	m_maxPointLength = spline.m_maxPointLength;
+	m_vertices = spline.m_vertices;
+	m_color = spline.m_color;
+	m_thickness = spline.m_thickness;
+	m_randomNormalOffsetRange = spline.m_randomNormalOffsetRange;
+	m_interpolatedVerticesUnitTangents = spline.m_interpolatedVerticesUnitTangents;
+	m_outputVertices = spline.m_outputVertices;
+	m_primitiveType = spline.m_primitiveType;
+	m_interpolationSteps = spline.m_interpolationSteps;
+	m_useBezier = spline.m_useBezier;
+	m_handlesVertices = spline.m_handlesVertices;
+	m_showHandles = spline.m_showHandles;
+	m_lockHandleMirror = spline.m_lockHandleMirror;
+	m_lockHandleAngle = spline.m_lockHandleAngle;
+
+	return *this;
 }
 
 float Spline::getLength() const
@@ -276,7 +343,7 @@ void Spline::update()
 	}
 	if (m_isClosed)
 	{
-		
+
 		m_interpolatedVertices.back().position = m_vertices.front().position;
 		m_interpolatedVertices.back().color = m_color;
 	}
@@ -482,6 +549,27 @@ void Spline::rotate(const float angle, const sf::Vector2f origin)
 		vertex.frontHandle = rotatePoint(vertex.frontHandle, c, s);
 		vertex.backHandle = rotatePoint(vertex.backHandle, c, s);
 	}
+}
+
+void Spline::scale(const float scale, const sf::Vector2f origin, const bool scaleThickness, const bool scaleHandles)
+{
+	for (auto& vertex : m_vertices)
+	{
+		vertex.position = ((vertex.position - origin) * scale) + origin;
+		if (scaleHandles)
+		{
+			vertex.frontHandle *= scale;
+			vertex.backHandle *= scale;
+		}
+	}
+	if (scaleThickness)
+		m_thickness *= scale;
+}
+
+void Spline::move(const sf::Vector2f offset)
+{
+	for (auto& vertex : m_vertices)
+		vertex.position += offset;
 }
 
 void Spline::setRandomNormalOffsetsActivated(const bool randomNormalOffsetsActivated)
@@ -787,7 +875,7 @@ sf::Vector2f Spline::getInterpolatedPosition(const std::size_t interpolationOffs
 
 std::size_t Spline::getInterpolatedPositionCount() const
 {
-	return ((m_isClosed) ? (m_vertices.size() * priv_getNumberOfPointsPerVertex()) : ((m_vertices.size() - 1u) * priv_getNumberOfPointsPerVertex() + 1u));
+	return ((m_isClosed) ? (m_vertices.size() * priv_getNumberOfPointsPerVertex() + 1u) : ((m_vertices.size() - 1u) * priv_getNumberOfPointsPerVertex() + 1u));
 }
 
 sf::Vector2f Spline::getInterpolatedPositionTangent(const std::size_t interpolationOffset, const std::size_t index) const
@@ -833,18 +921,37 @@ float Spline::getInterpolatedPositionThicknessCorrectionScale(const std::size_t 
 	return sideOffsetLength * 2 / getInterpolatedPositionThickness(interpolationOffset, index);
 }
 
+std::vector<sf::Vector2f> Spline::exportAllPositions() const
+{
+	std::vector<sf::Vector2f> positions(m_vertices.size());
+	for (std::size_t i{ 0u }; i < positions.size(); ++i)
+		positions[i] = m_vertices[i].position;
+	if (m_isClosed)
+		positions.push_back(m_vertices[0u].position);
+	return positions;
+}
+
+std::vector<sf::Vector2f> Spline::exportAllInterpolatedPositions() const
+{
+	std::vector<sf::Vector2f> positions(m_interpolatedVertices.size());
+	for (std::size_t i{ 0u }; i < positions.size(); ++i)
+		positions[i] = m_interpolatedVertices[i].position;
+	if (m_isClosed)
+		positions.push_back(m_vertices[0u].position);
+	return positions;
+}
+
 
 
 // PRIVATE
 
-void Spline::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
+void Spline::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	sf::RenderStates states{ inStates };
 	states.texture = nullptr;
 	if (m_outputVertices.size() > 0)
 		target.draw(m_outputVertices.data(), m_outputVertices.size(), (priv_isThick() ? thickPrimitiveType : m_primitiveType), states);
 	if (m_showHandles && m_handlesVertices.size() > 1)
-		target.draw(&m_handlesVertices.front(), m_handlesVertices.size(), sf::PrimitiveType::Lines, states);
+		target.draw(m_handlesVertices.data(), m_handlesVertices.size(), sf::PrimitiveType::Lines, states);
 }
 
 bool Spline::priv_isValidVertexIndex(const std::size_t vertexIndex) const
@@ -907,6 +1014,9 @@ void Spline::priv_updateOutputVertices()
 				nextVertex = currentVertex + 1;
 			else if (m_isClosed)
 				nextVertex = m_vertices.begin();
+
+			const sf::Color color{ m_color * linearInterpolation(currentVertex->color, nextVertex->color, vertexRatio) };
+			m_outputVertices[outputIndex].color = color;
 
 			sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.begin() + (it - begin)) };
 			if (m_isClosed || it != last)
@@ -1047,7 +1157,7 @@ void Spline::priv_updateOutputVertices()
 					capOffset = tangentUnit * halfWidth;
 			}
 
-			const sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (m_isClosed ? (begin + 1)->position - begin->position : it->position - (it - 1)->position )) };
+			const sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (m_isClosed ? (begin + 1)->position - begin->position : it->position - (it - 1)->position)) };
 			const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
 			const sf::Vector2f backwardLine{ ((it != begin) ? it->position - (it - 1)->position : (m_isClosed ? it->position - (last)->position : (it + 1)->position - it->position)) };
 			const sf::Vector2f backwardUnit{ backwardLine / vectorLength(backwardLine) };
@@ -1071,7 +1181,7 @@ void Spline::priv_updateOutputVertices()
 				itThick->color = color;
 				itThick++->position = isClockwise ? insidePoint : outsidePoint;
 			}
-				break;
+			break;
 			case ThickCornerType::PointClip:
 			case ThickCornerType::PointLimit:
 			case ThickCornerType::Bevel:
@@ -1148,7 +1258,7 @@ void Spline::priv_updateOutputVertices()
 					}
 				}
 			}
-				break;
+			break;
 			case ThickCornerType::Round:
 			{
 				if (it == begin)
@@ -1199,7 +1309,7 @@ void Spline::priv_updateOutputVertices()
 					}
 				}
 			}
-				break;
+			break;
 			}
 		}
 		if (m_isClosed)
@@ -1208,7 +1318,7 @@ void Spline::priv_updateOutputVertices()
 			m_outputVertices.begin()->position = (itThick - 2)->position;
 			(m_outputVertices.begin() + 1)->position = (itThick - 1)->position;
 		}
-		
+
 		if (!m_isClosed && (m_thickEndCapType == ThickCapType::Round))
 		{
 			std::vector<Vertex>::iterator vertex{ m_vertices.end() - 1u };
@@ -1230,7 +1340,7 @@ void Spline::priv_updateOutputVertices()
 				itThick++->position = vertex->position - vector;
 			}
 		}
-		
+
 	}
 }
 
