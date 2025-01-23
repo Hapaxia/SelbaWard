@@ -5,7 +5,7 @@
 //
 // Spline
 //
-// Copyright(c) 2014-2024 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -343,7 +343,7 @@ void Spline::update()
 	}
 	if (m_isClosed)
 	{
-		
+
 		m_interpolatedVertices.back().position = m_vertices.front().position;
 		m_interpolatedVertices.back().color = m_color;
 	}
@@ -951,7 +951,7 @@ void Spline::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	if (m_outputVertices.size() > 0)
 		target.draw(m_outputVertices.data(), m_outputVertices.size(), (priv_isThick() ? thickPrimitiveType : m_primitiveType), states);
 	if (m_showHandles && m_handlesVertices.size() > 1)
-		target.draw(&m_handlesVertices.front(), m_handlesVertices.size(), sf::PrimitiveType::Lines, states);
+		target.draw(m_handlesVertices.data(), m_handlesVertices.size(), sf::PrimitiveType::Lines, states);
 }
 
 bool Spline::priv_isValidVertexIndex(const std::size_t vertexIndex) const
@@ -1157,7 +1157,7 @@ void Spline::priv_updateOutputVertices()
 					capOffset = tangentUnit * halfWidth;
 			}
 
-			const sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (m_isClosed ? (begin + 1)->position - begin->position : it->position - (it - 1)->position )) };
+			const sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (m_isClosed ? (begin + 1)->position - begin->position : it->position - (it - 1)->position)) };
 			const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
 			const sf::Vector2f backwardLine{ ((it != begin) ? it->position - (it - 1)->position : (m_isClosed ? it->position - (last)->position : (it + 1)->position - it->position)) };
 			const sf::Vector2f backwardUnit{ backwardLine / vectorLength(backwardLine) };
@@ -1181,7 +1181,7 @@ void Spline::priv_updateOutputVertices()
 				itThick->color = color;
 				itThick++->position = isClockwise ? insidePoint : outsidePoint;
 			}
-				break;
+			break;
 			case ThickCornerType::PointClip:
 			case ThickCornerType::PointLimit:
 			case ThickCornerType::Bevel:
@@ -1258,7 +1258,7 @@ void Spline::priv_updateOutputVertices()
 					}
 				}
 			}
-				break;
+			break;
 			case ThickCornerType::Round:
 			{
 				if (it == begin)
@@ -1309,7 +1309,7 @@ void Spline::priv_updateOutputVertices()
 					}
 				}
 			}
-				break;
+			break;
 			}
 		}
 		if (m_isClosed)
@@ -1318,7 +1318,7 @@ void Spline::priv_updateOutputVertices()
 			m_outputVertices.begin()->position = (itThick - 2)->position;
 			(m_outputVertices.begin() + 1)->position = (itThick - 1)->position;
 		}
-		
+
 		if (!m_isClosed && (m_thickEndCapType == ThickCapType::Round))
 		{
 			std::vector<Vertex>::iterator vertex{ m_vertices.end() - 1u };
@@ -1340,7 +1340,7 @@ void Spline::priv_updateOutputVertices()
 				itThick++->position = vertex->position - vector;
 			}
 		}
-		
+
 	}
 }
 

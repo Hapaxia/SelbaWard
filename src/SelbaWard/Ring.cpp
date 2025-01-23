@@ -5,7 +5,7 @@
 //
 // Ring
 //
-// Copyright(c) 2016-2024 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -228,7 +228,7 @@ void Ring::priv_updateVertices()
 		it->position = { m_radius + std::sin(angle) * m_radius * (isInnerPoint ? m_hole : 1.f), m_radius - std::cos(angle) * m_radius * (isInnerPoint ? m_hole : 1.f), };
 		it->color = m_color;
 		const sf::Vector2f scaledPosition{ it->position / (m_radius * 2.f) };
-		it->texCoords = { scaledPosition.x * m_textureRect.width + m_textureRect.left, scaledPosition.y * m_textureRect.height + m_textureRect.top };;
+		it->texCoords = { scaledPosition.x * m_textureRect.size.x + m_textureRect.position.x, scaledPosition.y * m_textureRect.size.y + m_textureRect.position.y };;
 	}
 }
 

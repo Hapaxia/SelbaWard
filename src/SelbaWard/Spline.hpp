@@ -5,7 +5,7 @@
 //
 // Spline
 //
-// Copyright(c) 2014-2024 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.7.1
+// SW Spline v1.7.0
 class Spline : public sf::Drawable
 {
 public:
@@ -135,7 +135,7 @@ public:
 	void removeVertex(std::size_t index);
 	void removeVertices(std::size_t index, std::size_t numberOfVertices = 0u); // if numberOfVertices is zero (the default), removes all vertices from specified index until the end
 	void reverseVertices();
-	
+
 	void setPosition(std::size_t index, sf::Vector2f position = { 0.f, 0.f });
 	void setPositions(std::size_t index, std::size_t numberOfVertices = 0u, sf::Vector2f position = { 0.f, 0.f }); // if numberOfVertices is zero (the default), sets positions of all vertices from specified index until the end
 	void setPositions(const std::vector<sf::Vector2f>& positions, std::size_t index = 0u);
@@ -231,7 +231,7 @@ private:
 	bool m_lockHandleMirror;
 	bool m_lockHandleAngle;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	bool priv_isValidVertexIndex(std::size_t vertexIndex) const;
 	bool priv_testVertexIndex(std::size_t vertexIndex, const std::string& exceptionMessage) const;
 	bool priv_isThick() const;

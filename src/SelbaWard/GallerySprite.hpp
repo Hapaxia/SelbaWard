@@ -5,7 +5,7 @@
 //
 // Gallery Sprite
 //
-// Copyright(c) 2016-2024 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -39,7 +39,7 @@
 namespace selbaward
 {
 
-// Gallery Sprite v1.1.2
+// Gallery Sprite v1.1.3
 class GallerySprite : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -48,7 +48,7 @@ public:
 		sf::FloatRect rectangle;
 		sf::Vector2f anchor;
 
-		Exhibit(const sf::FloatRect& newRectangle = { 0.f, 0.f, 0.f, 0.f }, const sf::Vector2f& newAnchor = { 0u, 0u }) : rectangle(newRectangle), anchor(newAnchor) { }
+		Exhibit(const sf::FloatRect& newRectangle = { { 0.f, 0.f }, { 0.f, 0.f } }, const sf::Vector2f& newAnchor = { 0u, 0u }) : rectangle(newRectangle), anchor(newAnchor) { }
 	};
 
 	GallerySprite();
@@ -94,7 +94,7 @@ private:
 	unsigned int m_currentExhibit;
 	std::vector<Exhibit> m_exhibits;
 
-	virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
+	void draw(sf::RenderTarget&, sf::RenderStates) const override;
 	void priv_updateVertices();
 	Exhibit priv_getCurrentExhibit() const;
 	Exhibit priv_getExhibit(unsigned int exhibitNumber) const;

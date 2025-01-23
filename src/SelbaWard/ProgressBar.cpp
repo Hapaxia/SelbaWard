@@ -5,7 +5,7 @@
 //
 // Progress Bar
 //
-// Copyright(c) 2015-2024 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -110,8 +110,8 @@ void ProgressBar::setTexture(const sf::Texture& texture, const bool resetRect)
 	m_texture = &texture;
 	if (resetRect)
 	{
-		m_textureRectangle.width = m_texture->getSize().x;
-		m_textureRectangle.height = m_texture->getSize().y;
+		m_textureRectangle.size.x = m_texture->getSize().x;
+		m_textureRectangle.size.y = m_texture->getSize().y;
 	}
 	priv_updateGraphics();
 }
@@ -133,8 +133,8 @@ void ProgressBar::setBackgroundTexture(const sf::Texture& backgroundTexture, con
 	m_backgroundTexture = &backgroundTexture;
 	if (resetRect)
 	{
-		m_backgroundTextureRectangle.width = m_backgroundTexture->getSize().x;
-		m_backgroundTextureRectangle.height = m_backgroundTexture->getSize().y;
+		m_backgroundTextureRectangle.size.x = m_backgroundTexture->getSize().x;
+		m_backgroundTextureRectangle.size.y = m_backgroundTexture->getSize().y;
 	}
 	priv_updateGraphics();
 }
@@ -219,11 +219,11 @@ void ProgressBar::priv_updateGraphics()
 	m_bar[2u].position = { width, 0.f };
 	m_bar[3u].position = { width, m_size.y };
 	sf::FloatRect textureRect{ m_textureRectangle };
-	textureRect.width = textureRect.width * m_amount;
-	m_bar[0u].texCoords = { textureRect.left, textureRect.top };
-	m_bar[1u].texCoords = { textureRect.left, textureRect.top + textureRect.height };
-	m_bar[2u].texCoords = { textureRect.left + textureRect.width, textureRect.top };
-	m_bar[3u].texCoords = { textureRect.left + textureRect.width, textureRect.top + textureRect.height };
+	textureRect.size.x = textureRect.size.x * m_amount;
+	m_bar[0u].texCoords = { textureRect.position.x, textureRect.position.y };
+	m_bar[1u].texCoords = { textureRect.position.x, textureRect.position.y + textureRect.size.y };
+	m_bar[2u].texCoords = { textureRect.position.x + textureRect.size.x, textureRect.position.y };
+	m_bar[3u].texCoords = { textureRect.position.x + textureRect.size.x, textureRect.position.y + textureRect.size.y };
 	for (auto& vertex : m_bar)
 		vertex.color = m_color;
 }

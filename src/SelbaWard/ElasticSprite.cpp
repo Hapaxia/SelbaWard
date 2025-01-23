@@ -5,7 +5,7 @@
 //
 // Elastic Sprite
 //
-// Copyright(c) 2017-2024 M.J.Silk
+// Copyright(c) 2017-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -106,7 +106,7 @@ const std::string perspectiveFragmentShaderCode
 void loadShader()
 {
 	if (!areShadersLoaded &&
-		bilinearShader.loadFromMemory(bilinearFragmentShaderCode, sf::Shader::Fragment) &&
+		bilinearShader.loadFromMemory(bilinearFragmentShaderCode, sf::Shader::Type::Fragment) &&
 		perspectiveShader.loadFromMemory(perspectiveVertexShaderCode, perspectiveFragmentShaderCode))
 		areShadersLoaded = true;
 }
@@ -135,9 +135,9 @@ inline sf::Color encodeFloatAsColor(const float f)
 {
 	return
 	{
-		static_cast<sf::Uint8>(static_cast<unsigned int>(f / 256) & 0xFF),
-		static_cast<sf::Uint8>(static_cast<unsigned int>(f) & 0xFF),
-		static_cast<sf::Uint8>(static_cast<unsigned int>(f * 256) & 0xFF),
+		static_cast<uint8_t>(static_cast<unsigned int>(f / 256) & 0xFF),
+		static_cast<uint8_t>(static_cast<unsigned int>(f) & 0xFF),
+		static_cast<uint8_t>(static_cast<unsigned int>(f * 256) & 0xFF),
 		0u
 	};
 }
@@ -305,7 +305,7 @@ sf::Color ElasticSprite::getColor() const
 	const unsigned int totalG{ static_cast<unsigned int>(m_vertices[0].color.g) + m_vertices[1].color.g + m_vertices[2].color.g + m_vertices[3].color.g };
 	const unsigned int totalB{ static_cast<unsigned int>(m_vertices[0].color.b) + m_vertices[1].color.b + m_vertices[2].color.b + m_vertices[3].color.b };
 	const unsigned int totalA{ static_cast<unsigned int>(m_vertices[0].color.a) + m_vertices[1].color.a + m_vertices[2].color.a + m_vertices[3].color.a };
-	return{ static_cast<sf::Uint8>(totalR / 4), static_cast<sf::Uint8>(totalG / 4), static_cast<sf::Uint8>(totalB / 4), static_cast<sf::Uint8>(totalA / 4) };
+	return{ static_cast<uint8_t>(totalR / 4), static_cast<uint8_t>(totalG / 4), static_cast<uint8_t>(totalB / 4), static_cast<uint8_t>(totalA / 4) };
 }
 
 sf::Color ElasticSprite::getVertexColor(const unsigned int vertexIndex) const
@@ -459,10 +459,10 @@ void ElasticSprite::draw(sf::RenderTarget& target, sf::RenderStates states) cons
 			{
 				bilinearShader.setUniform("texture", *m_pTexture);
 				const sf::Vector2f textureSize(m_pTexture->getSize());
-				bilinearShader.setUniform("textureRectLeftRatio", m_actualTextureRect.left / textureSize.x);
-				bilinearShader.setUniform("textureRectTopRatio", m_actualTextureRect.top / textureSize.y);
-				bilinearShader.setUniform("textureRectWidthRatio", m_actualTextureRect.width / textureSize.x);
-				bilinearShader.setUniform("textureRectHeightRatio", m_actualTextureRect.height / textureSize.y);
+				bilinearShader.setUniform("textureRectLeftRatio", m_actualTextureRect.position.x / textureSize.x);
+				bilinearShader.setUniform("textureRectTopRatio", m_actualTextureRect.position.y / textureSize.y);
+				bilinearShader.setUniform("textureRectWidthRatio", m_actualTextureRect.size.x / textureSize.x);
+				bilinearShader.setUniform("textureRectHeightRatio", m_actualTextureRect.size.y / textureSize.y);
 			}
 			bilinearShader.setUniform("renderTargetHeight", static_cast<int>(target.getSize().y));
 			bilinearShader.setUniform("v0", sf::Glsl::Vec2(target.mapCoordsToPixel(m_vertices[0].position)));
@@ -492,13 +492,13 @@ void ElasticSprite::priv_updateVertices(sf::Transform transform) const
 
 	if (m_textureFlipX)
 	{
-		m_actualTextureRect.left += m_actualTextureRect.width;
-		m_actualTextureRect.width = -m_actualTextureRect.width;
+		m_actualTextureRect.position.x += m_actualTextureRect.size.x;
+		m_actualTextureRect.size.x = -m_actualTextureRect.size.x;
 	}
 	if (m_textureFlipY)
 	{
-		m_actualTextureRect.top += m_actualTextureRect.height;
-		m_actualTextureRect.height = -m_actualTextureRect.height;
+		m_actualTextureRect.position.y += m_actualTextureRect.size.y;
+		m_actualTextureRect.size.y = -m_actualTextureRect.size.y;
 	}
 
 	if (m_useShader && m_usePerspectiveInterpolation && m_pTexture != nullptr)
@@ -514,15 +514,15 @@ void ElasticSprite::priv_updateVertices(sf::Transform transform) const
 		m_weights[3] = (distanceToIntersection3 + distanceToIntersection1) / distanceToIntersection1;
 
 		const sf::Vector2f textureSize(m_pTexture->getSize());
-		m_vertices[0].texCoords = { m_weights[0] * (m_actualTextureRect.left / textureSize.x), m_weights[0] * (m_actualTextureRect.top / textureSize.y) };
-		m_vertices[1].texCoords = { m_weights[1] * (m_actualTextureRect.left / textureSize.x), m_weights[1] * ((m_actualTextureRect.top + m_actualTextureRect.height) / textureSize.y) };
-		m_vertices[2].texCoords = { m_weights[2] * ((m_actualTextureRect.left + m_actualTextureRect.width) / textureSize.x), m_weights[2] * ((m_actualTextureRect.top + m_actualTextureRect.height) / textureSize.y) };
-		m_vertices[3].texCoords = { m_weights[3] * ((m_actualTextureRect.left + m_actualTextureRect.width) / textureSize.x), m_weights[3] * (m_actualTextureRect.top / textureSize.y) };
+		m_vertices[0].texCoords = { m_weights[0] * (m_actualTextureRect.position.x / textureSize.x), m_weights[0] * (m_actualTextureRect.position.y / textureSize.y) };
+		m_vertices[1].texCoords = { m_weights[1] * (m_actualTextureRect.position.x / textureSize.x), m_weights[1] * ((m_actualTextureRect.position.y + m_actualTextureRect.size.y) / textureSize.y) };
+		m_vertices[2].texCoords = { m_weights[2] * ((m_actualTextureRect.position.x + m_actualTextureRect.size.x) / textureSize.x), m_weights[2] * ((m_actualTextureRect.position.y + m_actualTextureRect.size.y) / textureSize.y) };
+		m_vertices[3].texCoords = { m_weights[3] * ((m_actualTextureRect.position.x + m_actualTextureRect.size.x) / textureSize.x), m_weights[3] * (m_actualTextureRect.position.y / textureSize.y) };
 	}
 	else
 	{
-		m_vertices[0].texCoords = { m_actualTextureRect.left, m_actualTextureRect.top };
-		m_vertices[2].texCoords = { m_actualTextureRect.left + m_actualTextureRect.width, m_actualTextureRect.top + m_actualTextureRect.height };
+		m_vertices[0].texCoords = { m_actualTextureRect.position.x, m_actualTextureRect.position.y };
+		m_vertices[2].texCoords = { m_actualTextureRect.position.x + m_actualTextureRect.size.x, m_actualTextureRect.position.y + m_actualTextureRect.size.y };
 		m_vertices[1].texCoords = { m_vertices[0].texCoords.x, m_vertices[2].texCoords.y };
 		m_vertices[3].texCoords = { m_vertices[2].texCoords.x, m_vertices[0].texCoords.y };
 	}
@@ -536,11 +536,11 @@ sf::Vector2f ElasticSprite::priv_getVertexBasePosition(const unsigned int vertex
 	switch (vertexIndex)
 	{
 	case 1u:
-		return sf::Vector2f(0.f, m_baseTextureRect.height);
+		return sf::Vector2f(0.f, m_baseTextureRect.size.y);
 	case 2u:
-		return sf::Vector2f(m_baseTextureRect.width, m_baseTextureRect.height);
+		return sf::Vector2f(m_baseTextureRect.size.x, m_baseTextureRect.size.y);
 	case 3u:
-		return sf::Vector2f(m_baseTextureRect.width, 0.f);
+		return sf::Vector2f(m_baseTextureRect.size.x, 0.f);
 	case 0u:
 	default:
 		return { 0.f, 0.f };

@@ -5,7 +5,7 @@
 //
 // BitmapFont
 //
-// Copyright(c) 2014-2024 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -116,8 +116,8 @@ void BitmapFont::setTextureRect(const sf::IntRect& textureRect, const std::size_
 
 	m_glyphs[glyphIndex].useDefaultTextureRect = false;
 	m_glyphs[glyphIndex].textureRect = textureRect;
-	m_glyphs[glyphIndex].width = textureRect.width;
-	m_glyphs[glyphIndex].baseline = textureRect.height - 1;
+	m_glyphs[glyphIndex].width = textureRect.size.x;
+	m_glyphs[glyphIndex].baseline = textureRect.size.y - 1;
 	m_glyphs[glyphIndex].startX = 0;
 }
 
@@ -379,8 +379,8 @@ const BitmapFont::Glyph BitmapFont::priv_getGlyphWithDefaultTextureRect(std::siz
 	Glyph defaultGlyph;
 	defaultGlyph.useDefaultTextureRect = false;
 	defaultGlyph.textureRect = m_defaultTextureRect;
-	defaultGlyph.textureRect.left = m_defaultTextureRect.width * (glyphIndex % m_numberOfTilesPerRow);
-	defaultGlyph.textureRect.top = m_defaultTextureRect.height * (glyphIndex / m_numberOfTilesPerRow);
+	defaultGlyph.textureRect.position.x = m_defaultTextureRect.size.x * (glyphIndex % m_numberOfTilesPerRow);
+	defaultGlyph.textureRect.position.y = m_defaultTextureRect.size.y * (glyphIndex / m_numberOfTilesPerRow);
 	defaultGlyph.width = m_glyphs[glyphIndex].width;
 	defaultGlyph.baseline = m_glyphs[glyphIndex].baseline;
 	defaultGlyph.startX = m_glyphs[glyphIndex].startX;

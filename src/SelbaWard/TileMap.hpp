@@ -5,7 +5,7 @@
 //
 // Tile Map
 //
-// Copyright(c) 2016-2024 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -40,11 +40,12 @@
 #include <cmath>
 
 #include <SFML/Graphics/RenderTexture.hpp>
+#include <SFML/Graphics/Transformable.hpp>
 
 namespace selbaward
 {
 
-// SW Tile Map v2.0.3
+// SW Tile Map v2.0.4
 template <class T>
 class TileMap : public sf::Drawable, public sf::Transformable
 {
@@ -120,8 +121,8 @@ private:
 		Deque,
 		Raw
 	} m_levelContainerType;
-	unsigned long int m_levelWidth;
-	unsigned long int m_levelSize;
+	std::size_t m_levelWidth;
+	std::size_t m_levelSize;
 	const void* m_pLevel;
 
 	// data
@@ -150,7 +151,7 @@ private:
 	mutable sf::RenderTexture m_renderTexture;
 	mutable std::vector<sf::Vertex> m_render;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_updateVertices() const;
 	void priv_updateRender() const;
 	void priv_recreateRenderTexture();

@@ -5,7 +5,7 @@
 //
 // NinePatch
 //
-// Copyright(c) 2015-2024 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Nine Patch v1.4.3
+// SW Nine Patch v1.4.4
 class NinePatch : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -71,7 +71,7 @@ private:
 	sf::Vector2f m_contentBottomRight;
 	sf::IntRect m_textureRectangle;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_updateVertices();
 	void priv_updateVerticesPositions();
 	void priv_updateVerticesTexCoords();

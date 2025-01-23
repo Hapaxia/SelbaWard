@@ -5,7 +5,7 @@
 //
 // Console Screen v2
 //
-// Copyright(c) 2014-2024 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -93,7 +93,7 @@ inline sf::Color sepiaColor(const float alpha)
 	const unsigned int r{ static_cast<unsigned int>(linearInterpolation(0.f, 344.505f, alpha)) };
 	const unsigned int g{ static_cast<unsigned int>(linearInterpolation(0.f, 306.765f, alpha)) };
 	const unsigned int b{ static_cast<unsigned int>(linearInterpolation(0.f, 238.935f, alpha)) };
-	return sf::Color((r > 255 ? 255u : static_cast<sf::Uint8>(r)), (g > 255 ? 255u : static_cast<sf::Uint8>(g)), (b > 255 ? 255u : static_cast<sf::Uint8>(b)));
+	return sf::Color((r > 255 ? 255u : static_cast<uint8_t>(r)), (g > 255 ? 255u : static_cast<uint8_t>(g)), (b > 255 ? 255u : static_cast<uint8_t>(b)));
 }
 
 inline float relativeLuminance(const sf::Color& color)
@@ -170,21 +170,21 @@ void addPalette8ColorRgb(std::vector<sf::Color>& palette)
 
 void addPalette16ColorGreenscale(std::vector<sf::Color>& palette)
 {
-	for (sf::Uint8 i{ 0u }; i < 16u; ++i)
-		addColorToPalette(palette, sf::Color(0, i * 17u, 0));
+	for (uint8_t i{ 0u }; i < 16u; ++i)
+		addColorToPalette(palette, sf::Color(0u, i * 17u, 0u));
 }
 
 void addPalette16ColorGrayscale(std::vector<sf::Color>& palette)
 {
-	for (sf::Uint8 i{ 0u }; i < 16u; ++i)
+	for (uint8_t i{ 0u }; i < 16u; ++i)
 		addColorToPalette(palette, sf::Color(i * 17u, i * 17u, i * 17u));
 }
 
 void addPalette16ColorSepia(std::vector<sf::Color>& palette)
 {
-	const unsigned int numberOfColors{ 16 };
-	for (unsigned int i{ 0 }; i < numberOfColors; ++i)
-		addColorToPalette(palette, sepiaColor(static_cast<float>(i) / (numberOfColors - 1)));
+	constexpr unsigned int numberOfColors{ 16u };
+	for (unsigned int i{ 0u }; i < numberOfColors; ++i)
+		addColorToPalette(palette, sepiaColor(static_cast<float>(i) / (numberOfColors - 1u)));
 }
 
 void addPalette16ColorCga(std::vector<sf::Color>& palette)
@@ -294,11 +294,11 @@ void addPalette16Color16Html(std::vector<sf::Color>& palette)
 
 void addPalette216ColorWebSafe(std::vector<sf::Color>& palette)
 {
-	for (sf::Uint8 r{ 0u }; r < 6; ++r)
+	for (uint8_t r{ 0u }; r < 6; ++r)
 	{
-		for (sf::Uint8 g{ 0u }; g < 6; ++g)
+		for (uint8_t g{ 0u }; g < 6; ++g)
 		{
-			for (sf::Uint8 b{ 0u }; b < 6; ++b)
+			for (uint8_t b{ 0u }; b < 6; ++b)
 				addColorToPalette(palette, sf::Color(r * 51u, g * 51u, b * 51u));
 		}
 	}
@@ -306,21 +306,21 @@ void addPalette216ColorWebSafe(std::vector<sf::Color>& palette)
 
 void addPalette256ColorGreenscale(std::vector<sf::Color>& palette)
 {
-	for (unsigned int i{ 0u }; i < 256; ++i)
-		addColorToPalette(palette, sf::Color(0, static_cast<sf::Uint8>(i), 0));
+	for (unsigned int i{ 0u }; i < 256u; ++i)
+		addColorToPalette(palette, sf::Color(0, static_cast<uint8_t>(i), 0));
 }
 
 void addPalette256ColorGrayscale(std::vector<sf::Color>& palette)
 {
-	for (unsigned int i{ 0 }; i < 256; ++i)
-		addColorToPalette(palette, sf::Color(static_cast<sf::Uint8>(i), static_cast<sf::Uint8>(i), static_cast<sf::Uint8>(i)));
+	for (unsigned int i{ 0u }; i < 256u; ++i)
+		addColorToPalette(palette, sf::Color(static_cast<uint8_t>(i), static_cast<uint8_t>(i), static_cast<uint8_t>(i)));
 }
 
 void addPalette256ColorSepia(std::vector<sf::Color>& palette)
 {
-	const unsigned int numberOfColors{ 256 };
-	for (unsigned int i{ 0 }; i < numberOfColors; ++i)
-		addColorToPalette(palette, sepiaColor(static_cast<float>(i) / (numberOfColors - 1)));
+	constexpr unsigned int numberOfColors{ 256u };
+	for (unsigned int i{ 0u }; i < numberOfColors; ++i)
+		addColorToPalette(palette, sepiaColor(static_cast<float>(i) / (numberOfColors - 1u)));
 }
 
 } // namespace
@@ -1617,21 +1617,21 @@ void ConsoleScreen::scrollUp(unsigned int amount, sf::IntRect selectionRectangle
 		return;
 	}
 
-	std::vector<Cell> topRow(selectionRectangle.width);
+	std::vector<Cell> topRow(selectionRectangle.size.x);
 	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
 	{
-		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.size.y); ++y)
 		{
-			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.size.x); ++x)
 			{
 				if (m_do.wrapOnManualScroll && y == 0)
-					topRow[x] = m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })];
-				if (y < static_cast<unsigned int>(selectionRectangle.height) - 1)
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y + 1 })];
+					topRow[x] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y })];
+				if (y < static_cast<unsigned int>(selectionRectangle.size.y) - 1)
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y })] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y + 1 })];
 				else if (m_do.wrapOnManualScroll)
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = topRow[x];
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y })] = topRow[x];
 				else
-					priv_clearCell(priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y }), true, true);
+					priv_clearCell(priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y }), true, true);
 			}
 		}
 	}
@@ -1652,22 +1652,22 @@ void ConsoleScreen::scrollDown(unsigned int amount, sf::IntRect selectionRectang
 		return;
 	}
 
-	std::vector<Cell> bottomRow(selectionRectangle.width);
+	std::vector<Cell> bottomRow(selectionRectangle.size.x);
 	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
 	{
-		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.size.y); ++y)
 		{
-			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.size.x); ++x)
 			{
-				const unsigned cellY{ selectionRectangle.top + selectionRectangle.height - y - 1 };
+				const unsigned cellY{ selectionRectangle.position.x + selectionRectangle.size.y - y - 1 };
 				if (m_do.wrapOnManualScroll && y == 0)
-					bottomRow[x] = m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY })];
-				if (cellY > static_cast<unsigned int>(selectionRectangle.top))
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY })] = m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY - 1 })];
+					bottomRow[x] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x, cellY })];
+				if (cellY > static_cast<unsigned int>(selectionRectangle.position.y))
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, cellY })] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x, cellY - 1 })];
 				else if (m_do.wrapOnManualScroll)
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY })] = bottomRow[x];
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, cellY })] = bottomRow[x];
 				else
-					priv_clearCell(priv_cellIndex({ selectionRectangle.left + x, cellY }), true, true);
+					priv_clearCell(priv_cellIndex({ selectionRectangle.position.x + x, cellY }), true, true);
 			}
 		}
 	}
@@ -1688,21 +1688,21 @@ void ConsoleScreen::scrollLeft(unsigned int amount, sf::IntRect selectionRectang
 		return;
 	}
 
-	std::vector<Cell> leftColumn(selectionRectangle.height);
+	std::vector<Cell> leftColumn(selectionRectangle.size.y);
 	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
 	{
-		for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+		for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.size.x); ++x)
 		{
-			for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+			for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.size.y); ++y)
 			{
 				if (m_do.wrapOnManualScroll && x == 0)
-					leftColumn[y] = m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })];
-				if (x < static_cast<unsigned int>(selectionRectangle.width) - 1)
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = m_cells[priv_cellIndex({ selectionRectangle.left + x + 1, selectionRectangle.top + y })];
+					leftColumn[y] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y })];
+				if (x < static_cast<unsigned int>(selectionRectangle.size.x) - 1)
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y })] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x + 1, selectionRectangle.position.y + y })];
 				else if (m_do.wrapOnManualScroll)
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = leftColumn[y];
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y})] = leftColumn[y];
 				else
-					priv_clearCell(priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y }), true, true);
+					priv_clearCell(priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y }), true, true);
 			}
 		}
 	}
@@ -1723,22 +1723,22 @@ void ConsoleScreen::scrollRight(unsigned int amount, sf::IntRect selectionRectan
 		return;
 	}
 
-	std::vector<Cell> rightColumn(selectionRectangle.height);
+	std::vector<Cell> rightColumn(selectionRectangle.size.y);
 	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
 	{
-		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.size.y); ++y)
 		{
-			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.size.x); ++x)
 			{
-				const unsigned cellX{ selectionRectangle.left + selectionRectangle.width - x - 1 };
+				const unsigned cellX{ selectionRectangle.position.x + selectionRectangle.size.x - x - 1 };
 				if (m_do.wrapOnManualScroll && x == 0)
-					rightColumn[y] = m_cells[priv_cellIndex({ cellX, selectionRectangle.top + y, })];
-				if (cellX > static_cast<unsigned int>(selectionRectangle.left))
-					m_cells[priv_cellIndex({ cellX, selectionRectangle.top + y })] = m_cells[priv_cellIndex({ cellX - 1, selectionRectangle.top + y })];
+					rightColumn[y] = m_cells[priv_cellIndex({ cellX, selectionRectangle.position.y + y, })];
+				if (cellX > static_cast<unsigned int>(selectionRectangle.position.x))
+					m_cells[priv_cellIndex({ cellX, selectionRectangle.position.y + y })] = m_cells[priv_cellIndex({ cellX - 1, selectionRectangle.position.y + y })];
 				else if (m_do.wrapOnManualScroll)
-					m_cells[priv_cellIndex({ cellX, selectionRectangle.top + y })] = rightColumn[y];
+					m_cells[priv_cellIndex({ cellX, selectionRectangle.position.y + y })] = rightColumn[y];
 				else
-					priv_clearCell(priv_cellIndex({ cellX, selectionRectangle.top + y }), true, true);
+					priv_clearCell(priv_cellIndex({ cellX, selectionRectangle.position.y + y }), true, true);
 			}
 		}
 	}
@@ -1935,7 +1935,7 @@ sf::Color ConsoleScreen::getPaletteColor(const Color color) const
 		return sf::Color::Transparent;
 	}
 
-	return m_is.rgbMode ? sf::Color(static_cast<sf::Uint8>(color.id / 65536), static_cast<sf::Uint8>((color.id % 65536) / 256), static_cast<sf::Uint8>(color.id % 256)) : m_palette[color.id];
+	return m_is.rgbMode ? sf::Color(static_cast<uint8_t>(color.id / 65536), static_cast<uint8_t>((color.id % 65536) / 256), static_cast<uint8_t>(color.id % 256)) : m_palette[color.id];
 }
 
 void ConsoleScreen::setPaletteSize(const unsigned long int size)
@@ -2780,12 +2780,12 @@ void ConsoleScreen::priv_scroll()
 
 void ConsoleScreen::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const sf::IntRect& selectionRectangle)
 {
-	if (selectionRectangle.left >= static_cast<int>(m_mode.x) ||
-		selectionRectangle.top >= static_cast<int>(m_mode.y) ||
-		selectionRectangle.width <= 0 ||
-		selectionRectangle.height <= 0 ||
-		(selectionRectangle.left + selectionRectangle.width) < 0 ||
-		(selectionRectangle.top + selectionRectangle.height) < 0)
+	if (selectionRectangle.position.x >= static_cast<int>(m_mode.x) ||
+		selectionRectangle.position.y >= static_cast<int>(m_mode.y) ||
+		selectionRectangle.size.x <= 0 ||
+		selectionRectangle.size.y <= 0 ||
+		(selectionRectangle.position.x + selectionRectangle.size.x) < 0 ||
+		(selectionRectangle.position.y + selectionRectangle.size.y) < 0)
 	{
 		if (m_do.throwExceptions)
 			throw Exception(exceptionPrefix + "Cannot copy selection.\nSelection does not contain any cells.");
@@ -2795,11 +2795,11 @@ void ConsoleScreen::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, cons
 	buffer.width = 0u;
 	buffer.cells.clear();
 
-	for (int y{ 0 }; y < selectionRectangle.height; ++y)
+	for (int y{ 0 }; y < selectionRectangle.size.y; ++y)
 	{
-		for (int x{ 0 }; x < selectionRectangle.width; ++x)
+		for (int x{ 0 }; x < selectionRectangle.size.x; ++x)
 		{
-			const sf::Vector2i location{ x + selectionRectangle.left, y + selectionRectangle.top };
+			const sf::Vector2i location{ x + selectionRectangle.position.x, y + selectionRectangle.position.y };
 			if (location.x < 0 || location.y < 0)
 				continue;
 			const sf::Vector2u cellLocation{ static_cast<unsigned int>(location.x), static_cast<unsigned int>(location.y) };
@@ -2831,12 +2831,12 @@ void ConsoleScreen::priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i
 
 bool ConsoleScreen::priv_isSelectionRectangleContainedInScreen(const sf::IntRect& selectionRectangle)
 {
-	return (selectionRectangle.left >= 0 &&
-		selectionRectangle.top >= 0 &&
-		selectionRectangle.width >= 0 &&
-		selectionRectangle.height >= 0 &&
-		static_cast<unsigned int>(selectionRectangle.left + selectionRectangle.width) <= m_mode.x &&
-		static_cast<unsigned int>(selectionRectangle.top + selectionRectangle.height) <= m_mode.y);
+	return (selectionRectangle.position.x >= 0 &&
+		selectionRectangle.position.y >= 0 &&
+		selectionRectangle.size.x >= 0 &&
+		selectionRectangle.size.y >= 0 &&
+		static_cast<unsigned int>(selectionRectangle.position.x + selectionRectangle.size.x) <= m_mode.x &&
+		static_cast<unsigned int>(selectionRectangle.position.y + selectionRectangle.size.y) <= m_mode.y);
 }
 
 unsigned int ConsoleScreen::priv_getPrintIndex(sf::Vector2u location) const
@@ -3014,9 +3014,9 @@ void ConsoleScreen::priv_modifyCellUsingPrintProperties(const unsigned int index
 
 void ConsoleScreen::priv_makeColorDark(sf::Color& color)
 {
-	color.r = static_cast<sf::Uint8>(m_darkAttributeMultiplier * color.r);
-	color.g = static_cast<sf::Uint8>(m_darkAttributeMultiplier * color.g);
-	color.b = static_cast<sf::Uint8>(m_darkAttributeMultiplier * color.b);
+	color.r = static_cast<uint8_t>(m_darkAttributeMultiplier * color.r);
+	color.g = static_cast<uint8_t>(m_darkAttributeMultiplier * color.g);
+	color.b = static_cast<uint8_t>(m_darkAttributeMultiplier * color.b);
 }
 
 } // namespace selbaward

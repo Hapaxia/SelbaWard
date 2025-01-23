@@ -5,7 +5,7 @@
 //
 // Polygon
 //
-// Copyright(c) 2022-2024 M.J.Silk
+// Copyright(c) 2022-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -318,7 +318,7 @@ float Polygon::getPerimeter() const
 {
 	const std::size_t numberOfVertices{ m_vertices.size() };
 	float perimeter{ 0.f };
-	const bool hasHoles{ !m_holeStartIndices.empty()};
+	const bool hasHoles{ !m_holeStartIndices.empty() };
 	for (std::size_t i{ 0u }; i < numberOfVertices; ++i)
 	{
 		std::size_t nextI{ i + 1u };
@@ -530,11 +530,11 @@ void Polygon::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	states.texture = m_texture;
 	states.transform *= getTransform();
 	if (!m_outputVertices.empty())
-		target.draw(m_outputVertices.data(), m_outputVertices.size(), sf::Triangles, states);
+		target.draw(m_outputVertices.data(), m_outputVertices.size(), sf::PrimitiveType::Triangles, states);
 	if (m_showWireframe && !m_wireframeVertices.empty())
 	{
 		states.texture = nullptr;
-		target.draw(m_wireframeVertices.data(), m_wireframeVertices.size(), sf::Lines, states);
+		target.draw(m_wireframeVertices.data(), m_wireframeVertices.size(), sf::PrimitiveType::Lines, states);
 	}
 }
 
@@ -883,7 +883,7 @@ void Polygon::priv_triangulateEarClip()
 			else
 				return;
 		}
-			
+		
 
 		std::size_t currentPoint{ ear.front() };
 		std::vector<std::size_t>::iterator currentIt{ std::find(indices.begin(), indices.end(), currentPoint) };

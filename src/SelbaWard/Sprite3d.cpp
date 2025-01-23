@@ -5,7 +5,7 @@
 //
 // Sprite3d
 //
-// Copyright(c) 2015-2024 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -142,12 +142,12 @@ Sprite3d::Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect, c
 Sprite3d::Sprite3d(const sf::Sprite& sprite)
 	: Sprite3d()
 {
-	setTexture(*sprite.getTexture());
+	setTexture(sprite.getTexture());
 	setTextureRect(sprite.getTextureRect());
 	this->setColor(sprite.getColor());
 	this->setOrigin(sprite.getOrigin());
 	this->setPosition(sprite.getPosition());
-	this->setRotation(sprite.getRotation());
+	this->setRotation(sprite.getRotation().asDegrees());
 	this->setScale(sprite.getScale());
 }
 
@@ -165,9 +165,9 @@ const sf::Sprite Sprite3d::getSprite() const
 
 void Sprite3d::setTextureRect(const sf::IntRect& textureRectangle)
 {
-	m_textureOffset = sf::Vector2i(textureRectangle.left, textureRectangle.top);
+	m_textureOffset = sf::Vector2i(textureRectangle.position.x, textureRectangle.position.y);
 	m_backTextureOffset = m_textureOffset;
-	m_size = sf::Vector2i(textureRectangle.width, textureRectangle.height);
+	m_size = sf::Vector2i(textureRectangle.size.x, textureRectangle.size.y);
 	createPointGrid();
 	updateTransformedPoints();
 	updateVertices();
@@ -263,12 +263,12 @@ float Sprite3d::getYaw() const
 
 float Sprite3d::getRoll() const
 {
-	return this->getRotation();
+	return this->getRotation().asDegrees();
 }
 
 sf::Vector3f Sprite3d::getRotation3d() const
 {
-	return{ m_pitch, m_yaw, this->Transformable::getRotation() };
+	return{ m_pitch, m_yaw, this->Transformable::getRotation().asDegrees()};
 }
 
 sf::Vector3f Sprite3d::getOrigin3d() const
@@ -297,7 +297,7 @@ void Sprite3d::setYaw(const float yaw)
 
 void Sprite3d::setRoll(const float roll)
 {
-	this->Transformable::setRotation(roll);
+	this->Transformable::setRotation(sf::degrees(roll));
 }
 
 void Sprite3d::setRotation(const float rotation)
@@ -486,11 +486,7 @@ void Sprite3d::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		else
 			states.texture = m_pTexture;
 
-#ifdef USE_SFML_PRE_2_4
-		target.draw(&m_vertices[0], m_vertices.size(), sf::PrimitiveType::TrianglesStrip, states);
-#else // USE_SFML_PRE_2_4
-		target.draw(&m_vertices[0], m_vertices.size(), sf::PrimitiveType::TriangleStrip, states);
-#endif // USE_SFML_PRE_2_4
+		target.draw(m_vertices.data(), m_vertices.size(), sf::PrimitiveType::TriangleStrip, states);
 	}
 }
 

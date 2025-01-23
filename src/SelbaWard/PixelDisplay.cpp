@@ -5,7 +5,7 @@
 //
 // Pixel Display
 //
-// Copyright(c) 2019-2024 M.J.Silk
+// Copyright(c) 2019-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -203,19 +203,19 @@ void PixelDisplay::shiftRight(const unsigned int amount, const unsigned int star
 void PixelDisplay::scrollUp(const unsigned int color, const unsigned int amount, sf::IntRect selectionRectangle)
 {
 	assert(color < m_palette.size());
-	assert(selectionRectangle.left < static_cast<int>(m_resolution.x));
-	assert(selectionRectangle.top < static_cast<int>(m_resolution.y));
-	if (selectionRectangle.width == 0u)
-		selectionRectangle.width = m_resolution.x - selectionRectangle.left;
-	if (selectionRectangle.height == 0u)
-		selectionRectangle.height = m_resolution.y - selectionRectangle.top;
+	assert(selectionRectangle.position.x < static_cast<int>(m_resolution.x));
+	assert(selectionRectangle.position.y < static_cast<int>(m_resolution.y));
+	if (selectionRectangle.size.x == 0u)
+		selectionRectangle.size.x = m_resolution.x - selectionRectangle.position.x;
+	if (selectionRectangle.size.y == 0u)
+		selectionRectangle.size.y = m_resolution.y - selectionRectangle.position.y;
 	sf::Rect<unsigned int> rectangle(selectionRectangle);
-	for (unsigned int y{ 0u }; y < rectangle.height; ++y)
+	for (unsigned int y{ 0u }; y < rectangle.size.y; ++y)
 	{
-		for (unsigned int x{ 0u }; x < rectangle.width; ++x)
+		for (unsigned int x{ 0u }; x < rectangle.size.x; ++x)
 		{
-			const unsigned int index{ (rectangle.top + y) * m_resolution.x + rectangle.left + x };
-			m_pixels[index] = (y == rectangle.height - 1u) ? color : m_pixels[index + m_resolution.x];
+			const unsigned int index{ (rectangle.position.y + y) * m_resolution.x + rectangle.position.x + x };
+			m_pixels[index] = (y == rectangle.size.y - 1u) ? color : m_pixels[index + m_resolution.x];
 		}
 	}
 	priv_updatePixels();
@@ -224,19 +224,19 @@ void PixelDisplay::scrollUp(const unsigned int color, const unsigned int amount,
 void PixelDisplay::scrollDown(const unsigned int color, const unsigned int amount, sf::IntRect selectionRectangle)
 {
 	assert(color < m_palette.size());
-	assert(selectionRectangle.left < static_cast<int>(m_resolution.x));
-	assert(selectionRectangle.top < static_cast<int>(m_resolution.y));
-	if (selectionRectangle.width == 0u)
-		selectionRectangle.width = m_resolution.x - selectionRectangle.left;
-	if (selectionRectangle.height == 0u)
-		selectionRectangle.height = m_resolution.y - selectionRectangle.top;
+	assert(selectionRectangle.position.x < static_cast<int>(m_resolution.x));
+	assert(selectionRectangle.position.y < static_cast<int>(m_resolution.y));
+	if (selectionRectangle.size.x == 0u)
+		selectionRectangle.size.x = m_resolution.x - selectionRectangle.position.x;
+	if (selectionRectangle.size.y == 0u)
+		selectionRectangle.size.y = m_resolution.y - selectionRectangle.position.y;
 	sf::Rect<unsigned int> rectangle(selectionRectangle);
-	for (unsigned int y{ 0u }; y < rectangle.height; ++y)
+	for (unsigned int y{ 0u }; y < rectangle.size.y; ++y)
 	{
-		for (unsigned int x{ 0u }; x < rectangle.width; ++x)
+		for (unsigned int x{ 0u }; x < rectangle.size.x; ++x)
 		{
-			const unsigned int index{ (rectangle.top + rectangle.height - y - 1u) * m_resolution.x + rectangle.left + x };
-			m_pixels[index] = (y == rectangle.height - 1u) ? color : m_pixels[index - m_resolution.x];
+			const unsigned int index{ (rectangle.position.y + rectangle.size.y - y - 1u) * m_resolution.x + rectangle.position.x + x };
+			m_pixels[index] = (y == rectangle.size.y - 1u) ? color : m_pixels[index - m_resolution.x];
 		}
 	}
 	priv_updatePixels();
@@ -245,18 +245,18 @@ void PixelDisplay::scrollDown(const unsigned int color, const unsigned int amoun
 void PixelDisplay::scrollLeft(const unsigned int color, const unsigned int amount, sf::IntRect selectionRectangle)
 {
 	assert(color < m_palette.size());
-	assert(selectionRectangle.left < static_cast<int>(m_resolution.x));
-	assert(selectionRectangle.top < static_cast<int>(m_resolution.y));
-	if (selectionRectangle.width == 0u)
-		selectionRectangle.width = m_resolution.x - selectionRectangle.left;
-	if (selectionRectangle.height == 0u)
-		selectionRectangle.height = m_resolution.y - selectionRectangle.top;
+	assert(selectionRectangle.position.x < static_cast<int>(m_resolution.x));
+	assert(selectionRectangle.position.y < static_cast<int>(m_resolution.y));
+	if (selectionRectangle.size.x == 0u)
+		selectionRectangle.size.x = m_resolution.x - selectionRectangle.position.x;
+	if (selectionRectangle.size.y == 0u)
+		selectionRectangle.size.y = m_resolution.y - selectionRectangle.position.y;
 	sf::Rect<unsigned int> rectangle(selectionRectangle);
-	for (unsigned int y{ 0u }; y < rectangle.height; ++y)
+	for (unsigned int y{ 0u }; y < rectangle.size.y; ++y)
 	{
-		const unsigned int firstPixelIndex{ (rectangle.top + y) * m_resolution.x + rectangle.left };
-		shiftVectorDown(m_pixels, amount, firstPixelIndex, rectangle.width);
-		m_pixels[firstPixelIndex + rectangle.width - 1u] = color;
+		const unsigned int firstPixelIndex{ (rectangle.position.y + y) * m_resolution.x + rectangle.position.x };
+		shiftVectorDown(m_pixels, amount, firstPixelIndex, rectangle.size.x);
+		m_pixels[firstPixelIndex + rectangle.size.x - 1u] = color;
 	}
 	priv_updatePixels();
 }
@@ -264,17 +264,17 @@ void PixelDisplay::scrollLeft(const unsigned int color, const unsigned int amoun
 void PixelDisplay::scrollRight(const unsigned int color, const unsigned int amount, sf::IntRect selectionRectangle)
 {
 	assert(color < m_palette.size());
-	assert(selectionRectangle.left < static_cast<int>(m_resolution.x));
-	assert(selectionRectangle.top < static_cast<int>(m_resolution.y));
-	if (selectionRectangle.width == 0u)
-		selectionRectangle.width = m_resolution.x - selectionRectangle.left;
-	if (selectionRectangle.height == 0u)
-		selectionRectangle.height = m_resolution.y - selectionRectangle.top;
+	assert(selectionRectangle.position.x < static_cast<int>(m_resolution.x));
+	assert(selectionRectangle.position.y < static_cast<int>(m_resolution.y));
+	if (selectionRectangle.size.x == 0u)
+		selectionRectangle.size.x = m_resolution.x - selectionRectangle.position.x;
+	if (selectionRectangle.size.y == 0u)
+		selectionRectangle.size.y = m_resolution.y - selectionRectangle.position.y;
 	sf::Rect<unsigned int> rectangle(selectionRectangle);
-	for (unsigned int y{ 0u }; y < rectangle.height; ++y)
+	for (unsigned int y{ 0u }; y < rectangle.size.y; ++y)
 	{
-		const unsigned int firstPixelIndex{ (rectangle.top + y) * m_resolution.x + rectangle.left };
-		shiftVectorUp(m_pixels, amount, firstPixelIndex, rectangle.width);
+		const unsigned int firstPixelIndex{ (rectangle.position.y + y) * m_resolution.x + rectangle.position.x };
+		shiftVectorUp(m_pixels, amount, firstPixelIndex, rectangle.size.x);
 		m_pixels[firstPixelIndex] = color;
 	}
 	priv_updatePixels();
@@ -282,22 +282,22 @@ void PixelDisplay::scrollRight(const unsigned int color, const unsigned int amou
 
 void PixelDisplay::scrollWrapUp(const unsigned int amount, sf::IntRect selectionRectangle)
 {
-	assert(selectionRectangle.left < static_cast<int>(m_resolution.x));
-	assert(selectionRectangle.top < static_cast<int>(m_resolution.y));
-	if (selectionRectangle.width == 0u)
-		selectionRectangle.width = m_resolution.x - selectionRectangle.left;
-	if (selectionRectangle.height == 0u)
-		selectionRectangle.height = m_resolution.y - selectionRectangle.top;
+	assert(selectionRectangle.position.x < static_cast<int>(m_resolution.x));
+	assert(selectionRectangle.position.y < static_cast<int>(m_resolution.y));
+	if (selectionRectangle.size.x == 0u)
+		selectionRectangle.size.x = m_resolution.x - selectionRectangle.position.x;
+	if (selectionRectangle.size.y == 0u)
+		selectionRectangle.size.y = m_resolution.y - selectionRectangle.position.y;
 	sf::Rect<unsigned int> rectangle(selectionRectangle);
-	std::vector<unsigned int> tempRow(rectangle.width);
-	for (unsigned int x{ 0u }; x < rectangle.width; ++x)
-		tempRow[x] = m_pixels[rectangle.top * m_resolution.x + rectangle.left + x];
-	for (unsigned int y{ 0u }; y < rectangle.height; ++y)
+	std::vector<unsigned int> tempRow(rectangle.size.x);
+	for (unsigned int x{ 0u }; x < rectangle.size.x; ++x)
+		tempRow[x] = m_pixels[rectangle.position.y * m_resolution.x + rectangle.position.x + x];
+	for (unsigned int y{ 0u }; y < rectangle.size.y; ++y)
 	{
-		for (unsigned int x{ 0u }; x < rectangle.width; ++x)
+		for (unsigned int x{ 0u }; x < rectangle.size.x; ++x)
 		{
-			const unsigned int index{ (rectangle.top + y) * m_resolution.x + rectangle.left + x };
-			m_pixels[index] = (y == rectangle.height - 1u) ? tempRow[x] : m_pixels[index + m_resolution.x];
+			const unsigned int index{ (rectangle.position.y + y) * m_resolution.x + rectangle.position.x + x };
+			m_pixels[index] = (y == rectangle.size.y - 1u) ? tempRow[x] : m_pixels[index + m_resolution.x];
 		}
 	}
 	priv_updatePixels();
@@ -305,22 +305,22 @@ void PixelDisplay::scrollWrapUp(const unsigned int amount, sf::IntRect selection
 
 void PixelDisplay::scrollWrapDown(const unsigned int amount, sf::IntRect selectionRectangle)
 {
-	assert(selectionRectangle.left < static_cast<int>(m_resolution.x));
-	assert(selectionRectangle.top < static_cast<int>(m_resolution.y));
-	if (selectionRectangle.width == 0u)
-		selectionRectangle.width = m_resolution.x - selectionRectangle.left;
-	if (selectionRectangle.height == 0u)
-		selectionRectangle.height = m_resolution.y - selectionRectangle.top;
+	assert(selectionRectangle.position.x < static_cast<int>(m_resolution.x));
+	assert(selectionRectangle.position.y < static_cast<int>(m_resolution.y));
+	if (selectionRectangle.size.x == 0u)
+		selectionRectangle.size.x = m_resolution.x - selectionRectangle.position.x;
+	if (selectionRectangle.size.y == 0u)
+		selectionRectangle.size.y = m_resolution.y - selectionRectangle.position.y;
 	sf::Rect<unsigned int> rectangle(selectionRectangle);
-	std::vector<unsigned int> tempRow(rectangle.width);
-	for (unsigned int x{ 0u }; x < rectangle.width; ++x)
-		tempRow[x] = m_pixels[(rectangle.top + rectangle.height - 1u) * m_resolution.x + rectangle.left + x];
-	for (unsigned int y{ 0u }; y < rectangle.height; ++y)
+	std::vector<unsigned int> tempRow(rectangle.size.x);
+	for (unsigned int x{ 0u }; x < rectangle.size.x; ++x)
+		tempRow[x] = m_pixels[(rectangle.position.y + rectangle.size.y - 1u) * m_resolution.x + rectangle.position.x + x];
+	for (unsigned int y{ 0u }; y < rectangle.size.y; ++y)
 	{
-		for (unsigned int x{ 0u }; x < rectangle.width; ++x)
+		for (unsigned int x{ 0u }; x < rectangle.size.x; ++x)
 		{
-			const unsigned int index{ (rectangle.top + rectangle.height - y - 1u) * m_resolution.x + rectangle.left + x };
-			m_pixels[index] = (y == rectangle.height - 1u) ? tempRow[x] : m_pixels[index - m_resolution.x];
+			const unsigned int index{ (rectangle.position.y + rectangle.size.y - y - 1u) * m_resolution.x + rectangle.position.x + x };
+			m_pixels[index] = (y == rectangle.size.y - 1u) ? tempRow[x] : m_pixels[index - m_resolution.x];
 		}
 	}
 	priv_updatePixels();
@@ -328,28 +328,28 @@ void PixelDisplay::scrollWrapDown(const unsigned int amount, sf::IntRect selecti
 
 void PixelDisplay::scrollWrapLeft(const unsigned int amount, sf::IntRect selectionRectangle)
 {
-	assert(selectionRectangle.left < static_cast<int>(m_resolution.x));
-	assert(selectionRectangle.top < static_cast<int>(m_resolution.y));
-	if (selectionRectangle.width == 0u)
-		selectionRectangle.width = m_resolution.x - selectionRectangle.left;
-	if (selectionRectangle.height == 0u)
-		selectionRectangle.height = m_resolution.y - selectionRectangle.top;
+	assert(selectionRectangle.position.x < static_cast<int>(m_resolution.x));
+	assert(selectionRectangle.position.y < static_cast<int>(m_resolution.y));
+	if (selectionRectangle.size.x == 0u)
+		selectionRectangle.size.x = m_resolution.x - selectionRectangle.position.x;
+	if (selectionRectangle.size.y == 0u)
+		selectionRectangle.size.y = m_resolution.y - selectionRectangle.position.y;
 	sf::Rect<unsigned int> rectangle(selectionRectangle);
-	for (unsigned int y{ 0u }; y < rectangle.height; ++y)
-		shiftVectorWrapDown(m_pixels, amount, (rectangle.top + y) * m_resolution.x + rectangle.left, rectangle.width);
+	for (unsigned int y{ 0u }; y < rectangle.size.y; ++y)
+		shiftVectorWrapDown(m_pixels, amount, (rectangle.position.y + y) * m_resolution.x + rectangle.position.x, rectangle.size.x);
 	priv_updatePixels();
 }
 
 void PixelDisplay::scrollWrapRight(const unsigned int amount, sf::IntRect selectionRectangle)
 {
-	assert(selectionRectangle.left < static_cast<int>(m_resolution.x));
-	assert(selectionRectangle.top < static_cast<int>(m_resolution.y));
-	if (selectionRectangle.width == 0u)
-		selectionRectangle.width = m_resolution.x - selectionRectangle.left;
-	if (selectionRectangle.height == 0u)
-		selectionRectangle.height = m_resolution.y - selectionRectangle.top;
-	for (unsigned int y{ 0u }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
-		shiftVectorWrapUp(m_pixels, amount, (selectionRectangle.top + y) * m_resolution.x + selectionRectangle.left, selectionRectangle.width);
+	assert(selectionRectangle.position.x < static_cast<int>(m_resolution.x));
+	assert(selectionRectangle.position.y < static_cast<int>(m_resolution.y));
+	if (selectionRectangle.size.x == 0u)
+		selectionRectangle.size.x = m_resolution.x - selectionRectangle.position.x;
+	if (selectionRectangle.size.y == 0u)
+		selectionRectangle.size.y = m_resolution.y - selectionRectangle.position.y;
+	for (unsigned int y{ 0u }; y < static_cast<unsigned int>(selectionRectangle.size.y); ++y)
+		shiftVectorWrapUp(m_pixels, amount, (selectionRectangle.position.y + y) * m_resolution.x + selectionRectangle.position.x, selectionRectangle.size.x);
 	priv_updatePixels();
 }
 
@@ -574,13 +574,13 @@ unsigned int PixelDisplay::priv_getRandomColor() const
 void PixelDisplay::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const sf::IntRect& selectionRectangle)
 {
 	assert(priv_isSelectionRectangleFullyContained(selectionRectangle));
-	buffer.width = selectionRectangle.width;
-	buffer.pixels.resize(selectionRectangle.width * selectionRectangle.height);
+	buffer.width = selectionRectangle.size.x;
+	buffer.pixels.resize(selectionRectangle.size.x * selectionRectangle.size.y);
 	sf::Rect<unsigned int> rectangle(selectionRectangle);
-	for (unsigned int y{ 0u }; y < rectangle.height; ++y)
+	for (unsigned int y{ 0u }; y < rectangle.size.y; ++y)
 	{
 		for (unsigned int x{ 0u }; x < buffer.width; ++x)
-			buffer.pixels[y * buffer.width + x] = m_pixels[(y + rectangle.top) * buffer.width + (x + rectangle.left)];
+			buffer.pixels[y * buffer.width + x] = m_pixels[(y + rectangle.position.y) * buffer.width + (x + rectangle.position.x)];
 	}
 }
 
@@ -599,12 +599,12 @@ void PixelDisplay::priv_pasteOffsetBuffer(const Buffer& buffer, const sf::Vector
 
 bool PixelDisplay::priv_isSelectionRectangleFullyContained(const sf::IntRect& selectionRectangle)
 {
-	return (selectionRectangle.left >= 0 &&
-		selectionRectangle.top >= 0 &&
-		selectionRectangle.width >= 0 &&
-		selectionRectangle.height >= 0 &&
-		static_cast<unsigned int>(selectionRectangle.left + selectionRectangle.width) <= m_resolution.x &&
-		static_cast<unsigned int>(selectionRectangle.top + selectionRectangle.height) <= m_resolution.y);
+	return (selectionRectangle.position.x >= 0 &&
+		selectionRectangle.position.y >= 0 &&
+		selectionRectangle.size.x >= 0 &&
+		selectionRectangle.size.y >= 0 &&
+		static_cast<unsigned int>(selectionRectangle.position.x + selectionRectangle.size.x) <= m_resolution.x &&
+		static_cast<unsigned int>(selectionRectangle.position.y + selectionRectangle.size.y) <= m_resolution.y);
 }
 
 } // namespace selbaward

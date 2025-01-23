@@ -5,7 +5,7 @@
 //
 // Starfield
 //
-// Copyright(c) 2016-2024 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Starfield v1.1.1
+// SW Starfield v1.1.2
 class Starfield : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -58,7 +58,7 @@ private:
 	sf::Vector2f m_size;
 	sf::Color m_color;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };
 
 } // namespace selbaward

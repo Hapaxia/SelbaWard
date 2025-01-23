@@ -5,7 +5,7 @@
 //
 // NinePatch
 //
-// Copyright(c) 2015-2024 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -32,6 +32,8 @@
 
 #include "NinePatch.hpp"
 
+#include <SFML/Graphics/Image.hpp>
+
 namespace
 {
 
@@ -43,13 +45,13 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 
 	// scale positions
 	topLeft = { 0.f, 0.f };
-	bottomRight = { textureRectangle.width - 2.f, textureRectangle.height - 2.f };
+	bottomRight = { textureRectangle.size.x - 2.f, textureRectangle.size.y - 2.f };
 	bool foundStart{ false }, foundEnd{ false };
-	for (unsigned int x{ 1u }; x < static_cast<unsigned int>(textureRectangle.width); ++x)
+	for (unsigned int x{ 1u }; x < static_cast<unsigned int>(textureRectangle.size.x); ++x)
 	{
 		if (!foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + x, textureRectangle.top) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.position.x + x, textureRectangle.position.y)) == sf::Color::Black)
 			{
 				foundStart = true;
 				topLeft.x = x - 1.f;
@@ -59,7 +61,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 		}
 		if (foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + x, textureRectangle.top) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.position.x + x, textureRectangle.position.y)) == sf::Color::Black)
 				bottomRight.x = x - 1.f;
 			else
 				break;
@@ -67,11 +69,11 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 	}
 	foundStart = false;
 	foundEnd = false;
-	for (unsigned int y{ 1u }; y < static_cast<unsigned int>(textureRectangle.height); ++y)
+	for (unsigned int y{ 1u }; y < static_cast<unsigned int>(textureRectangle.size.y); ++y)
 	{
 		if (!foundStart)
 		{
-			if (image.getPixel(textureRectangle.left, textureRectangle.top + y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.position.x, textureRectangle.position.y + y)) == sf::Color::Black)
 			{
 				foundStart = true;
 				topLeft.y = y - 1.f;
@@ -81,7 +83,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 		}
 		if (foundStart)
 		{
-			if (image.getPixel(textureRectangle.left, textureRectangle.top + y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.position.x, textureRectangle.position.y + y)) == sf::Color::Black)
 				bottomRight.y = y - 1.f;
 			else
 				break;
@@ -90,15 +92,15 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 
 	// content area
 	contentTopLeft = { 0.f, 0.f };
-	contentBottomRight = { textureRectangle.width - 2.f, textureRectangle.height - 2.f };
+	contentBottomRight = { textureRectangle.size.x - 2.f, textureRectangle.size.y - 2.f };
 	foundStart = false;
 	foundEnd = false;
-	const sf::Vector2u textureBottomRightPixel(textureRectangle.width - 1u, textureRectangle.height - 1u);
-	for (unsigned int x{ 1u }; x < static_cast<unsigned int>(textureRectangle.width); ++x)
+	const sf::Vector2u textureBottomRightPixel(textureRectangle.size.x - 1u, textureRectangle.size.y - 1u);
+	for (unsigned int x{ 1u }; x < static_cast<unsigned int>(textureRectangle.size.x); ++x)
 	{
 		if (!foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + x, textureRectangle.top + textureBottomRightPixel.y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.position.x + x, textureRectangle.position.y + textureBottomRightPixel.y)) == sf::Color::Black)
 			{
 				foundStart = true;
 				contentTopLeft.x = x - 1.f;
@@ -108,7 +110,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 		}
 		if (foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + x, textureRectangle.top + textureBottomRightPixel.y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.position.x + x, textureRectangle.position.y + textureBottomRightPixel.y)) == sf::Color::Black)
 				contentBottomRight.x = x - 1.f;
 			else
 				break;
@@ -116,11 +118,11 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 	}
 	foundStart = false;
 	foundEnd = false;
-	for (unsigned int y{ 1u }; y < static_cast<unsigned int>(textureRectangle.height); ++y)
+	for (unsigned int y{ 1u }; y < static_cast<unsigned int>(textureRectangle.size.y); ++y)
 	{
 		if (!foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + textureBottomRightPixel.x, textureRectangle.top + y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.position.x + textureBottomRightPixel.x, textureRectangle.position.y + y)) == sf::Color::Black)
 			{
 				foundStart = true;
 				contentTopLeft.y = y - 1.f;
@@ -130,7 +132,7 @@ void extractScalePositionsAndContentAreaFromTexture(const sf::Texture* const pTe
 		}
 		if (foundStart)
 		{
-			if (image.getPixel(textureRectangle.left + textureBottomRightPixel.x, textureRectangle.top + y) == sf::Color::Black)
+			if (image.getPixel(sf::Vector2u(textureRectangle.position.x + textureBottomRightPixel.x, textureRectangle.position.y + y)) == sf::Color::Black)
 				contentBottomRight.y = y - 1.f;
 			else
 				break;
@@ -153,7 +155,7 @@ NinePatch::NinePatch()
 	, m_scaleBottomRight({ 0.f, 0.f })
 	, m_contentTopLeft({ 0.f, 0.f })
 	, m_contentBottomRight({ 0.f, 0.f })
-	, m_textureRectangle({ 0, 0, 3, 3 })
+	, m_textureRectangle({ { 0, 0 }, { 3, 3 } })
 {
 }
 
@@ -163,7 +165,7 @@ void NinePatch::setTexture(const sf::Texture& texture, const bool resetSize, con
 	if (resetRect)
 		m_textureRectangle = { { 0, 0 }, sf::Vector2i(m_texture->getSize()) };
 	//m_trimmedSize = sf::Vector2f(m_texture->getSize()) - trimAmount * 2.f;
-	m_trimmedSize = sf::Vector2f{ static_cast<float>(m_textureRectangle.width), static_cast<float>(m_textureRectangle.height) } -trimAmount * 2.f;
+	m_trimmedSize = sf::Vector2f{ static_cast<float>(m_textureRectangle.size.x), static_cast<float>(m_textureRectangle.size.y) } -trimAmount * 2.f;
 	if (resetSize)
 		m_size = m_trimmedSize;
 	extractScalePositionsAndContentAreaFromTexture(m_texture, m_textureRectangle, m_scaleTopLeft, m_scaleBottomRight, m_contentTopLeft, m_contentBottomRight);
@@ -189,7 +191,7 @@ void NinePatch::resetSize()
 void NinePatch::setTextureRect(const sf::IntRect textureRectangle, const bool resetSize)
 {
 	m_textureRectangle = textureRectangle;
-	m_trimmedSize = sf::Vector2f{ static_cast<float>(m_textureRectangle.width), static_cast<float>(m_textureRectangle.height) } -trimAmount * 2.f;
+	m_trimmedSize = sf::Vector2f{ static_cast<float>(m_textureRectangle.size.x), static_cast<float>(m_textureRectangle.size.y) } -trimAmount * 2.f;
 	if (resetSize)
 		m_size = m_trimmedSize;
 	if (m_texture != nullptr)
@@ -327,7 +329,7 @@ void NinePatch::priv_updateVerticesTexCoords()
 	m_vertices[21u].texCoords = { x3, y3 };
 
 	// offset trim and texture rectangle
-	const sf::Vector2f textureRectangleOffset{ static_cast<float>(m_textureRectangle.left), static_cast<float>(m_textureRectangle.top) };
+	const sf::Vector2f textureRectangleOffset{ static_cast<float>(m_textureRectangle.position.x), static_cast<float>(m_textureRectangle.position.y) };
 	for (auto& vertex : m_vertices)
 		vertex.texCoords += textureRectangleOffset + trimAmount;
 }

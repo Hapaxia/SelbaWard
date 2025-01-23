@@ -5,7 +5,7 @@
 //
 // Pie Chart
 //
-// Copyright(c) 2015-2024 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Pie Chart v1.0.3
+// SW Pie Chart v1.0.4
 class PieChart : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -67,7 +67,7 @@ private:
 	std::vector<sf::Vertex> m_vertices;
 	sf::Vector2f m_size;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };
 
 inline void PieChart::setSize(sf::Vector2f size)

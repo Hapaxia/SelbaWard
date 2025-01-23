@@ -5,7 +5,7 @@
 //
 // Crosshair
 //
-// Copyright(c) 2016-2024 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -35,13 +35,15 @@
 
 #include "Common.hpp"
 
+#include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/Graphics/Color.hpp>
 
 namespace selbaward
 {
 
-// SW Crosshair v1.0.1
+// SW Crosshair v1.0.2
 class Crosshair : public sf::Drawable
 {
 public:
@@ -64,7 +66,7 @@ private:
 	sf::Color m_verticalColor;
 	mutable sf::VertexArray m_vertices;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };
 
 } // namespace selbaward

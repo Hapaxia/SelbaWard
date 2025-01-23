@@ -5,7 +5,7 @@
 //
 // Line
 //
-// Copyright(c) 2015-2024 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -104,17 +104,17 @@ sf::FloatRect Line::getLocalBounds() const
 			minY = std::min(minY, m_quad[v].position.y);
 			maxY = std::max(maxY, m_quad[v].position.y);
 		}
-		box.left = minX;
-		box.top = minY;
-		box.width = maxX - minX;
-		box.height = maxY - minY;
+		box.position.x = minX;
+		box.position.y = minY;
+		box.size.x = maxX - minX;
+		box.size.y = maxY - minY;
 	}
 	else
 	{
-		box.left = std::min(m_vertices[0].position.x, m_vertices[1].position.x);
-		box.top = std::min(m_vertices[0].position.y, m_vertices[1].position.y);
-		box.width = std::max(m_vertices[0].position.x, m_vertices[1].position.x) - box.left;
-		box.height = std::max(m_vertices[0].position.y, m_vertices[1].position.y) - box.top;
+		box.position.x = std::min(m_vertices[0].position.x, m_vertices[1].position.x);
+		box.position.y = std::min(m_vertices[0].position.y, m_vertices[1].position.y);
+		box.size.x = std::max(m_vertices[0].position.x, m_vertices[1].position.x) - box.position.x;
+		box.size.y = std::max(m_vertices[0].position.y, m_vertices[1].position.y) - box.position.y;
 	}
 	return box;
 }
@@ -137,19 +137,19 @@ sf::FloatRect Line::getGlobalBounds() const
 			minY = std::min(minY, transformedPosition.y);
 			maxY = std::max(maxY, transformedPosition.y);
 		}
-		box.left = minX;
-		box.top = minY;
-		box.width = maxX - minX;
-		box.height = maxY - minY;
+		box.position.x = minX;
+		box.position.y = minY;
+		box.size.x = maxX - minX;
+		box.size.y = maxY - minY;
 	}
 	else
 	{
 		const sf::Vector2f transformedStartPosition{ getTransform().transformPoint(m_vertices[0].position) };
 		const sf::Vector2f transformedEndPosition{ getTransform().transformPoint(m_vertices[1].position) };
-		box.left = std::min(transformedStartPosition.x, transformedEndPosition.x);
-		box.top = std::min(transformedStartPosition.y, transformedEndPosition.y);
-		box.width = std::max(transformedStartPosition.x, transformedEndPosition.x) - box.left;
-		box.height = std::max(transformedStartPosition.y, transformedEndPosition.y) - box.top;
+		box.position.x = std::min(transformedStartPosition.x, transformedEndPosition.x);
+		box.position.y = std::min(transformedStartPosition.y, transformedEndPosition.y);
+		box.size.x = std::max(transformedStartPosition.x, transformedEndPosition.x) - box.position.x;
+		box.size.y = std::max(transformedStartPosition.y, transformedEndPosition.y) - box.position.y;
 	}
 	return box;
 }
@@ -243,10 +243,10 @@ void Line::updateQuad()
 	m_quad[2u].position = m_vertices[1u].position + normalVector;
 	m_quad[3u].position = m_vertices[1u].position - normalVector;
 
-	m_quad[0u].texCoords = { m_textureRect.left, m_textureRect.top };
-	m_quad[1u].texCoords = { m_textureRect.left, m_textureRect.top + m_textureRect.height };
-	m_quad[2u].texCoords = { m_textureRect.left + m_textureRect.width, m_textureRect.top };
-	m_quad[3u].texCoords = { m_textureRect.left + m_textureRect.width, m_textureRect.top + m_textureRect.height };
+	m_quad[0u].texCoords = { m_textureRect.position.x, m_textureRect.position.y };
+	m_quad[1u].texCoords = { m_textureRect.position.x, m_textureRect.position.y + m_textureRect.size.y };
+	m_quad[2u].texCoords = { m_textureRect.position.x + m_textureRect.size.x, m_textureRect.position.x };
+	m_quad[3u].texCoords = { m_textureRect.position.x + m_textureRect.size.x, m_textureRect.position.x + m_textureRect.size.y };
 }
 
 } // selbaward

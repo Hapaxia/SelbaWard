@@ -5,7 +5,7 @@
 //
 // BitmapText
 //
-// Copyright(c) 2014-2024 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -96,12 +96,12 @@ void BitmapText::setScale(const std::size_t scale)
 
 void BitmapText::setScale(const sf::Vector2u scale)
 {
-	setScale(scale.x, scale.y);
+	this->Transformable::setScale(sf::Vector2f(scale));
 }
 
 void BitmapText::setScale(const std::size_t scaleX, const std::size_t scaleY)
 {
-	this->Transformable::setScale(static_cast<float>(scaleX), static_cast<float>(scaleY));
+	setScale({ scaleX, scaleY });
 }
 
 sf::FloatRect BitmapText::getGlobalBounds() const
@@ -133,7 +133,7 @@ void BitmapText::priv_updateVertices()
 	if (m_pBitmapFont == nullptr)
 	{
 		m_vertices.clear();
-		m_bounds = { 0.f, 0.f, 0.f, 0.f };
+		m_bounds = { { 0.f, 0.f }, { 0.f, 0.f } };
 	}
 
 	m_vertices.resize(m_string.length() * 6u);
@@ -151,31 +151,31 @@ void BitmapText::priv_updateVertices()
 
 		BitmapFont::Glyph glyph{ m_pBitmapFont->getGlyph(glyphNumber) };
 
-		const sf::Vector2f glyphOffset{ 0.f - glyph.startX, (glyph.baseline < 0) ? (0.f - glyph.baseline - glyph.textureRect.height) : (0.f - glyph.baseline) };
+		const sf::Vector2f glyphOffset{ 0.f - glyph.startX, (glyph.baseline < 0) ? (0.f - glyph.baseline - glyph.textureRect.size.y) : (0.f - glyph.baseline) };
 		const sf::Vector2f glyphPosition{ penPosition + glyphOffset };
 
 		m_vertices[(character * 6u) + 0u].position = glyphPosition;
-		m_vertices[(character * 6u) + 1u].position = glyphPosition + sf::Vector2f{ 0.f, static_cast<float>(glyph.textureRect.height) };
-		m_vertices[(character * 6u) + 2u].position = glyphPosition + sf::Vector2f{ static_cast<float>(glyph.textureRect.width), 0.f };
-		m_vertices[(character * 6u) + 3u].position = glyphPosition + sf::Vector2f{ static_cast<float>(glyph.textureRect.width), static_cast<float>(glyph.textureRect.height) };
+		m_vertices[(character * 6u) + 1u].position = glyphPosition + sf::Vector2f(0, static_cast<float>(glyph.textureRect.size.y));
+		m_vertices[(character * 6u) + 2u].position = glyphPosition + sf::Vector2f(static_cast<float>(glyph.textureRect.size.x), 0);
+		m_vertices[(character * 6u) + 3u].position = glyphPosition + sf::Vector2f(static_cast<float>(glyph.textureRect.size.x), static_cast<float>(glyph.textureRect.size.y));
 
-		m_vertices[(character * 6u) + 0u].texCoords = sf::Vector2f{
-			static_cast<float>(glyph.textureRect.left),
-			static_cast<float>(glyph.textureRect.top) };
-		m_vertices[(character * 6u) + 1u].texCoords = sf::Vector2f{
-			static_cast<float>(glyph.textureRect.left),
-			static_cast<float>(glyph.textureRect.top + glyph.textureRect.height) };
-		m_vertices[(character * 6u) + 2u].texCoords = sf::Vector2f{
-			static_cast<float>(glyph.textureRect.left + glyph.textureRect.width),
-			static_cast<float>(glyph.textureRect.top) };
-		m_vertices[(character * 6u) + 3u].texCoords = sf::Vector2f{
-			static_cast<float>(glyph.textureRect.left + glyph.textureRect.width),
-			static_cast<float>(glyph.textureRect.top + glyph.textureRect.height) };
+		m_vertices[(character * 6u) + 0u].texCoords = sf::Vector2f(
+			static_cast<float>(glyph.textureRect.position.x),
+			static_cast<float>(glyph.textureRect.position.y));
+		m_vertices[(character * 6u) + 1u].texCoords = sf::Vector2f(
+			static_cast<float>(glyph.textureRect.position.x),
+			static_cast<float>(glyph.textureRect.position.y + glyph.textureRect.size.y));
+		m_vertices[(character * 6u) + 2u].texCoords = sf::Vector2f(
+			static_cast<float>(glyph.textureRect.position.x + glyph.textureRect.size.x),
+			static_cast<float>(glyph.textureRect.position.y));
+		m_vertices[(character * 6u) + 3u].texCoords = sf::Vector2f(
+			static_cast<float>(glyph.textureRect.position.x + glyph.textureRect.size.x),
+			static_cast<float>(glyph.textureRect.position.y + glyph.textureRect.size.y));
 
 		m_vertices[(character * 6u) + 4u] = m_vertices[(character * 6u) + 2u];
 		m_vertices[(character * 6u) + 5u] = m_vertices[(character * 6u) + 1u];
 
-		penPosition.x += (glyph.width > 0) ? (0.f + m_tracking + kerning + glyph.width) : (0.f + m_tracking + kerning + glyph.width + glyph.textureRect.width - glyph.startX);
+		penPosition.x += (glyph.width > 0) ? (0.f + m_tracking + kerning + glyph.width) : (0.f + m_tracking + kerning + glyph.width + glyph.textureRect.size.x - glyph.startX);
 
 		min.x = std::min(min.x, m_vertices[(character * 6u) + 0u].position.x);
 		max.x = std::max(max.x, m_vertices[(character * 6u) + 3u].position.x);
@@ -185,10 +185,10 @@ void BitmapText::priv_updateVertices()
 
 	priv_updateColor();
 
-	m_bounds.left = min.x;
-	m_bounds.top = min.y;
-	m_bounds.width = max.x - min.x;
-	m_bounds.height = max.y - min.y;
+	m_bounds.position.x = minX;
+	m_bounds.position.y = minY;
+	m_bounds.size.x = maxX - minX;
+	m_bounds.size.y = maxY - minY;
 }
 
 void BitmapText::priv_updateColor()

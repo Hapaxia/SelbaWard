@@ -2,7 +2,7 @@
 //
 // Selba Ward (https://github.com/Hapaxia/SelbaWard)
 //
-// Copyright(c) 2015-2024 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -33,12 +33,6 @@
 #include <exception>
 #include <string>
 
-#if defined(_MSC_VER) && (_MSC_VER < 1900)
-#define SELBAWARD_NOEXCEPT
-#else
-#define SELBAWARD_NOEXCEPT noexcept
-#endif
-
 namespace selbaward
 {
 
@@ -49,7 +43,7 @@ public:
 		m_errorMessage("[Selba Ward] " + errorMessage)
 	{
 	}
-	virtual const char* what() const SELBAWARD_NOEXCEPT override
+	const char* what() const noexcept override
 	{
 		return m_errorMessage.c_str();
 	}
@@ -72,11 +66,5 @@ namespace sw = selbaward; // create shortcut namespace
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
-
-#if (SFML_VERSION_MAJOR == 2)
-	#if (SFML_VERSION_MINOR < 4)
-		#define USE_SFML_PRE_2_4
-	#endif
-#endif
 
 #endif // SELBAWARD_COMMON_HPP

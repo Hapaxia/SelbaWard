@@ -5,7 +5,7 @@
 //
 // Elastic Sprite
 //
-// Copyright(c) 2017-2024 M.J.Silk
+// Copyright(c) 2017-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -49,7 +49,7 @@ class Vector2;
 namespace selbaward
 {
 
-// SW Elastic Sprite v1.3.1
+// SW Elastic Sprite v1.3.2
 class ElasticSprite : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -110,7 +110,7 @@ private:
 	bool m_textureFlipX;
 	bool m_textureFlipY;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_updateVertices(sf::Transform Transform)  const;
 	sf::Vector2f priv_getVertexBasePosition(const unsigned int vertexIndex) const;
 };

@@ -5,7 +5,7 @@
 //
 // Gallery Sprite
 //
-// Copyright(c) 2016-2024 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -99,7 +99,7 @@ sf::Vector2f GallerySprite::getSize() const
 sf::Vector2f GallerySprite::getSize(const unsigned int exhibitNumber) const
 {
 	const sf::FloatRect& exhibitRectangle{ priv_getExhibit(exhibitNumber).rectangle };
-	return{ exhibitRectangle.width, exhibitRectangle.height };
+	return{ exhibitRectangle.size.x, exhibitRectangle.size.y };
 }
 
 void GallerySprite::setScaleFromTargetSize(const sf::Vector2f& targetSize)
@@ -257,18 +257,18 @@ void GallerySprite::draw(sf::RenderTarget& target, sf::RenderStates states) cons
 void GallerySprite::priv_updateVertices()
 {
 	const Exhibit exhibit{ priv_getCurrentExhibit() };
-	m_vertices[0].position = { -exhibit.anchor.x, exhibit.rectangle.height - exhibit.anchor.y };
+	m_vertices[0].position = { -exhibit.anchor.x, exhibit.rectangle.size.y - exhibit.anchor.y };
 	m_vertices[1].position = -exhibit.anchor;
-	m_vertices[2].position = { exhibit.rectangle.width - exhibit.anchor.x, exhibit.rectangle.height - exhibit.anchor.y };
-	m_vertices[3].position = { exhibit.rectangle.width - exhibit.anchor.x, -exhibit.anchor.y };
+	m_vertices[2].position = { exhibit.rectangle.size.x - exhibit.anchor.x, exhibit.rectangle.size.y - exhibit.anchor.y };
+	m_vertices[3].position = { exhibit.rectangle.size.x - exhibit.anchor.x, -exhibit.anchor.y };
 
 	if (m_pTexture == nullptr)
 		return;
 
-	m_vertices[0].texCoords = { exhibit.rectangle.left, exhibit.rectangle.top + exhibit.rectangle.height };
-	m_vertices[1].texCoords = { exhibit.rectangle.left, exhibit.rectangle.top };
-	m_vertices[2].texCoords = { exhibit.rectangle.left + exhibit.rectangle.width, exhibit.rectangle.top + exhibit.rectangle.height };
-	m_vertices[3].texCoords = { exhibit.rectangle.left + exhibit.rectangle.width, exhibit.rectangle.top };
+	m_vertices[0].texCoords = { exhibit.rectangle.position.x, exhibit.rectangle.position.y + exhibit.rectangle.size.y };
+	m_vertices[1].texCoords = { exhibit.rectangle.position.x, exhibit.rectangle.position.y };
+	m_vertices[2].texCoords = { exhibit.rectangle.position.x + exhibit.rectangle.size.x, exhibit.rectangle.position.y + exhibit.rectangle.size.y };
+	m_vertices[3].texCoords = { exhibit.rectangle.position.x + exhibit.rectangle.size.x, exhibit.rectangle.position.y };
 }
 
 GallerySprite::Exhibit GallerySprite::priv_getCurrentExhibit() const
@@ -282,7 +282,7 @@ GallerySprite::Exhibit GallerySprite::priv_getExhibit(unsigned int exhibitNumber
 		return Exhibit();
 
 	if (exhibitNumber == 0u)
-		return{ { 0.f, 0.f, static_cast<float>(m_pTexture->getSize().x), static_cast<float>(m_pTexture->getSize().y) }, { 0.f, 0.f } };
+		return{ { { 0.f, 0.f }, { static_cast<float>(m_pTexture->getSize().x), static_cast<float>(m_pTexture->getSize().y) } }, { 0.f, 0.f } };
 
 	return m_exhibits[exhibitNumber - 1];
 }
