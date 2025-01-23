@@ -1,0 +1,83 @@
+name: CI
+
+on: [push, pull_request, workflow_dispatch]
+
+concurrency:
+  group: environment-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{matrix.platform.name}} ${{matrix.type.name}}
+    runs-on: ${{matrix.platform.os}}
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+        - { name: Windows MSVC,    os: windows-2022 }
+        - { name: Windows ClangCL, os: windows-2022, flags: -T ClangCL }
+        - { name: Windows Clang,   os: windows-2022, flags: -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
+        - { name: Linux GCC,       os: ubuntu-22.04, flags: -GNinja }
+        - { name: Linux Clang,     os: ubuntu-22.04, flags: -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
+        - { name: macOS,           os: macos-12,     flags: -GNinja }
+        type:
+        - { name: Release }
+        - { name: Debug }
+
+    steps:
+    - name: Get CMake and Ninja
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: latest
+        ninjaVersion: latest
+        
+    - name: Install Linux Dependencies
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt update
+        sudo apt install ninja-build llvm xorg-dev libxrandr-dev libxcursor-dev libudev-dev libgl1-mesa-dev libegl1-mesa-dev
+
+    - name: Install macOS Tools
+      if: runner.os == 'macOS'
+      run: brew install ninja
+
+    - name: Checkout SFML
+      uses: actions/checkout@v3
+      with:
+        repository: SFML/SFML
+        path: sfml
+        ref: 2.6.0
+
+    - name: Configure SFML
+      run: |
+        cmake -S sfml -B sfml/build \
+          -DCMAKE_INSTALL_PREFIX=sfml/install \
+          -DCMAKE_BUILD_TYPE=${{matrix.type.name}} \
+          -DSFML_BUILD_AUDIO=OFF \
+          -DSFML_BUILD_NETWORK=OFF \
+          ${{matrix.platform.flags}}
+
+    - name: Build SFML
+      run: cmake --build sfml/build --config ${{matrix.type.name}} --target install
+
+    - name: Checkout SelbaWard
+      uses: actions/checkout@v3
+      with:
+        path: SelbaWard
+
+    - name: Configure SelbaWard
+      run: |
+        cmake -S SelbaWard -B SelbaWard/build \
+          -DBUILD_EXAMPLES=ON \
+          -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/install \
+          -DCMAKE_BUILD_TYPE=${{matrix.type.name}} \
+          -DCMAKE_VERBOSE_MAKEFILE=ON \
+          -DSFML_ROOT=$GITHUB_WORKSPACE/sfml/install \
+          ${{matrix.platform.flags}}
+
+    - name: Build SelbaWard
+      run: cmake --build SelbaWard/build --config ${{matrix.type.name}}

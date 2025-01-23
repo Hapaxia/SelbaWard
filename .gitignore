@@ -28,10 +28,12 @@ backup_*/
 test/
 test-*/
 test_*/
+test-*/
 temp/
 temp_*/
 temp_storage/
 PropertySheets/
+priv_*/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

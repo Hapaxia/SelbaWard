@@ -53,8 +53,8 @@ public:
 	const int getTracking() const;
 	void setColor(const sf::Color& color);
 	const sf::Color getColor() const;
-	void setScale(unsigned int scale);
-	void setScale(unsigned int scaleX, unsigned int scaleY);
+	void setScale(std::size_t scale);
+	void setScale(std::size_t scaleX, std::size_t scaleY);
 	void setScale(sf::Vector2u scale);
 	sf::FloatRect getGlobalBounds() const;
 	sf::FloatRect getLocalBounds() const;

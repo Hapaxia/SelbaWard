@@ -6,7 +6,7 @@
 A collection of SFML drawables  
 by [Hapaxia](http://github.com/Hapaxia)
 
-Contents: **Bitmap Text**, **Console Screen**, **Crosshair**, **Elastic Sprite**, **Gallery Sprite**, **Line**, **Nine Patch**, **Pie Chart**, **Pixel Display**, **Polygon**, **Progress Bar**, **Ring**, **Spinning Card**, **Spline**, **Sprite 3D**, **Starfield**, **Tile Map**
+Contents: **Bitmap Text**, **Console Screen**, **Crosshair**, **Elastic Sprite**, **Frame Transition**, **Gallery Sprite**, **Line**, **Nine Patch**, **Pie Chart**, **Pixel Display**, **Polygon**, **Progress Bar**, **Ring**, **Spinning Card**, **Spline**, **Sprite 3D**, **Sprite Batch**, **Starfield**, **Starfield 3D**, **Tile Map**
 
 ## For information, view the [Wiki].
 

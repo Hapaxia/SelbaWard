@@ -39,7 +39,7 @@ BitmapText::BitmapText()
 	: m_pBitmapFont{ nullptr }
 	, m_vertices(sf::PrimitiveType::Triangles)
 	, m_string()
-	, m_color(sf::Color::White)
+	, m_color{ sf::Color::White }
 	, m_tracking{ 1 }
 {
 }
@@ -67,7 +67,7 @@ const std::string BitmapText::getString() const
 	return m_string;
 }
 
-void BitmapText::setTracking(int tracking)
+void BitmapText::setTracking(const int tracking)
 {
 	m_tracking = tracking;
 	priv_updateVertices();
@@ -89,17 +89,17 @@ const sf::Color BitmapText::getColor() const
 	return m_color;
 }
 
-void BitmapText::setScale(unsigned int scale)
+void BitmapText::setScale(const std::size_t scale)
 {
 	setScale(scale, scale);
 }
 
-void BitmapText::setScale(sf::Vector2u scale)
+void BitmapText::setScale(const sf::Vector2u scale)
 {
 	this->Transformable::setScale(sf::Vector2f(scale));
 }
 
-void BitmapText::setScale(unsigned int scaleX, unsigned int scaleY)
+void BitmapText::setScale(const std::size_t scaleX, const std::size_t scaleY)
 {
 	setScale({ scaleX, scaleY });
 }
@@ -140,15 +140,16 @@ void BitmapText::priv_updateVertices()
 
 	sf::Vector2f penPosition{ 0.f, 0.f };
 
-	float minX(0.f), minY(0.f), maxX(0.f), maxY(0.f);
+	sf::Vector2f min{ 0.f, 0.f };
+	sf::Vector2f max{ 0.f, 0.f };
 
-	for (unsigned int character{ 0 }; character < m_string.length(); ++character)
+	for (std::size_t character{ 0u }; character < m_string.length(); ++character)
 	{
-		const unsigned int glyphNumber{ (m_string[character] >= 0) ? static_cast<unsigned int>(m_string[character]) : static_cast<unsigned int>(m_string[character] + 256) }; // after 125, 126, 127 is -128, -127, -126. this moves them to 128, 129, 130
+		const std::size_t glyphNumber{ (m_string[character] >= 0u) ? static_cast<std::size_t>(m_string[character]) : static_cast<std::size_t>(m_string[character] + 256) }; // after 125, 126, 127 is -128, -127, -126. this moves them to 128, 129, 130
 
-		const int kerning{ (character < m_string.length() - 1) ? m_pBitmapFont->getKerning(m_string.substr(character, 2)) : 0 };
+		const int kerning{ (character < m_string.length() - 1u) ? m_pBitmapFont->getKerning(m_string.substr(character, 2u)) : 0 };
 
-		BitmapFont::Glyph glyph = m_pBitmapFont->getGlyph(glyphNumber);
+		BitmapFont::Glyph glyph{ m_pBitmapFont->getGlyph(glyphNumber) };
 
 		const sf::Vector2f glyphOffset{ 0.f - glyph.startX, (glyph.baseline < 0) ? (0.f - glyph.baseline - glyph.textureRect.size.y) : (0.f - glyph.baseline) };
 		const sf::Vector2f glyphPosition{ penPosition + glyphOffset };
@@ -174,12 +175,12 @@ void BitmapText::priv_updateVertices()
 		m_vertices[(character * 6u) + 4u] = m_vertices[(character * 6u) + 2u];
 		m_vertices[(character * 6u) + 5u] = m_vertices[(character * 6u) + 1u];
 
-		penPosition += sf::Vector2f((glyph.width > 0) ? (0.f + m_tracking + kerning + glyph.width) : (0.f + m_tracking + kerning + glyph.width + glyph.textureRect.size.x - glyph.startX), 0);
+		penPosition.x += (glyph.width > 0) ? (0.f + m_tracking + kerning + glyph.width) : (0.f + m_tracking + kerning + glyph.width + glyph.textureRect.size.x - glyph.startX);
 
-		minX = std::min(minX, m_vertices[(character * 6u) + 0u].position.x);
-		maxX = std::max(maxX, m_vertices[(character * 6u) + 3u].position.x);
-		minY = std::min(minY, m_vertices[(character * 6u) + 0u].position.y);
-		maxY = std::max(maxY, m_vertices[(character * 6u) + 3u].position.y);
+		min.x = std::min(min.x, m_vertices[(character * 6u) + 0u].position.x);
+		max.x = std::max(max.x, m_vertices[(character * 6u) + 3u].position.x);
+		min.y = std::min(min.y, m_vertices[(character * 6u) + 0u].position.y);
+		max.y = std::max(max.y, m_vertices[(character * 6u) + 3u].position.y);
 	}
 
 	priv_updateColor();
@@ -192,7 +193,7 @@ void BitmapText::priv_updateVertices()
 
 void BitmapText::priv_updateColor()
 {
-	for (unsigned int v{ 0 }; v < m_vertices.getVertexCount(); ++v)
+	for (std::size_t v{ 0u }; v < m_vertices.getVertexCount(); ++v)
 		m_vertices[v].color = m_color;
 }
 

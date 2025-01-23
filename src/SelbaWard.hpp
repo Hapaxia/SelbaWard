@@ -34,6 +34,7 @@
 #include "SelbaWard/ConsoleScreen.hpp"
 #include "SelbaWard/Crosshair.hpp"
 #include "SelbaWard/ElasticSprite.hpp"
+#include "SelbaWard/FrameTransition.hpp"
 #include "SelbaWard/GallerySprite.hpp"
 #include "SelbaWard/Line.hpp"
 #include "SelbaWard/NinePatch.hpp"
@@ -46,7 +47,9 @@
 #include "SelbaWard/SpinningCard.hpp"
 #include "SelbaWard/Spline.hpp"
 #include "SelbaWard/Sprite3d.hpp"
+#include "SelbaWard/SpriteBatch.hpp"
 #include "SelbaWard/Starfield.hpp"
+#include "SelbaWard/Starfield3d.hpp"
 #include "SelbaWard/TileMap.hpp"
 
 #endif // SELBAWARD_HPP

@@ -189,7 +189,7 @@ template <class T>
 void TileMap<T>::setGridSize(const sf::Vector2u gridSize)
 {
 	m_gridSize = { gridSize.x + 1, gridSize.y + 1 };
-	m_grid.resize(m_gridSize.x * m_gridSize.y);
+	m_grid.resize(static_cast<std::size_t>(m_gridSize.x) * m_gridSize.y);
 
 	priv_recreateRenderTexture();
 }
@@ -390,7 +390,7 @@ void TileMap<T>::draw(sf::RenderTarget& target, sf::RenderStates states) const
 template <class T>
 void TileMap<T>::priv_updateVertices() const
 {
-	m_vertices.resize(m_gridSize.x * m_gridSize.y * 6u);
+	m_vertices.resize(static_cast<std::size_t>(m_gridSize.x) * m_gridSize.y * 6u);
 	if (m_gridSize.x == 0 || m_gridSize.y == 0)
 		return;
 
@@ -500,7 +500,7 @@ unsigned int TileMap<T>::priv_getTileAtGridPosition(const sf::Vector2i gridPosit
 		static_cast<unsigned int>(gridPosition.y) >= m_gridSize.y)
 		return 0u;
 
-	return m_grid[gridPosition.y * m_gridSize.x + gridPosition.x];
+	return m_grid[static_cast<std::size_t>(gridPosition.y) * m_gridSize.x + gridPosition.x];
 }
 
 template <class T>

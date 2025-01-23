@@ -615,79 +615,79 @@ void Polygon::priv_triangulateEarClip()
 
 	std::function<bool(std::size_t, std::size_t, std::size_t, std::size_t)> isEar =
 		[&](const std::size_t i, const std::size_t p, const std::size_t n, const std::size_t current)
+	{
+		bool aPointIsInside{ false };
+		for (std::size_t other{ 0u }; other < vertexNumbers.size(); ++other)
 		{
-			bool aPointIsInside{ false };
-			for (std::size_t other{ 0u }; other < vertexNumbers.size(); ++other)
-			{
-				if ((vertexNumbers[other] == vertexNumbers[i]) || (vertexNumbers[other] == vertexNumbers[p]) || (vertexNumbers[other] == vertexNumbers[n]) || (vertexNumbers[other] == vertexNumbers[current]))
-					continue;
+			if ((vertexNumbers[other] == vertexNumbers[i]) || (vertexNumbers[other] == vertexNumbers[p]) || (vertexNumbers[other] == vertexNumbers[n]) || (vertexNumbers[other] == vertexNumbers[current]))
+				continue;
 
-				if (pointIsInsideTriangle({ m_vertices[vertexNumbers[p]].position, m_vertices[vertexNumbers[i]].position, m_vertices[vertexNumbers[n]].position }, m_vertices[vertexNumbers[other]].position))
-				{
-					aPointIsInside = true;
-					break;
-				}
+			if (pointIsInsideTriangle({ m_vertices[vertexNumbers[p]].position, m_vertices[vertexNumbers[i]].position, m_vertices[vertexNumbers[n]].position }, m_vertices[vertexNumbers[other]].position))
+			{
+				aPointIsInside = true;
+				break;
 			}
-			return !aPointIsInside;
-		};
+		}
+		return !aPointIsInside;
+	};
 
 	std::function<bool(std::size_t, std::size_t, std::size_t)> isEarAnalysis =
 		[&](const std::size_t i, const std::size_t p, const std::size_t n)
-		{
-			return isEar(i, p, n, i);
-		};
+	{
+		return isEar(i, p, n, i);
+	};
 
 	std::function<void(std::size_t, std::size_t, std::size_t, std::size_t)> retest =
 		[&](const std::size_t i, const std::size_t p, const std::size_t n, const std::size_t current)
+	{
+		std::vector<std::size_t>::iterator reflexIt{ std::find(reflex.begin(), reflex.end(), indices[i]) };
+		if (reflexIt != reflex.end())
 		{
-			std::vector<std::size_t>::iterator reflexIt{ std::find(reflex.begin(), reflex.end(), indices[i]) };
-			if (reflexIt != reflex.end())
-			{
-				// if reflex, re-test
-				const sf::Vector2f pLine{ m_vertices[vertexNumbers[indices[i]]].position - m_vertices[vertexNumbers[indices[p]]].position };
-				const sf::Vector2f nLine{ m_vertices[vertexNumbers[indices[n]]].position - m_vertices[vertexNumbers[indices[i]]].position };
+			// if reflex, re-test
+			const sf::Vector2f pLine{ m_vertices[vertexNumbers[indices[i]]].position - m_vertices[vertexNumbers[indices[p]]].position };
+			const sf::Vector2f nLine{ m_vertices[vertexNumbers[indices[n]]].position - m_vertices[vertexNumbers[indices[i]]].position };
 
-				if (m_reverseDirection != isSecondVectorAntiClockwiseOfFirstVector(pLine, nLine))
-				{
-					reflex.erase(reflexIt);
-					convex.push_back(indices[i]);
-				}
-			}
-
-			std::vector<std::size_t>::iterator convexIt{ std::find(convex.begin(), convex.end(), indices[i]) };
-			if (convexIt != convex.end())
+			if (m_reverseDirection != isSecondVectorAntiClockwiseOfFirstVector(pLine, nLine))
 			{
-				// if convex, re-test for ear only (must still be convex)
-				const bool isNowEar{ isEar(indices[i], indices[p], indices[n], indices[current]) };
-				const std::vector<std::size_t>::iterator it{ std::find(ear.begin(), ear.end(), indices[i]) };
-				if (isNowEar && (it == ear.end()))
-					ear.push_back(indices[i]);
-				else if (!isNowEar && (it != ear.end()))
-					ear.erase(it);
+				reflex.erase(reflexIt);
+				convex.push_back(indices[i]);
 			}
-		};
+		}
+
+		std::vector<std::size_t>::iterator convexIt{ std::find(convex.begin(), convex.end(), indices[i]) };
+		if (convexIt != convex.end())
+		{
+			// if convex, re-test for ear only (must still be convex)
+			const bool isNowEar{ isEar(indices[i], indices[p], indices[n], indices[current]) };
+			const std::vector<std::size_t>::iterator it{ std::find(ear.begin(), ear.end(), indices[i]) };
+			if (isNowEar && (it == ear.end()))
+				ear.push_back(indices[i]);
+			else if (!isNowEar && (it != ear.end()))
+				ear.erase(it);
+		}
+	};
 
 	std::function<void()> analysePoints =
 		[&]()
+	{
+		for (std::size_t i{ 0u }; i < indicesSize; ++i)
 		{
-			for (std::size_t i{ 0u }; i < indicesSize; ++i)
+			const std::size_t prev{ (i > 0u) ? (i - 1u) : (indicesSize - 1u) };
+			const std::size_t next{ (i < (indicesSize - 1u)) ? (i + 1u) : 0u };
+
+			const sf::Vector2f prevLine{ m_vertices[vertexNumbers[indices[i]]].position - m_vertices[vertexNumbers[indices[prev]]].position };
+			const sf::Vector2f nextLine{ m_vertices[vertexNumbers[indices[next]]].position - m_vertices[vertexNumbers[indices[i]]].position };
+
+			if (m_reverseDirection != !isSecondVectorAntiClockwiseOfFirstVector(prevLine, nextLine))
+				reflex.push_back(indices[i]);
+			else
 			{
-				const std::size_t prev{ (i > 0u) ? (i - 1u) : (indicesSize - 1u) };
-				const std::size_t next{ (i < (indicesSize - 1u)) ? (i + 1u) : 0u };
-
-				const sf::Vector2f prevLine{ m_vertices[vertexNumbers[indices[i]]].position - m_vertices[vertexNumbers[indices[prev]]].position };
-				const sf::Vector2f nextLine{ m_vertices[vertexNumbers[indices[next]]].position - m_vertices[vertexNumbers[indices[i]]].position };
-
-				if (m_reverseDirection != !isSecondVectorAntiClockwiseOfFirstVector(prevLine, nextLine))
-					reflex.push_back(indices[i]);
-				else
-				{
-					convex.push_back(indices[i]);
-					if (isEarAnalysis(indices[i], indices[prev], indices[next]))
-						ear.push_back(indices[i]);
-				}
+				convex.push_back(indices[i]);
+				if (isEarAnalysis(indices[i], indices[prev], indices[next]))
+					ear.push_back(indices[i]);
 			}
-		};
+		}
+	};
 
 	reflex.reserve(m_vertices.size() - 3u); // impossible for vertices to be reflex without enough convex (need at least 3 convex to make a polygon)
 	convex.reserve(m_vertices.size()); // any number (up to all) of the vertices may be convex although at least 3 are required
@@ -883,7 +883,7 @@ void Polygon::priv_triangulateEarClip()
 			else
 				return;
 		}
-
+		
 
 		std::size_t currentPoint{ ear.front() };
 		std::vector<std::size_t>::iterator currentIt{ std::find(indices.begin(), indices.end(), currentPoint) };
@@ -940,57 +940,57 @@ void Polygon::priv_triangulateBasicEarClip()
 
 	std::function<bool(std::size_t, std::size_t, std::size_t, std::size_t)> isEar =
 		[&](const std::size_t i, const std::size_t p, const std::size_t n, const std::size_t current)
+	{
+		bool aPointIsInside{ false };
+		for (std::size_t other{ 0u }; other < indices.size(); ++other)
 		{
-			bool aPointIsInside{ false };
-			for (std::size_t other{ 0u }; other < indices.size(); ++other)
-			{
-				if ((other == i) || (other == p) || (other == n) || (other == current))
-					continue;
+			if ((other == i) || (other == p) || (other == n) || (other == current))
+				continue;
 
-				if (pointIsInsideTriangle({ m_vertices[indices[p]].position, m_vertices[indices[i]].position, m_vertices[indices[n]].position }, m_vertices[indices[other]].position))
-				{
-					aPointIsInside = true;
-					break;
-				}
+			if (pointIsInsideTriangle({ m_vertices[indices[p]].position, m_vertices[indices[i]].position, m_vertices[indices[n]].position }, m_vertices[indices[other]].position))
+			{
+				aPointIsInside = true;
+				break;
 			}
-			return !aPointIsInside;
-		};
+		}
+		return !aPointIsInside;
+	};
 
 	std::function<bool(std::size_t, std::size_t, std::size_t)> isEarAnalysis =
 		[&](const std::size_t i, const std::size_t p, const std::size_t n)
-		{
-			return isEar(i, p, n, i);
-		};
+	{
+		return isEar(i, p, n, i);
+	};
 
 	std::function<void(std::size_t, std::size_t, std::size_t, std::size_t)> retest =
 		[&](const std::size_t i, const std::size_t p, const std::size_t n, const std::size_t current)
+	{
+		std::vector<std::size_t>::iterator reflexIt{ std::find(reflex.begin(), reflex.end(), indices[i]) };
+		if (reflexIt != reflex.end())
 		{
-			std::vector<std::size_t>::iterator reflexIt{ std::find(reflex.begin(), reflex.end(), indices[i]) };
-			if (reflexIt != reflex.end())
-			{
-				// if reflex, re-test
-				const sf::Vector2f pLine{ m_vertices[indices[i]].position - m_vertices[indices[p]].position };
-				const sf::Vector2f nLine{ m_vertices[indices[n]].position - m_vertices[indices[i]].position };
+			// if reflex, re-test
+			const sf::Vector2f pLine{ m_vertices[indices[i]].position - m_vertices[indices[p]].position };
+			const sf::Vector2f nLine{ m_vertices[indices[n]].position - m_vertices[indices[i]].position };
 
-				if (m_reverseDirection != isSecondVectorAntiClockwiseOfFirstVector(pLine, nLine))
-				{
-					reflex.erase(reflexIt);
-					convex.push_back(indices[i]);
-				}
-			}
-
-			std::vector<std::size_t>::iterator convexIt{ std::find(convex.begin(), convex.end(), indices[i]) };
-			if (convexIt != convex.end())
+			if (m_reverseDirection != isSecondVectorAntiClockwiseOfFirstVector(pLine, nLine))
 			{
-				// if convex, re-test for ear only (must still be convex)
-				const bool isNowEar{ isEar(i, p, n, current) };
-				const std::vector<std::size_t>::iterator it{ std::find(ear.begin(), ear.end(), indices[i]) };
-				if (isNowEar && (it == ear.end()))
-					ear.push_back(indices[i]);
-				else if (!isNowEar && (it != ear.end()))
-					ear.erase(it);
+				reflex.erase(reflexIt);
+				convex.push_back(indices[i]);
 			}
-		};
+		}
+
+		std::vector<std::size_t>::iterator convexIt{ std::find(convex.begin(), convex.end(), indices[i]) };
+		if (convexIt != convex.end())
+		{
+			// if convex, re-test for ear only (must still be convex)
+			const bool isNowEar{ isEar(i, p, n, current) };
+			const std::vector<std::size_t>::iterator it{ std::find(ear.begin(), ear.end(), indices[i]) };
+			if (isNowEar && (it == ear.end()))
+				ear.push_back(indices[i]);
+			else if (!isNowEar && (it != ear.end()))
+				ear.erase(it);
+		}
+	};
 
 	// analyse points
 	for (std::size_t i{ 0u }; i < indicesSize; ++i)

@@ -47,7 +47,7 @@ class BitmapFont
 public:
 	struct Glyph
 	{
-		bool useDefaultTextureRect = true;
+		bool useDefaultTextureRect{ true };
 		sf::IntRect textureRect;
 		int width; // zero and below represent counting from full texture rect width e.g. 0 is full width, -1 is 1 less than full width.
 		int baseline; // negative numbers represent counting from bottom e.g. -1 is bottom line, -2 is 1 above bottom.
@@ -58,38 +58,38 @@ public:
 
 	// output
 	const sf::Texture* getTexture() const;
-	const Glyph getGlyph(unsigned int glyphIndex = 0) const;
-	const unsigned int getNumberOfGlyphs() const;
+	const Glyph getGlyph(std::size_t glyphIndex = 0u) const;
+	const std::size_t getNumberOfGlyphs() const;
 	const int getKerning(const std::string& glyphPair) const;
 
 	// texture setup
 	void setExternalTexture(const sf::Texture& externalTexture);
 	void loadTexture(const std::string& filename);
 	void setSmooth(bool smooth = true);
-	void setNumberOfTilesPerRow(unsigned int numberOfTilesPerRow);
+	void setNumberOfTilesPerRow(std::size_t numberOfTilesPerRow);
 
 	// texture rect setup
 	void setDefaultTextureRect(const sf::IntRect& defaultTextureRect);
-	void setTextureRect(const sf::IntRect& textureRect, unsigned int glyphIndex = 0);
-	void setTextureRects(const std::vector<sf::IntRect>& textureRects, unsigned int initialGlyphIndex = 0);
-	void clearTextureRect(unsigned int glyphIndex);
+	void setTextureRect(const sf::IntRect& textureRect, std::size_t glyphIndex = 0u);
+	void setTextureRects(const std::vector<sf::IntRect>& textureRects, std::size_t initialGlyphIndex = 0u);
+	void clearTextureRect(std::size_t glyphIndex);
 	void clearAllTextureRects();
 
 	// glyph setup
-	void setGlyphToDefault(unsigned int glyphIndex = 0);
-	void setGlyphsToDefault(unsigned int numberOfGlyphs = 1, unsigned int glyphIndex = 0);
+	void setGlyphToDefault(std::size_t glyphIndex = 0u);
+	void setGlyphsToDefault(std::size_t numberOfGlyphs = 1u, std::size_t glyphIndex = 0u);
 	void setAllGlyphsToDefault();
 
 	// glyph attribute setup
-	void setBaseline(int baseline, unsigned int glyphIndex = 0);
-	void setWidth(int width, unsigned int glyphIndex = 0);
-	void setStartX(int startX, unsigned int glyphIndex = 0);
-	void setBaselines(int baseline, unsigned int numberOfGlyphs = 1, unsigned int initialGlyphIndex = 0);
-	void setWidths(int width, unsigned int numberOfGlyphs = 1, unsigned int initialGlyphIndex = 0);
-	void setStartXs(int startX, unsigned int numberOfGlyphs = 1, unsigned int initialGlyphIndex = 0);
-	void setBaselines(const std::vector<int>& baselines, unsigned int initialGlyphIndex = 0);
-	void setWidths(const std::vector<int>& widths, unsigned int initialGlyphIndex = 0);
-	void setStartXs(const std::vector<int>& startXs, unsigned int initialGlyphIndex = 0);
+	void setBaseline(int baseline, std::size_t glyphIndex = 0u);
+	void setWidth(int width, std::size_t glyphIndex = 0u);
+	void setStartX(int startX, std::size_t glyphIndex = 0u);
+	void setBaselines(int baseline, std::size_t numberOfGlyphs = 1u, std::size_t initialGlyphIndex = 0u);
+	void setWidths(int width, std::size_t numberOfGlyphs = 1u, std::size_t initialGlyphIndex = 0u);
+	void setStartXs(int startX, std::size_t numberOfGlyphs = 1u, std::size_t initialGlyphIndex = 0u);
+	void setBaselines(const std::vector<int>& baselines, std::size_t initialGlyphIndex = 0u);
+	void setWidths(const std::vector<int>& widths, std::size_t initialGlyphIndex = 0u);
+	void setStartXs(const std::vector<int>& startXs, std::size_t initialGlyphIndex = 0u);
 	void setBaseline(int baseline, const std::string& glyphs);
 	void setWidth(int width, const std::string& glyphs);
 	void setStartX(int startX, const std::string& glyphs);
@@ -119,8 +119,8 @@ private:
 	mutable std::map<std::string, int> m_kernings;
 	std::vector<Glyph> m_glyphs;
 
-	const bool priv_isGlyphIndexValid(unsigned int glyphIndex) const;
-	const Glyph priv_getGlyphWithDefaultTextureRect(unsigned int glyphIndex = 0) const;
+	const bool priv_isGlyphIndexValid(std::size_t glyphIndex) const;
+	const Glyph priv_getGlyphWithDefaultTextureRect(std::size_t glyphIndex = 0u) const;
 	void priv_setKerning(int kerning, const std::string& glyphs); // string must have length of 2
 };
 
