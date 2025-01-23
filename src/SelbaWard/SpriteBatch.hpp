@@ -5,7 +5,7 @@
 //
 // Sprite Batch
 //
-// Copyright(c) 2023-2024 M.J.Silk
+// Copyright(c) 2023-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -40,10 +40,17 @@
 
 #include <functional>
 
+namespace
+{
+
+const sf::Texture sfmlEmptyTexture{};
+
+} // namespace
+
 namespace selbaward
 {
 
-// Sprite Batch v1.0.0
+// Sprite Batch v1.0.1
 class SpriteBatch : public sf::Drawable
 {
 public:
@@ -55,8 +62,8 @@ public:
 	void setNumberOfSprites(std::size_t numberOfSprites);
 	std::size_t getNumberOfSprites() const;
 
-	std::size_t insertSprite(std::size_t insertIndex, std::size_t numberOfSprites = 1u, const sf::Sprite& sprite = sf::Sprite());
-	std::size_t addSprite(std::size_t numberOfSprites = 1u, const sf::Sprite& sprite = sf::Sprite()); // to back
+	std::size_t insertSprite(std::size_t insertIndex, std::size_t numberOfSprites = 1u, const sf::Sprite& sprite = sf::Sprite(sfmlEmptyTexture));
+	std::size_t addSprite(std::size_t numberOfSprites = 1u, const sf::Sprite& sprite = sf::Sprite(sfmlEmptyTexture)); // to back
 
 	std::size_t removeSprite(std::size_t removeIndex, std::size_t numberOfSprites = 1u);
 	std::size_t removeSprite(std::size_t numberOfSprites = 1u); // from back
@@ -144,8 +151,8 @@ public:
 private:
 	struct Sprite
 	{
-		bool isUpdateRequired;
-		sf::Sprite sprite;
+		bool isUpdateRequired{ false };
+		sf::Sprite sprite{ sfmlEmptyTexture };
 	};
 
 	const sf::Texture* m_texture;
@@ -157,7 +164,7 @@ private:
 	mutable bool m_isGlobalUpdateRequired;
 	mutable std::vector<sf::Vertex> m_vertices;
 
-	void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_testIsIndexValid(const std::size_t index) const;
 	void priv_updateAll() const;
 	void priv_updateRequired() const;

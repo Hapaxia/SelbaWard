@@ -5,7 +5,7 @@
 //
 // Sprite Batch
 //
-// Copyright(c) 2023-2024 M.J.Silk
+// Copyright(c) 2023-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -208,7 +208,7 @@ void SpriteBatch::setOrigin(const std::size_t index, const sf::Vector2f origin)
 void SpriteBatch::setRotation(const std::size_t index, const float rotation)
 {
 	priv_testIsIndexValid(index);
-	m_sprites[index].sprite.setRotation(rotation);
+	m_sprites[index].sprite.setRotation(sf::degrees(rotation));
 	m_sprites[index].isUpdateRequired = true;
 }
 
@@ -248,7 +248,7 @@ void SpriteBatch::move(const std::size_t index, const sf::Vector2f offset)
 void SpriteBatch::rotate(const std::size_t index, const float angle)
 {
 	priv_testIsIndexValid(index);
-	m_sprites[index].sprite.rotate(angle);
+	m_sprites[index].sprite.rotate(sf::degrees(angle));
 	m_sprites[index].isUpdateRequired = true;
 }
 
@@ -279,7 +279,7 @@ sf::Vector2f SpriteBatch::getOrigin(const std::size_t index) const
 float SpriteBatch::getRotation(const std::size_t index) const
 {
 	priv_testIsIndexValid(index);
-	return m_sprites[index].sprite.getRotation();
+	return m_sprites[index].sprite.getRotation().asDegrees();
 }
 
 sf::Vector2f SpriteBatch::getScale(const std::size_t index) const
@@ -334,7 +334,7 @@ void SpriteBatch::move(const sf::Vector2f offset)
 void SpriteBatch::rotate(const float angle)
 {
 	for (auto& sprite : m_sprites)
-		sprite.sprite.rotate(angle);
+		sprite.sprite.rotate(sf::degrees(angle));
 	m_isGlobalUpdateRequired = true;
 }
 
@@ -485,10 +485,10 @@ void SpriteBatch::priv_updateQuad(const std::size_t quadIndex, const sf::Sprite*
 	const sf::IntRect rect{ sprite->getTextureRect() };
 
 	sf::Vector2f shapeTopLeft{ 0.f, 0.f };
-	sf::Vector2f shapeBottomRight(rect.getSize());
+	sf::Vector2f shapeBottomRight(rect.size);
 	sf::Vector2f shapeTopRight{ shapeBottomRight.x, shapeTopLeft.y };
 	sf::Vector2f shapeBottomLeft{ shapeTopLeft.x, shapeBottomRight.y };
-	sf::Vector2f textureTopLeft(rect.getPosition());
+	sf::Vector2f textureTopLeft(rect.position);
 	sf::Vector2f textureBottomRight{ textureTopLeft + shapeBottomRight };
 	sf::Vector2f textureTopRight{ textureBottomRight.x, textureTopLeft.y };
 	sf::Vector2f textureBottomLeft{ textureTopLeft.x, textureBottomRight.y };
