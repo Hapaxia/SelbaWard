@@ -12,6 +12,10 @@ Contents: **Bitmap Text**, **Console Screen**, **Crosshair**, **Elastic Sprite**
 
 Feedback and suggestions for new objects always welcome...
 
+---
+**IMPORTANT NOTE: The main branch is now targetted for SFML 3. If you are still using SFML 2, you can use the sfml2 branch.**
+---
+
 [Selba Ward thread on the SFML forum][SFMLForumSelbaWard]
 
 [Wiki]: https://github.com/Hapaxia/SelbaWard/wiki
