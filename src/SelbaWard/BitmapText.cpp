@@ -94,7 +94,7 @@ void BitmapText::setScale(const std::size_t scale)
 	setScale(scale, scale);
 }
 
-void BitmapText::setScale(const sf::Vector2u scale)
+void BitmapText::setScale(const sf::Vector2<std::size_t> scale)
 {
 	this->Transformable::setScale(sf::Vector2f(scale));
 }
@@ -185,10 +185,10 @@ void BitmapText::priv_updateVertices()
 
 	priv_updateColor();
 
-	m_bounds.position.x = minX;
-	m_bounds.position.y = minY;
-	m_bounds.size.x = maxX - minX;
-	m_bounds.size.y = maxY - minY;
+	m_bounds.position.x = min.x;
+	m_bounds.position.y = min.y;
+	m_bounds.size.x = max.x - min.x;
+	m_bounds.size.y = max.y - min.y;
 }
 
 void BitmapText::priv_updateColor()
