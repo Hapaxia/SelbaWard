@@ -379,8 +379,8 @@ const BitmapFont::Glyph BitmapFont::priv_getGlyphWithDefaultTextureRect(std::siz
 	Glyph defaultGlyph;
 	defaultGlyph.useDefaultTextureRect = false;
 	defaultGlyph.textureRect = m_defaultTextureRect;
-	defaultGlyph.textureRect.position.x = m_defaultTextureRect.size.x * (glyphIndex % m_numberOfTilesPerRow);
-	defaultGlyph.textureRect.position.y = m_defaultTextureRect.size.y * (glyphIndex / m_numberOfTilesPerRow);
+	defaultGlyph.textureRect.position.x = m_defaultTextureRect.size.x * static_cast<int>(glyphIndex % m_numberOfTilesPerRow);
+	defaultGlyph.textureRect.position.y = m_defaultTextureRect.size.y * static_cast<int>(glyphIndex / m_numberOfTilesPerRow);
 	defaultGlyph.width = m_glyphs[glyphIndex].width;
 	defaultGlyph.baseline = m_glyphs[glyphIndex].baseline;
 	defaultGlyph.startX = m_glyphs[glyphIndex].startX;

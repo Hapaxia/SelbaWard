@@ -41,17 +41,17 @@
 namespace selbaward
 {
 
-// SW Bitmap Font v1.1.2
+// SW Bitmap Font v1.1.3
 class BitmapFont
 {
 public:
 	struct Glyph
 	{
 		bool useDefaultTextureRect{ true };
-		sf::IntRect textureRect;
-		int width; // zero and below represent counting from full texture rect width e.g. 0 is full width, -1 is 1 less than full width.
-		int baseline; // negative numbers represent counting from bottom e.g. -1 is bottom line, -2 is 1 above bottom.
-		int startX; // negative numbers represent actual negative values
+		sf::IntRect textureRect{};
+		int width{}; // zero and below represent counting from full texture rect width e.g. 0 is full width, -1 is 1 less than full width.
+		int baseline{}; // negative numbers represent counting from bottom e.g. -1 is bottom line, -2 is 1 above bottom.
+		int startX{}; // negative numbers represent actual negative values
 	};
 
 	BitmapFont();
@@ -113,7 +113,7 @@ private:
 	bool m_useExternalTexture;
 	sf::Texture m_texture;
 	const sf::Texture* m_mExternalTexture;
-	unsigned int m_numberOfTilesPerRow;
+	std::size_t m_numberOfTilesPerRow;
 	sf::Vector2u m_tileSize;
 	sf::IntRect m_defaultTextureRect;
 	mutable std::map<std::string, int> m_kernings;
