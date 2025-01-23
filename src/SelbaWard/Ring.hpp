@@ -5,7 +5,7 @@
 //
 // Ring
 //
-// Copyright(c) 2016-2023 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Ring v1.1.3
+// SW Ring v1.1.4
 class Ring : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -74,7 +74,7 @@ private:
 	const sf::Texture* m_texture;
 	sf::IntRect m_textureRect;
 
-	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_updateVertices();
 };
 

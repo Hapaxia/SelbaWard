@@ -5,7 +5,7 @@
 //
 // Sprite3d
 //
-// Copyright(c) 2015-2023 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -44,7 +44,7 @@
 namespace selbaward
 {
 
-// Sprite3d version 1.2.2
+// Sprite3d version 1.2.3
 class Sprite3d : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -181,7 +181,7 @@ private:
 
 	void createPointGrid() const; // needs to be const to allow dynamic subdivision
 
-	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void updateTransformedPoints() const;
 	void updateVertices() const;
 	void updateGlobalCorners() const;

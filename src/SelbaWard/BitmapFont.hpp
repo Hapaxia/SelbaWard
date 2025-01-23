@@ -5,7 +5,7 @@
 //
 // BitmapFont
 //
-// Copyright(c) 2014-2023 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -41,7 +41,7 @@
 namespace selbaward
 {
 
-// SW Bitmap Font v1.1.1
+// SW Bitmap Font v1.1.2
 class BitmapFont
 {
 public:

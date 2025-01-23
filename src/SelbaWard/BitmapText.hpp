@@ -5,7 +5,7 @@
 //
 // BitmapText
 //
-// Copyright(c) 2014-2023 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Bitmap Text v1.1.3
+// SW Bitmap Text v1.1.4
 class BitmapText : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -67,7 +67,7 @@ private:
 	int m_tracking;
 	sf::FloatRect m_bounds;
 
-	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_updateVertices();
 	void priv_updateColor();
 };

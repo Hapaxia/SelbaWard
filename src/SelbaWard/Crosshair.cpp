@@ -5,7 +5,7 @@
 //
 // Crosshair
 //
-// Copyright(c) 2016-2023 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -138,7 +138,7 @@ sf::Vector2f Crosshair::getPosition() const
 
 // PRIVATE
 
-void Crosshair::draw(sf::RenderTarget& target, const sf::RenderStates& states) const
+void Crosshair::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	if (updateVertices(m_vertices, m_window, m_horizontalColor, m_verticalColor))
 		target.draw(m_vertices, states);

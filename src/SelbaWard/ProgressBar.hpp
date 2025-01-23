@@ -5,7 +5,7 @@
 //
 // Progress Bar
 //
-// Copyright(c) 2015-2023 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -41,7 +41,7 @@
 namespace selbaward
 {
 
-// SW Progress Bar 1.1.2
+// SW Progress Bar 1.1.3
 class ProgressBar : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -106,7 +106,7 @@ private:
 	sf::IntRect m_textureRectangle;
 	sf::IntRect m_backgroundTextureRectangle;
 
-	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_updateGraphics();
 };
 

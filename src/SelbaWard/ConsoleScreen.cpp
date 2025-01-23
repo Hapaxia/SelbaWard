@@ -5,7 +5,7 @@
 //
 // Console Screen v2
 //
-// Copyright(c) 2014-2023 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -1617,21 +1617,21 @@ void ConsoleScreen::scrollUp(unsigned int amount, sf::IntRect selectionRectangle
 		return;
 	}
 
-	std::vector<Cell> topRow(selectionRectangle.width);
+	std::vector<Cell> topRow(selectionRectangle.size.x);
 	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
 	{
-		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.size.y); ++y)
 		{
-			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.size.x); ++x)
 			{
 				if (m_do.wrapOnManualScroll && y == 0)
-					topRow[x] = m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })];
-				if (y < static_cast<unsigned int>(selectionRectangle.height) - 1)
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y + 1 })];
+					topRow[x] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y })];
+				if (y < static_cast<unsigned int>(selectionRectangle.size.y) - 1)
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y })] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y + 1 })];
 				else if (m_do.wrapOnManualScroll)
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = topRow[x];
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y })] = topRow[x];
 				else
-					priv_clearCell(priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y }), true, true);
+					priv_clearCell(priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y }), true, true);
 			}
 		}
 	}
@@ -1652,22 +1652,22 @@ void ConsoleScreen::scrollDown(unsigned int amount, sf::IntRect selectionRectang
 		return;
 	}
 
-	std::vector<Cell> bottomRow(selectionRectangle.width);
+	std::vector<Cell> bottomRow(selectionRectangle.size.x);
 	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
 	{
-		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.size.y); ++y)
 		{
-			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.size.x); ++x)
 			{
-				const unsigned cellY{ selectionRectangle.top + selectionRectangle.height - y - 1 };
+				const unsigned cellY{ selectionRectangle.position.x + selectionRectangle.size.y - y - 1 };
 				if (m_do.wrapOnManualScroll && y == 0)
-					bottomRow[x] = m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY })];
-				if (cellY > static_cast<unsigned int>(selectionRectangle.top))
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY })] = m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY - 1 })];
+					bottomRow[x] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x, cellY })];
+				if (cellY > static_cast<unsigned int>(selectionRectangle.position.y))
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, cellY })] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x, cellY - 1 })];
 				else if (m_do.wrapOnManualScroll)
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, cellY })] = bottomRow[x];
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, cellY })] = bottomRow[x];
 				else
-					priv_clearCell(priv_cellIndex({ selectionRectangle.left + x, cellY }), true, true);
+					priv_clearCell(priv_cellIndex({ selectionRectangle.position.x + x, cellY }), true, true);
 			}
 		}
 	}
@@ -1688,21 +1688,21 @@ void ConsoleScreen::scrollLeft(unsigned int amount, sf::IntRect selectionRectang
 		return;
 	}
 
-	std::vector<Cell> leftColumn(selectionRectangle.height);
+	std::vector<Cell> leftColumn(selectionRectangle.size.y);
 	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
 	{
-		for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+		for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.size.x); ++x)
 		{
-			for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+			for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.size.y); ++y)
 			{
 				if (m_do.wrapOnManualScroll && x == 0)
-					leftColumn[y] = m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })];
-				if (x < static_cast<unsigned int>(selectionRectangle.width) - 1)
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = m_cells[priv_cellIndex({ selectionRectangle.left + x + 1, selectionRectangle.top + y })];
+					leftColumn[y] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y })];
+				if (x < static_cast<unsigned int>(selectionRectangle.size.x) - 1)
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y })] = m_cells[priv_cellIndex({ selectionRectangle.position.x + x + 1, selectionRectangle.position.y + y })];
 				else if (m_do.wrapOnManualScroll)
-					m_cells[priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y })] = leftColumn[y];
+					m_cells[priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y})] = leftColumn[y];
 				else
-					priv_clearCell(priv_cellIndex({ selectionRectangle.left + x, selectionRectangle.top + y }), true, true);
+					priv_clearCell(priv_cellIndex({ selectionRectangle.position.x + x, selectionRectangle.position.y + y }), true, true);
 			}
 		}
 	}
@@ -1723,22 +1723,22 @@ void ConsoleScreen::scrollRight(unsigned int amount, sf::IntRect selectionRectan
 		return;
 	}
 
-	std::vector<Cell> rightColumn(selectionRectangle.height);
+	std::vector<Cell> rightColumn(selectionRectangle.size.y);
 	for (unsigned int repeat{ 0 }; repeat < amount; ++repeat) // lazy way of scrolling multiple times - loop scrolling (entirely by 1 each time)
 	{
-		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.height); ++y)
+		for (unsigned int y{ 0 }; y < static_cast<unsigned int>(selectionRectangle.size.y); ++y)
 		{
-			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.width); ++x)
+			for (unsigned int x{ 0 }; x < static_cast<unsigned int>(selectionRectangle.size.x); ++x)
 			{
-				const unsigned cellX{ selectionRectangle.left + selectionRectangle.width - x - 1 };
+				const unsigned cellX{ selectionRectangle.position.x + selectionRectangle.size.x - x - 1 };
 				if (m_do.wrapOnManualScroll && x == 0)
-					rightColumn[y] = m_cells[priv_cellIndex({ cellX, selectionRectangle.top + y, })];
-				if (cellX > static_cast<unsigned int>(selectionRectangle.left))
-					m_cells[priv_cellIndex({ cellX, selectionRectangle.top + y })] = m_cells[priv_cellIndex({ cellX - 1, selectionRectangle.top + y })];
+					rightColumn[y] = m_cells[priv_cellIndex({ cellX, selectionRectangle.position.y + y, })];
+				if (cellX > static_cast<unsigned int>(selectionRectangle.position.x))
+					m_cells[priv_cellIndex({ cellX, selectionRectangle.position.y + y })] = m_cells[priv_cellIndex({ cellX - 1, selectionRectangle.position.y + y })];
 				else if (m_do.wrapOnManualScroll)
-					m_cells[priv_cellIndex({ cellX, selectionRectangle.top + y })] = rightColumn[y];
+					m_cells[priv_cellIndex({ cellX, selectionRectangle.position.y + y })] = rightColumn[y];
 				else
-					priv_clearCell(priv_cellIndex({ cellX, selectionRectangle.top + y }), true, true);
+					priv_clearCell(priv_cellIndex({ cellX, selectionRectangle.position.y + y }), true, true);
 			}
 		}
 	}
@@ -2405,9 +2405,8 @@ ConsoleScreen::Cell& ConsoleScreen::bufferCell(const unsigned int bufferIndex, c
 
 // PRIVATE
 
-void ConsoleScreen::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
+void ConsoleScreen::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	sf::RenderStates states{ inStates };
 	states.transform *= getTransform();
 
 	if (m_do.showBackround && m_backgroundDisplay.size() > 0)
@@ -2781,12 +2780,12 @@ void ConsoleScreen::priv_scroll()
 
 void ConsoleScreen::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const sf::IntRect& selectionRectangle)
 {
-	if (selectionRectangle.left >= static_cast<int>(m_mode.x) ||
-		selectionRectangle.top >= static_cast<int>(m_mode.y) ||
-		selectionRectangle.width <= 0 ||
-		selectionRectangle.height <= 0 ||
-		(selectionRectangle.left + selectionRectangle.width) < 0 ||
-		(selectionRectangle.top + selectionRectangle.height) < 0)
+	if (selectionRectangle.position.x >= static_cast<int>(m_mode.x) ||
+		selectionRectangle.position.y >= static_cast<int>(m_mode.y) ||
+		selectionRectangle.size.x <= 0 ||
+		selectionRectangle.size.y <= 0 ||
+		(selectionRectangle.position.x + selectionRectangle.size.x) < 0 ||
+		(selectionRectangle.position.y + selectionRectangle.size.y) < 0)
 	{
 		if (m_do.throwExceptions)
 			throw Exception(exceptionPrefix + "Cannot copy selection.\nSelection does not contain any cells.");
@@ -2796,11 +2795,11 @@ void ConsoleScreen::priv_copyToBufferFromSelectionRectangle(Buffer& buffer, cons
 	buffer.width = 0u;
 	buffer.cells.clear();
 
-	for (int y{ 0 }; y < selectionRectangle.height; ++y)
+	for (int y{ 0 }; y < selectionRectangle.size.y; ++y)
 	{
-		for (int x{ 0 }; x < selectionRectangle.width; ++x)
+		for (int x{ 0 }; x < selectionRectangle.size.x; ++x)
 		{
-			const sf::Vector2i location{ x + selectionRectangle.left, y + selectionRectangle.top };
+			const sf::Vector2i location{ x + selectionRectangle.position.x, y + selectionRectangle.position.y };
 			if (location.x < 0 || location.y < 0)
 				continue;
 			const sf::Vector2u cellLocation{ static_cast<unsigned int>(location.x), static_cast<unsigned int>(location.y) };
@@ -2832,12 +2831,12 @@ void ConsoleScreen::priv_pasteOffsettedBuffer(Buffer& buffer, const sf::Vector2i
 
 bool ConsoleScreen::priv_isSelectionRectangleContainedInScreen(const sf::IntRect& selectionRectangle)
 {
-	return (selectionRectangle.left >= 0 &&
-		selectionRectangle.top >= 0 &&
-		selectionRectangle.width >= 0 &&
-		selectionRectangle.height >= 0 &&
-		static_cast<unsigned int>(selectionRectangle.left + selectionRectangle.width) <= m_mode.x &&
-		static_cast<unsigned int>(selectionRectangle.top + selectionRectangle.height) <= m_mode.y);
+	return (selectionRectangle.position.x >= 0 &&
+		selectionRectangle.position.y >= 0 &&
+		selectionRectangle.size.x >= 0 &&
+		selectionRectangle.size.y >= 0 &&
+		static_cast<unsigned int>(selectionRectangle.position.x + selectionRectangle.size.x) <= m_mode.x &&
+		static_cast<unsigned int>(selectionRectangle.position.y + selectionRectangle.size.y) <= m_mode.y);
 }
 
 unsigned int ConsoleScreen::priv_getPrintIndex(sf::Vector2u location) const

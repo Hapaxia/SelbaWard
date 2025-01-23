@@ -5,7 +5,7 @@
 //
 // Pie Chart
 //
-// Copyright(c) 2015-2023 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -138,9 +138,8 @@ sf::FloatRect PieChart::getGlobalBounds() const
 
 // PRIVATE
 
-void PieChart::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
+void PieChart::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	sf::RenderStates states{ inStates };
 	states.transform *= getTransform();
 
 	if (m_vertices.size() > 0)

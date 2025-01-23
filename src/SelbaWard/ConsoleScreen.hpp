@@ -5,7 +5,7 @@
 //
 // Console Screen v2
 //
-// Copyright(c) 2014-2023 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -45,7 +45,7 @@ namespace sf
 namespace selbaward
 {
 
-// SW Console Screen v2.4.5
+// SW Console Screen v2.4.6
 class ConsoleScreen : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -531,7 +531,7 @@ private:
 	sf::Vector2u m_tileSize;
 	unsigned int m_numberOfTilesPerRow;
 
-	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_setVerticesFromCell(unsigned int index, int baseVertex = -1, bool overLayer = true);
 	void priv_updateCell(unsigned int index);
 	void priv_updateUnderCells();

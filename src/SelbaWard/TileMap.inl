@@ -5,7 +5,7 @@
 //
 // Tile Map
 //
-// Copyright(c) 2016-2023 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -372,7 +372,7 @@ void TileMap<T>::redraw()
 // PRIVATE
 
 template <class T>
-void TileMap<T>::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
+void TileMap<T>::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	if (m_redrawRequired)
 	{
@@ -381,7 +381,6 @@ void TileMap<T>::draw(sf::RenderTarget& target, const sf::RenderStates& inStates
 		m_redrawRequired = false;
 	}
 
-	sf::RenderStates states{ inStates };
 	states.texture = &m_renderTexture.getTexture();
 	states.transform = getTransform();
 
@@ -476,9 +475,9 @@ void TileMap<T>::priv_recreateRenderTexture()
 {
 	bool createSucceeded{ false };
 	if (m_gridSize.x < 2 || m_gridSize.y < 2)
-		createSucceeded = m_renderTexture.create({ 1u, 1u });
+		createSucceeded = m_renderTexture.resize({ 1u, 1u });
 	else
-		createSucceeded = m_renderTexture.create({ (m_gridSize.x - 1) * m_textureTileSize.x, (m_gridSize.y - 1) * m_textureTileSize.y });
+		createSucceeded = m_renderTexture.resize({ (m_gridSize.x - 1) * m_textureTileSize.x, (m_gridSize.y - 1) * m_textureTileSize.y });
 
 	m_redrawRequired = true;
 }

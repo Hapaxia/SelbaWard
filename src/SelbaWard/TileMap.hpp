@@ -5,7 +5,7 @@
 //
 // Tile Map
 //
-// Copyright(c) 2016-2023 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -45,7 +45,7 @@
 namespace selbaward
 {
 
-// SW Tile Map v2.0.3
+// SW Tile Map v2.0.4
 template <class T>
 class TileMap : public sf::Drawable, public sf::Transformable
 {
@@ -151,7 +151,7 @@ private:
 	mutable sf::RenderTexture m_renderTexture;
 	mutable std::vector<sf::Vertex> m_render;
 
-	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_updateVertices() const;
 	void priv_updateRender() const;
 	void priv_recreateRenderTexture();

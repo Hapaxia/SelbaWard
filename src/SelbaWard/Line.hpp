@@ -5,7 +5,7 @@
 //
 // Line
 //
-// Copyright(c) 2015-2023 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -41,7 +41,7 @@
 namespace selbaward
 {
 
-// SW Line v1.2.3
+// SW Line v1.2.4
 class Line : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -85,7 +85,7 @@ private:
 	const sf::Texture* m_texture;
 	sf::FloatRect m_textureRect;
 
-	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	bool isThick() const;
 	void updateQuad();
 };

@@ -5,7 +5,7 @@
 //
 // Spinning Card
 //
-// Copyright(c) 2014-2023 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -52,7 +52,7 @@
 namespace selbaward
 {
 
-// SpinningCard (v1.2.3)
+// SpinningCard v1.2.4
 class SpinningCard : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -75,7 +75,7 @@ public:
 	void setDepth(float depth);
 
 private:
-	virtual void draw(sf::RenderTarget& target, const sf::RenderStates& states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	sf::VertexArray m_vertices;
 	const sf::Texture* m_pTexture;
 	sf::FloatRect m_initial;

@@ -5,7 +5,7 @@
 //
 // Starfield
 //
-// Copyright(c) 2016-2023 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -130,9 +130,8 @@ void Starfield::setColor(const sf::Color color)
 
 // PRIVATE
 
-void Starfield::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
+void Starfield::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	sf::RenderStates states{ inStates };
 	states.transform *= getTransform();
 	const unsigned int size{ static_cast<unsigned int>(m_vertices.size()) };
 	if (size > 0)

@@ -5,7 +5,7 @@
 //
 // SpinningCard
 //
-// Copyright(c) 2014-2023 M.J.Silk
+// Copyright(c) 2014-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -31,6 +31,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "SpinningCard.hpp"
+
+#include <SFML/Graphics/Texture.hpp>
 
 #include <cmath>
 
@@ -64,18 +66,18 @@ SpinningCard::SpinningCard(const sf::Sprite& sprite)
 		m_vertices[i].position = sprite.getPosition() - sprite.getOrigin(); // top-left
 
 	// ...then, add offsets to individual vertices
-	m_vertices[0].position += sf::Vector2f(static_cast<float>(m_initial.width) / 2, static_cast<float>(m_initial.height) / 2); // centre
-	m_vertices[2].position += sf::Vector2f(m_initial.width, 0.f); // top-right
-	m_vertices[3].position += sf::Vector2f(m_initial.width, m_initial.height); // bottom-right
-	m_vertices[4].position += sf::Vector2f(0.f, m_initial.height); // bottom-left
+	m_vertices[0].position += sf::Vector2f(static_cast<float>(m_initial.size.x) / 2, static_cast<float>(m_initial.size.y) / 2); // centre
+	m_vertices[2].position += sf::Vector2f(m_initial.size.x, 0.f); // top-right
+	m_vertices[3].position += sf::Vector2f(m_initial.size.x, m_initial.size.y); // bottom-right
+	m_vertices[4].position += sf::Vector2f(0.f, m_initial.size.y); // bottom-left
 
 	// set texture coordinates to the same as the sprite's (using the same method for texCoords as position above)
 	for (unsigned int i{ 0 }; i < 5; ++i)
-		m_vertices[i].texCoords = sf::Vector2f(static_cast<float>(sprite.getTextureRect().left), static_cast<float>(sprite.getTextureRect().top)); // top-left
-	m_vertices[0].texCoords += sf::Vector2f(static_cast<float>(sprite.getTextureRect().width) / 2, static_cast<float>(sprite.getTextureRect().height) / 2); // centre
-	m_vertices[2].texCoords += sf::Vector2f(static_cast<float>(sprite.getTextureRect().width), 0.f); // top-right
-	m_vertices[3].texCoords += sf::Vector2f(static_cast<float>(sprite.getTextureRect().width), static_cast<float>(sprite.getTextureRect().height)); // bottom-right
-	m_vertices[4].texCoords += sf::Vector2f(0.f, static_cast<float>(sprite.getTextureRect().height)); // bottom-left
+		m_vertices[i].texCoords = sf::Vector2f(static_cast<float>(sprite.getTextureRect().position.x), static_cast<float>(sprite.getTextureRect().position.x)); // top-left
+	m_vertices[0].texCoords += sf::Vector2f(static_cast<float>(sprite.getTextureRect().size.x) / 2, static_cast<float>(sprite.getTextureRect().size.y) / 2); // centre
+	m_vertices[2].texCoords += sf::Vector2f(static_cast<float>(sprite.getTextureRect().size.x), 0.f); // top-right
+	m_vertices[3].texCoords += sf::Vector2f(static_cast<float>(sprite.getTextureRect().size.x), static_cast<float>(sprite.getTextureRect().size.y)); // bottom-right
+	m_vertices[4].texCoords += sf::Vector2f(0.f, static_cast<float>(sprite.getTextureRect().size.y)); // bottom-left
 
 	// set colours of vertices to match sprite's colour
 	for (unsigned int i{ 0 }; i < 5; ++i)
@@ -85,7 +87,7 @@ SpinningCard::SpinningCard(const sf::Sprite& sprite)
 	m_vertices[5] = m_vertices[1];
 
 	// store a pointer to the sprite's texture
-	m_pTexture = sprite.getTexture();
+	m_pTexture = &sprite.getTexture();
 }
 
 void SpinningCard::spin(float angleInDegrees)
@@ -96,11 +98,11 @@ void SpinningCard::spin(float angleInDegrees)
 void SpinningCard::spinRadians(float angleInRadians)
 {
 	angleInRadians -= m_pi / 2;
-	m_vertices[0].position = sf::Vector2f(m_initial.left + m_initial.width / 2, m_initial.top + m_initial.height / 2);
-	m_vertices[1].position = sf::Vector2f(m_initial.left + (std::sin(angleInRadians) + 1) * m_initial.width / 2, m_initial.top - std::cos(angleInRadians) * m_depth * m_initial.height / 2);
-	m_vertices[2].position = sf::Vector2f(m_initial.left + (std::sin(angleInRadians + m_pi) + 1) * m_initial.width / 2, m_initial.top - std::cos(angleInRadians + m_pi) * m_depth * m_initial.height / 2);
-	m_vertices[3].position = sf::Vector2f(m_initial.left + (std::sin(angleInRadians + m_pi) + 1) * m_initial.width / 2, m_initial.top + (std::cos(angleInRadians + m_pi) * m_depth + 2) * m_initial.height / 2);
-	m_vertices[4].position = sf::Vector2f(m_initial.left + (std::sin(angleInRadians) + 1) * m_initial.width / 2, m_initial.top + (std::cos(angleInRadians) * m_depth + 2) * m_initial.height / 2);
+	m_vertices[0].position = sf::Vector2f(m_initial.position.x + m_initial.size.x / 2, m_initial.position.y + m_initial.size.y / 2);
+	m_vertices[1].position = sf::Vector2f(m_initial.position.x + (std::sin(angleInRadians) + 1) * m_initial.size.x / 2, m_initial.position.y - std::cos(angleInRadians) * m_depth * m_initial.size.y / 2);
+	m_vertices[2].position = sf::Vector2f(m_initial.position.x + (std::sin(angleInRadians + m_pi) + 1) * m_initial.size.x / 2, m_initial.position.y - std::cos(angleInRadians + m_pi) * m_depth * m_initial.size.y / 2);
+	m_vertices[3].position = sf::Vector2f(m_initial.position.x + (std::sin(angleInRadians + m_pi) + 1) * m_initial.size.x / 2, m_initial.position.y + (std::cos(angleInRadians + m_pi) * m_depth + 2) * m_initial.size.y / 2);
+	m_vertices[4].position = sf::Vector2f(m_initial.position.x + (std::sin(angleInRadians) + 1) * m_initial.size.x / 2, m_initial.position.y + (std::cos(angleInRadians) * m_depth + 2) * m_initial.size.y / 2);
 
 	// weld last vertex to second vertex (to complete the solid)
 	m_vertices[5] = m_vertices[1];
@@ -114,11 +116,11 @@ void SpinningCard::spinVertically(float angleInDegrees)
 void SpinningCard::spinVerticallyRadians(float angleInRadians)
 {
 	angleInRadians -= m_pi / 2;
-	m_vertices[0].position = sf::Vector2f(m_initial.left + m_initial.width / 2, m_initial.top + m_initial.height / 2);
-	m_vertices[1].position = sf::Vector2f(m_initial.left - std::cos(angleInRadians) * m_depth * m_initial.width / 2, m_initial.top + (std::sin(angleInRadians) + 1) * m_initial.height / 2);
-	m_vertices[4].position = sf::Vector2f(m_initial.left - std::cos(angleInRadians + m_pi) * m_depth * m_initial.width / 2, m_initial.top + (std::sin(angleInRadians + m_pi) + 1) * m_initial.height / 2);
-	m_vertices[3].position = sf::Vector2f(m_initial.left + (std::cos(angleInRadians + m_pi) * m_depth + 2) * m_initial.width / 2, m_initial.top + (std::sin(angleInRadians + m_pi) + 1) * m_initial.height / 2);
-	m_vertices[2].position = sf::Vector2f(m_initial.left + (std::cos(angleInRadians) * m_depth + 2) * m_initial.width / 2, m_initial.top + (std::sin(angleInRadians) + 1) * m_initial.height / 2);
+	m_vertices[0].position = sf::Vector2f(m_initial.position.x + m_initial.size.x / 2, m_initial.position.y + m_initial.size.y / 2);
+	m_vertices[1].position = sf::Vector2f(m_initial.position.x - std::cos(angleInRadians) * m_depth * m_initial.size.x / 2, m_initial.position.y + (std::sin(angleInRadians) + 1) * m_initial.size.y / 2);
+	m_vertices[4].position = sf::Vector2f(m_initial.position.x - std::cos(angleInRadians + m_pi) * m_depth * m_initial.size.x / 2, m_initial.position.y + (std::sin(angleInRadians + m_pi) + 1) * m_initial.size.y / 2);
+	m_vertices[3].position = sf::Vector2f(m_initial.position.x + (std::cos(angleInRadians + m_pi) * m_depth + 2) * m_initial.size.x / 2, m_initial.position.y + (std::sin(angleInRadians + m_pi) + 1) * m_initial.size.y / 2);
+	m_vertices[2].position = sf::Vector2f(m_initial.position.x + (std::cos(angleInRadians) * m_depth + 2) * m_initial.size.x / 2, m_initial.position.y + (std::sin(angleInRadians) + 1) * m_initial.size.y / 2);
 
 	// weld last vertex to second vertex (to complete the solid)
 	m_vertices[5] = m_vertices[1];
@@ -129,9 +131,8 @@ void SpinningCard::setDepth(float depth)
 	m_depth = depth;
 }
 
-void SpinningCard::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
+void SpinningCard::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	sf::RenderStates states{ inStates };
 	states.transform *= getTransform();
 	states.texture = m_pTexture;
 	target.draw(m_vertices, states);

@@ -5,7 +5,7 @@
 //
 // Gallery Sprite
 //
-// Copyright(c) 2016-2023 M.J.Silk
+// Copyright(c) 2016-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -39,7 +39,7 @@
 namespace selbaward
 {
 
-// Gallery Sprite v1.1.2
+// Gallery Sprite v1.1.3
 class GallerySprite : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -94,7 +94,7 @@ private:
 	unsigned int m_currentExhibit;
 	std::vector<Exhibit> m_exhibits;
 
-	virtual void draw(sf::RenderTarget&, const sf::RenderStates&) const;
+	void draw(sf::RenderTarget&, sf::RenderStates) const override;
 	void priv_updateVertices();
 	Exhibit priv_getCurrentExhibit() const;
 	Exhibit priv_getExhibit(unsigned int exhibitNumber) const;

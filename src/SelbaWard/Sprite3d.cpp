@@ -5,7 +5,7 @@
 //
 // Sprite3d
 //
-// Copyright(c) 2015-2023 M.J.Silk
+// Copyright(c) 2015-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -142,7 +142,7 @@ Sprite3d::Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect, c
 Sprite3d::Sprite3d(const sf::Sprite& sprite)
 	: Sprite3d()
 {
-	setTexture(*sprite.getTexture());
+	setTexture(sprite.getTexture());
 	setTextureRect(sprite.getTextureRect());
 	this->setColor(sprite.getColor());
 	this->setOrigin(sprite.getOrigin());
@@ -165,9 +165,9 @@ const sf::Sprite Sprite3d::getSprite() const
 
 void Sprite3d::setTextureRect(const sf::IntRect& textureRectangle)
 {
-	m_textureOffset = sf::Vector2i(textureRectangle.left, textureRectangle.top);
+	m_textureOffset = sf::Vector2i(textureRectangle.position.x, textureRectangle.position.y);
 	m_backTextureOffset = m_textureOffset;
-	m_size = sf::Vector2i(textureRectangle.width, textureRectangle.height);
+	m_size = sf::Vector2i(textureRectangle.size.x, textureRectangle.size.y);
 	createPointGrid();
 	updateTransformedPoints();
 	updateVertices();
@@ -473,9 +473,8 @@ float Sprite3d::getDepth() const
 	return m_depth;
 }
 
-void Sprite3d::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) const
+void Sprite3d::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	sf::RenderStates states{ inStates };
 	if (m_pTexture != nullptr)
 	{
 		updateTransformedPoints();
@@ -487,11 +486,7 @@ void Sprite3d::draw(sf::RenderTarget& target, const sf::RenderStates& inStates) 
 		else
 			states.texture = m_pTexture;
 
-#ifdef USE_SFML_PRE_2_4
-		target.draw(&m_vertices[0], m_vertices.size(), sf::PrimitiveType::TrianglesStrip, states);
-#else // USE_SFML_PRE_2_4
-		target.draw(&m_vertices[0], m_vertices.size(), sf::PrimitiveType::TriangleStrip, states);
-#endif // USE_SFML_PRE_2_4
+		target.draw(m_vertices.data(), m_vertices.size(), sf::PrimitiveType::TriangleStrip, states);
 	}
 }
 
