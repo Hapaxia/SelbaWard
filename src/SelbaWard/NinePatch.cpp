@@ -147,7 +147,7 @@ namespace selbaward
 
 NinePatch::NinePatch()
 	: m_primitiveType{ sf::PrimitiveType::TriangleStrip }
-	, m_vertices(22u, sf::Vertex({ 0.f, 0.f }))
+	, m_vertices(22u, sf::Vertex{{ 0.f, 0.f }})
 	, m_texture{ nullptr }
 	, m_trimmedSize({ 0.f, 0.f })
 	, m_size({ 0.f, 0.f })

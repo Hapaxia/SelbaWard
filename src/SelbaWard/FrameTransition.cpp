@@ -33,6 +33,7 @@
 #include "FrameTransition.hpp"
 
 #include <cmath> // for lround
+#include <cstdint> // for uint8_t
 
 namespace
 {
@@ -43,7 +44,7 @@ inline float linearInterpolation(const float a, const float b, const float alpha
 }
 inline sf::Color colorFromColorAndAlpha(sf::Color color, const unsigned int alpha)
 {
-	color.a = static_cast<sf::Uint8>(alpha);
+	color.a = static_cast<std::uint8_t>(alpha);
 	return color;
 }
 
@@ -149,8 +150,7 @@ void FrameTransition::setTexture(const FrameId frameId, const sf::Texture& textu
 	frame.pTexture = &texture;
 	if (resetRect)
 	{
-		frame.textureRect.width = frame.pTexture->getSize().x;
-		frame.textureRect.height = frame.pTexture->getSize().y;
+		frame.textureRect.size = sf::Vector2i(frame.pTexture->getSize());
 	}
 }
 void FrameTransition::setTexture(const FrameId frameId)
@@ -383,7 +383,7 @@ void FrameTransition::priv_updateFromTexCrop() const
 
 	if (swapDirection)
 	{
-		// since front and back are currenty equal to start and end, flip them if we are facing in opposite direction
+		// since front and back are currently equal to start and end, flip them if we are facing in opposite direction
 		if (texCropA == TexCrop::Front)
 			texCropA = TexCrop::Back;
 		else if (texCropA == TexCrop::Back)
@@ -404,13 +404,13 @@ void FrameTransition::priv_updateFromTexCrop() const
 	{
 	case Direction::Left:
 	case Direction::Right:
-		scaleSizeA = texRectA.width;
-		scaleSizeB = texRectB.width;
+		scaleSizeA = texRectA.size.x;
+		scaleSizeB = texRectB.size.x;
 		break;
 	case Direction::Up:
 	case Direction::Down:
-		scaleSizeA = texRectA.height;
-		scaleSizeB = texRectB.height;
+		scaleSizeA = texRectA.size.y;
+		scaleSizeB = texRectB.size.y;
 		break;
 	}
 	
@@ -465,17 +465,17 @@ void FrameTransition::priv_updateFromTexCrop() const
 	{
 	case Direction::Left:
 	case Direction::Right:
-		texRectA.left = offsetPosA;
-		texRectA.width = scaleSizeA;
-		texRectB.left = offsetPosB;
-		texRectB.width = scaleSizeB;
+		texRectA.position.x = offsetPosA;
+		texRectA.size.x = scaleSizeA;
+		texRectB.position.x = offsetPosB;
+		texRectB.size.x = scaleSizeB;
 		break;
 	case Direction::Down:
 	case Direction::Up:
-		texRectA.top = offsetPosA;
-		texRectA.height = scaleSizeA;
-		texRectB.top = offsetPosB;
-		texRectB.height = scaleSizeB;
+		texRectA.position.y = offsetPosA;
+		texRectA.size.y = scaleSizeA;
+		texRectB.position.y = offsetPosB;
+		texRectB.size.y = scaleSizeB;
 		break;
 	}
 
@@ -654,8 +654,8 @@ void FrameTransition::priv_updateFromZoom() const
 
 	sf::Vector2f quadSizeA{ m_size };
 	sf::Vector2f quadSizeB{ m_size };
-	sf::Vector2f texSizeA{ texRectA.getSize() };
-	sf::Vector2f texSizeB{ texRectB.getSize() };
+	sf::Vector2f texSizeA{ texRectA.size };
+	sf::Vector2f texSizeB{ texRectB.size };
 	switch (zoomTypeA)
 	{
 	case ZoomType::Scale:
@@ -678,35 +678,27 @@ void FrameTransition::priv_updateFromZoom() const
 
 
 	// top lefts calculated to place the resized rectangles in the centre of their originals
-	sf::Vector2f texTopLeftA{ (texRectA.getSize() - texSizeA) * 0.5f };
-	sf::Vector2f texTopLeftB{ (texRectB.getSize() - texSizeB) * 0.5f };
+	sf::Vector2f texTopLeftA{ (texRectA.size - texSizeA) * 0.5f };
+	sf::Vector2f texTopLeftB{ (texRectB.size - texSizeB) * 0.5f };
 	sf::Vector2f posTopLeftA{ (m_size - quadSizeA) * 0.5f };
 	sf::Vector2f posTopLeftB{ (m_size - quadSizeB) * 0.5f };
 
 	// resized texture rectangles
-	texRectA.left = texTopLeftA.x;
-	texRectA.top = texTopLeftA.y;
-	texRectA.width = texSizeA.x;
-	texRectA.height = texSizeA.y;
+	texRectA.position = texTopLeftA;
+	texRectA.size = texSizeA;
 
-	texRectB.left = texTopLeftB.x;
-	texRectB.top = texTopLeftB.y;
-	texRectB.width = texSizeB.x;
-	texRectB.height = texSizeB.y;
+	texRectB.position = texTopLeftB;
+	texRectB.size = texSizeB;
 
 	// resized quad rectangles
 	sf::FloatRect posRectA{};
 	sf::FloatRect posRectB{};
 
-	posRectA.left = posTopLeftA.x;
-	posRectA.top = posTopLeftA.y;
-	posRectA.width = quadSizeA.x;
-	posRectA.height = quadSizeA.y;
+	posRectA.position = posTopLeftA;
+	posRectA.size = quadSizeA;
 
-	posRectB.left = posTopLeftB.x;
-	posRectB.top = posTopLeftB.y;
-	posRectB.width = quadSizeB.x;
-	posRectB.height = quadSizeB.y;
+	posRectB.position = posTopLeftB;
+	posRectB.size = quadSizeB;
 
 
 
@@ -737,8 +729,8 @@ void FrameTransition::priv_addQuad(const std::size_t startVertex, const Quad& qu
 }
 void FrameTransition::priv_setQuadPositionsFromRect(Quad& quad, sf::FloatRect rect) const
 {
-	const sf::Vector2f topLeft(rect.getPosition());
-	const sf::Vector2f bottomRight{ sf::Vector2f(rect.getSize()) + topLeft };
+	const sf::Vector2f topLeft(rect.position);
+	const sf::Vector2f bottomRight{ sf::Vector2f(rect.size) + topLeft };
 	quad.topLeft.position = topLeft;
 	quad.bottomRight.position = bottomRight;
 	quad.bottomLeft.position = { topLeft.x, bottomRight.y };
@@ -746,8 +738,8 @@ void FrameTransition::priv_setQuadPositionsFromRect(Quad& quad, sf::FloatRect re
 }
 void FrameTransition::priv_setQuadTextureCoordsFromRect(Quad& quad, sf::FloatRect rect) const
 {
-	const sf::Vector2f topLeft(rect.getPosition());
-	const sf::Vector2f bottomRight{ sf::Vector2f(rect.getSize()) + topLeft };
+	const sf::Vector2f topLeft(rect.position);
+	const sf::Vector2f bottomRight{ sf::Vector2f(rect.size) + topLeft };
 	quad.topLeft.texCoords = topLeft;
 	quad.bottomRight.texCoords = bottomRight;
 	quad.bottomLeft.texCoords = { topLeft.x, bottomRight.y };
