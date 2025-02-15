@@ -20,7 +20,7 @@
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(500, 500), "Spinning card effect");
+	sf::RenderWindow window(sf::VideoMode({ 500, 500 }), "Spinning card effect");
 	window.setFramerateLimit(60);
 
 	const std::string faceTextureFilename{ "resources/Card Face - SFML.png" };
@@ -40,12 +40,12 @@ int main()
 
 	// set up and position cards
 	const sf::Vector2f positionOfSpinningCard{ static_cast<float>(window.getSize().x) / 2, static_cast<float>(window.getSize().y) / 2 };
-	faceSprite.setOrigin(faceSprite.getLocalBounds().width / 2, faceSprite.getLocalBounds().height / 2);
-	backSprite.setOrigin(backSprite.getLocalBounds().width / 2, backSprite.getLocalBounds().height / 2);
+	faceSprite.setOrigin(faceSprite.getLocalBounds().size / 2.f);
+	backSprite.setOrigin(backSprite.getLocalBounds().size / 2.f);
 	faceSprite.setPosition(positionOfSpinningCard);
 	backSprite.setPosition(positionOfSpinningCard);
-	faceSprite.setRotation(10);
-	backSprite.setRotation(10);
+	faceSprite.setRotation(sf::degrees(10));
+	backSprite.setRotation(sf::degrees(10));
 	//faceSprite.setColor(sf::Color::Blue);
 	//backSprite.setColor(sf::Color::Green);
 
@@ -68,14 +68,13 @@ int main()
 
 	while (window.isOpen())
 	{
-		sf::Event event;
-		while (window.pollEvent(event))
+		while (const std::optional event = window.pollEvent())
 		{
-			if ((event.type == sf::Event::Closed) || (event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))
+			if (event->is<sf::Event::Closed>() || event->is<sf::Event::KeyPressed>() && event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
 				window.close();
-			if (event.type == sf::Event::KeyPressed)
+			if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
 			{
-				if (event.key.code == sf::Keyboard::Space)
+				if (keyPressed->code == sf::Keyboard::Key::Space)
 				{
 					isSpinning = true;
 					clock.restart();
@@ -105,21 +104,21 @@ int main()
 
 			// smoothly move "out" when spinning
 			const float scale{ 1.f + (0.5f * std::sin(spinAngle * 3.14159f / 360)) };
-			cardFace.setScale(scale, scale);
-			cardBack.setScale(scale, scale);
+			cardFace.setScale({ scale, scale });
+			cardBack.setScale({ scale, scale });
 		}
 
 		window.clear();
 
 		// side cards (must return for the central card)
-		backSprite.move(-120, 0);
-		backSprite.rotate(-2);
+		backSprite.move({ -120, 0 });
+		backSprite.rotate(sf::degrees(-2));
 		window.draw(backSprite);
-		backSprite.move(240, 0);
-		backSprite.rotate(4);
+		backSprite.move({ 240, 0 });
+		backSprite.rotate(sf::degrees(4));
 		window.draw(backSprite);
-		backSprite.move(-120, 0);
-		backSprite.rotate(-2);
+		backSprite.move({ -120, 0 });
+		backSprite.rotate(sf::degrees(-2));
 
 		// central card
 		if (isSpinning)

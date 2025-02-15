@@ -39,7 +39,7 @@
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(800, 600), "Selba Ward - Spline example 2", sf::Style::Default);
+	sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "Selba Ward - Spline example 2", sf::Style::Default);
 	window.setFramerateLimit(15);
 
 	const unsigned int numberOfVertices{ 50u }; // number of (control) vertices in spline (one vertex per frame)
@@ -50,45 +50,41 @@ int main()
 
 	while (window.isOpen())
 	{
-		sf::Event event;
-		while (window.pollEvent(event))
+		while (const std::optional event = window.pollEvent())
 		{
-			switch (event.type)
-			{
-			case sf::Event::Closed:
+			if (event->is<sf::Event::Closed>())
 				window.close();
-				break;
-			case sf::Event::KeyPressed:
-				switch (event.key.code)
+			else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+				switch (keyPressed->code)
 				{
-				case sf::Keyboard::Escape:
+				case sf::Keyboard::Key::Escape:
 					// close
 					window.close();
 					break;
-				case sf::Keyboard::F1:
+				case sf::Keyboard::Key::F1:
 					// toggle paused
 					isPaused = !isPaused;
 					break;
-				case sf::Keyboard::Space:
+				case sf::Keyboard::Key::Space:
 					// toggle interpolation type
 					spline.setBezierInterpolation(!spline.getBezierInterpolation());
 					break;
-				case sf::Keyboard::Tab:
+				case sf::Keyboard::Key::Tab:
 					// toggle primitive type
-					if (spline.getPrimitiveType() == sf::PrimitiveType::LinesStrip)
+					if (spline.getPrimitiveType() == sf::PrimitiveType::LineStrip)
 						spline.setPrimitiveType(sf::PrimitiveType::Points);
 					else
-						spline.setPrimitiveType(sf::PrimitiveType::LinesStrip);
+						spline.setPrimitiveType(sf::PrimitiveType::LineStrip);
 					break;
-				case sf::Keyboard::BackSpace:
+				case sf::Keyboard::Key::Backspace:
 					// toggle closed Spline
 					spline.setClosed(!spline.getClosed());
 					break;
-				case sf::Keyboard::Slash:
+				case sf::Keyboard::Key::Slash:
 					// toggle random normal offsets (lightning effect)
 					spline.setRandomNormalOffsetRange(20.f - spline.getRandomNormalOffsetRange());
 					break;
-				case sf::Keyboard::LBracket:
+				case sf::Keyboard::Key::LBracket:
 					// cycle start cap type
 					switch (spline.getThickStartCapType())
 					{
@@ -103,7 +99,7 @@ int main()
 						break;
 					}
 					break;
-				case sf::Keyboard::RBracket:
+				case sf::Keyboard::Key::RBracket:
 					// cycle end cap type
 					switch (spline.getThickEndCapType())
 					{
@@ -118,7 +114,7 @@ int main()
 						break;
 					}
 					break;
-				case sf::Keyboard::Return:
+				case sf::Keyboard::Key::Enter:
 					// cycle corner type
 					switch (spline.getThickCornerType())
 					{
@@ -134,14 +130,11 @@ int main()
 					}
 					break;
 				}
-				break;
-			case sf::Event::MouseWheelScrolled:
-				// mouse wheel changes thickness
+			else if (const auto* mouseWheel = event->getIf<sf::Event::MouseWheelScrolled>())
 			{
-				const float thickness{ spline.getThickness() + event.mouseWheelScroll.delta };
+				// mouse wheel changes thickness
+				const float thickness{ spline.getThickness() + mouseWheel->delta };
 				spline.setThickness((thickness < 0) ? 0.f : thickness);
-			}
-				break;
 			}
 		}
 

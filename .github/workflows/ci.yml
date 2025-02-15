@@ -23,7 +23,7 @@ jobs:
         - { name: Windows Clang,   os: windows-2022, flags: -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
         - { name: Linux GCC,       os: ubuntu-22.04, flags: -GNinja }
         - { name: Linux Clang,     os: ubuntu-22.04, flags: -GNinja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
-        - { name: macOS,           os: macos-12,     flags: -GNinja }
+        - { name: macOS,           os: macos-14,     flags: -GNinja }
         type:
         - { name: Release }
         - { name: Debug }
@@ -39,14 +39,14 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt update
-        sudo apt install ninja-build llvm xorg-dev libxrandr-dev libxcursor-dev libudev-dev libgl1-mesa-dev libegl1-mesa-dev
+        sudo apt install ninja-build llvm xorg-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev libegl1-mesa-dev
 
     - name: Install macOS Tools
       if: runner.os == 'macOS'
       run: brew install ninja
 
     - name: Checkout SFML
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: SFML/SFML
         path: sfml
@@ -55,7 +55,8 @@ jobs:
     - name: Configure SFML
       run: |
         cmake -S sfml -B sfml/build \
-          -DCMAKE_INSTALL_PREFIX=sfml/install \
+          -DBUILD_SHARED_LIBS=ON \
+          -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/sfml/install \
           -DCMAKE_BUILD_TYPE=${{matrix.type.name}} \
           -DSFML_BUILD_AUDIO=OFF \
           -DSFML_BUILD_NETWORK=OFF \
@@ -65,7 +66,7 @@ jobs:
       run: cmake --build sfml/build --config ${{matrix.type.name}} --target install
 
     - name: Checkout SelbaWard
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: SelbaWard
 

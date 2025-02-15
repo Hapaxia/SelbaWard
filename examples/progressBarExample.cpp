@@ -29,7 +29,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	sf::RenderWindow window(sf::VideoMode(800, 600), "Progress Bar example");
+	sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "Progress Bar example");
 
 	sw::ProgressBar progressBar({ 300.f, 40.f });
 
@@ -42,7 +42,7 @@ int main()
 	progressBar.setBackgroundColor(sf::Color(128, 128, 128));
 	progressBar.setFrameColor(sf::Color(128, 128, 255, 192));
 	progressBar.setFrameThickness(2.f);
-	progressBar.setRotation(-30);
+	progressBar.setRotation(sf::degrees(-30));
 
 	// set textures
 	progressBar.setTexture(texture);
@@ -56,7 +56,7 @@ int main()
 	// marker
 	std::vector<sf::CircleShape> markers(3, sf::CircleShape(3.f));
 	for (auto& marker : markers)
-		marker.setOrigin(marker.getRadius(), marker.getRadius());
+		marker.setOrigin({ marker.getRadius(), marker.getRadius() });
 	markers[0].setFillColor(sf::Color::Red);
 	markers[1].setFillColor(sf::Color::Yellow);
 	markers[2].setFillColor(sf::Color::Green);
@@ -65,10 +65,9 @@ int main()
 
 	while (window.isOpen())
 	{
-		sf::Event event;
-		while (window.pollEvent(event))
+		while (const std::optional event = window.pollEvent())
 		{
-			if ((event.type == sf::Event::Closed) || (event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))
+			if (event->is<sf::Event::Closed>() || event->is<sf::Event::KeyPressed>() && event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
 				window.close();
 		}
 
@@ -78,14 +77,14 @@ int main()
 
 		float frameTime{ clock.restart().asSeconds() };
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Add))				        // [+] (number pad)     increase progress
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Add))				        // [+] (number pad)     increase progress
 			progressBar.setRatio(progressBar.getRatio() + frameTime * 0.3f);
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Subtract))                 // [-] (number pad)     decrease progress
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Subtract))                 // [-] (number pad)     decrease progress
 			progressBar.setRatio(progressBar.getRatio() - frameTime * 0.3f);
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Period))                   // [.]/[>]              rotate left
-			progressBar.rotate(frameTime * 30.f);
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Comma))                    // [,]/[<]              rotate right
-			progressBar.rotate(-frameTime * 30.f);
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Period))                   // [.]/[>]              rotate left
+			progressBar.rotate(sf::degrees(frameTime * 30.f));
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Comma))                    // [,]/[<]              rotate right
+			progressBar.rotate(sf::degrees(-frameTime * 30.f));
 
 		window.clear();
 		window.draw(progressBar);

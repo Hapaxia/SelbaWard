@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(SelbaWard LANGUAGES CXX)
 
-find_package(SFML 2.6 REQUIRED COMPONENTS graphics)
+find_package(SFML 3 REQUIRED COMPONENTS Graphics)
 
 add_library(SelbaWard
     src/SelbaWard/BitmapFont.cpp
@@ -9,6 +9,7 @@ add_library(SelbaWard
     src/SelbaWard/ConsoleScreen.cpp
     src/SelbaWard/Crosshair.cpp
     src/SelbaWard/ElasticSprite.cpp
+    src/SelbaWard/FrameTransition.cpp
     src/SelbaWard/GallerySprite.cpp
     src/SelbaWard/Line.cpp
     src/SelbaWard/NinePatch.cpp
@@ -20,13 +21,14 @@ add_library(SelbaWard
     src/SelbaWard/SpinningCard.cpp
     src/SelbaWard/Spline.cpp
     src/SelbaWard/Sprite3d.cpp
+    src/SelbaWard/SpriteBatch.cpp
     src/SelbaWard/Starfield.cpp
     src/SelbaWard/Starfield3d.cpp
 )
 add_library(SelbaWard::SelbaWard ALIAS SelbaWard)
 target_include_directories(SelbaWard PUBLIC src)
-target_link_libraries(SelbaWard PUBLIC sfml-graphics)
-target_compile_features(SelbaWard PUBLIC cxx_std_11)
+target_link_libraries(SelbaWard PUBLIC SFML::Graphics)
+target_compile_features(SelbaWard PUBLIC cxx_std_17)
 
 # Stop configuration if being consumed by a higher level project
 if(NOT PROJECT_IS_TOP_LEVEL)
