@@ -118,13 +118,13 @@ void Starfield3d::move(const sf::Vector3f movement)
 			position = priv_generateRandomStarPosition(EdgeLock::Front);
 
 		// wrap 2D (xy slice)
-		if (position.x < m_deepestSliceBounds.left)
+		if (position.x < m_deepestSliceBounds.position.x)
 			position = priv_generateRandomStarPosition(EdgeLock::Right);
-		else if (position.x > (m_deepestSliceBounds.left + m_deepestSliceBounds.width))
+		else if (position.x > (m_deepestSliceBounds.position.x + m_deepestSliceBounds.size.x))
 			position = priv_generateRandomStarPosition(EdgeLock::Left);
-		if (position.y < m_deepestSliceBounds.top)
+		if (position.y < m_deepestSliceBounds.position.y)
 			position = priv_generateRandomStarPosition(EdgeLock::Bottom);
-		else if (position.y > (m_deepestSliceBounds.top + m_deepestSliceBounds.height))
+		else if (position.y > (m_deepestSliceBounds.position.y + m_deepestSliceBounds.size.y))
 			position = priv_generateRandomStarPosition(EdgeLock::Top);
 		
 	}
@@ -140,13 +140,13 @@ void Starfield3d::pan(const sf::Vector2f panAmount)
 		position -= movement * (((1.f + position.z) * m_depthCalibration - 1.f));
 
 		// wrap 2D (xy slice)
-		if (position.x < m_deepestSliceBounds.left)
+		if (position.x < m_deepestSliceBounds.position.x)
 			position = priv_generateRandomStarPosition(EdgeLock::Right);
-		else if (position.x > (m_deepestSliceBounds.left + m_deepestSliceBounds.width))
+		else if (position.x > (m_deepestSliceBounds.position.x + m_deepestSliceBounds.size.x))
 			position = priv_generateRandomStarPosition(EdgeLock::Left);
-		if (position.y < m_deepestSliceBounds.top)
+		if (position.y < m_deepestSliceBounds.position.y)
 			position = priv_generateRandomStarPosition(EdgeLock::Bottom);
-		else if (position.y > (m_deepestSliceBounds.top + m_deepestSliceBounds.height))
+		else if (position.y > (m_deepestSliceBounds.position.y + m_deepestSliceBounds.size.y))
 			position = priv_generateRandomStarPosition(EdgeLock::Top);
 
 	}
@@ -269,7 +269,7 @@ void Starfield3d::priv_updateVertices() const
 		sf::Vector2f starPosition{ priv_projectPoint(m_positions[starIndex]) };
 		for (std::size_t vertex{ 0u }; vertex < numberOfVerticesPerStar; ++vertex)
 		{
-			m_vertices[star * numberOfVerticesPerStar + vertex] = starPosition + (sf::Vector2f{ m_starTemplate[vertex].position.x, m_starTemplate[vertex].position.y } * depthScale);
+			m_vertices[star * numberOfVerticesPerStar + vertex].position = starPosition + (sf::Vector2f{ m_starTemplate[vertex].position.x, m_starTemplate[vertex].position.y } * depthScale);
 			m_vertices[star * numberOfVerticesPerStar + vertex].color = m_starTemplate[vertex].color * color;
 		}
 	}
@@ -296,8 +296,8 @@ sf::Vector3f Starfield3d::priv_generateRandomStarPosition() const
 {
 	sf::Vector3f position;
 	position.z = randomValue(0.f, m_maxDepth);
-	position.x = randomValue(m_deepestSliceBounds.left, m_deepestSliceBounds.left + m_deepestSliceBounds.width);
-	position.y = randomValue(m_deepestSliceBounds.top, m_deepestSliceBounds.top + m_deepestSliceBounds.height);
+	position.x = randomValue(m_deepestSliceBounds.position.x, m_deepestSliceBounds.position.x + m_deepestSliceBounds.size.x);
+	position.y = randomValue(m_deepestSliceBounds.position.y, m_deepestSliceBounds.position.y + m_deepestSliceBounds.size.y);
 	return position;
 }
 
@@ -313,18 +313,18 @@ sf::Vector3f Starfield3d::priv_generateRandomStarPosition(const EdgeLock edgeLoc
 		position.z = randomValue(0.f, m_maxDepth);
 
 	if (edgeLock == EdgeLock::Left)
-		position.x = m_deepestSliceBounds.left;
+		position.x = m_deepestSliceBounds.position.x;
 	else if (edgeLock == EdgeLock::Right)
-		position.x = m_deepestSliceBounds.left + m_deepestSliceBounds.width;
+		position.x = m_deepestSliceBounds.position.x + m_deepestSliceBounds.size.x;
 	else
-		position.x = randomValue(m_deepestSliceBounds.left, m_deepestSliceBounds.left + m_deepestSliceBounds.width);
+		position.x = randomValue(m_deepestSliceBounds.position.x, m_deepestSliceBounds.position.x + m_deepestSliceBounds.size.x);
 
 	if (edgeLock == EdgeLock::Top)
-		position.y = m_deepestSliceBounds.top;
+		position.y = m_deepestSliceBounds.position.y;
 	else if (edgeLock == EdgeLock::Bottom)
-		position.y = m_deepestSliceBounds.top + m_deepestSliceBounds.height;
+		position.y = m_deepestSliceBounds.position.y + m_deepestSliceBounds.size.y;
 	else
-		position.y = randomValue(m_deepestSliceBounds.top, m_deepestSliceBounds.top + m_deepestSliceBounds.height);
+		position.y = randomValue(m_deepestSliceBounds.position.y, m_deepestSliceBounds.position.y + m_deepestSliceBounds.size.y);
 
 	return position;
 }

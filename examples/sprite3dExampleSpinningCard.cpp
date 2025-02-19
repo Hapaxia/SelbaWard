@@ -20,7 +20,7 @@
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(500, 500), "Sprite3d simplifying the SpinningCard example");
+	sf::RenderWindow window(sf::VideoMode({ 500, 500 }), "Sprite3d simplifying the SpinningCard example");
 	window.setFramerateLimit(60);
 
 	const std::string faceTextureFilename{ "resources/Card Face - SFML.png" };
@@ -38,7 +38,7 @@ int main()
 
 	// set up and position main card
 	const sf::Vector2f positionOfSpinningCard{ static_cast<float>(window.getSize().x) / 2, static_cast<float>(window.getSize().y) / 2 };
-	card.setOrigin({ card.getLocalBounds().width / 2, card.getLocalBounds().height / 2 });
+	card.setOrigin(card.getLocalBounds().size / 2.f);
 	card.setPosition(sf::Vector2f(window.getSize() / 2u));
 	card.setRotation(10);
 	card.setSubdivision(2);
@@ -48,10 +48,10 @@ int main()
 
 	// set up static cards
 	std::vector<sf::Sprite> sideCards(2, card.getSprite());
-	sideCards.front().rotate(-2);
-	sideCards.back().rotate(2);
-	sideCards.front().move(-120, 0);
-	sideCards.back().move(120, 0);
+	sideCards.front().rotate(sf::degrees(-2));
+	sideCards.back().rotate(sf::degrees(2));
+	sideCards.front().move({ -120.f, 0.f });
+	sideCards.back().move({ 120.f, 0.f });
 
 	// spin control
 	bool isSpinning{ false };
@@ -62,14 +62,13 @@ int main()
 
 	while (window.isOpen())
 	{
-		sf::Event event;
-		while (window.pollEvent(event))
+		while (const std::optional event = window.pollEvent())
 		{
-			if ((event.type == sf::Event::Closed) || (event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))
+			if (event->is<sf::Event::Closed>() || event->is<sf::Event::KeyPressed>() && event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
 				window.close();
-			if (event.type == sf::Event::KeyPressed)
+			if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
 			{
-				if (event.key.code == sf::Keyboard::Space)
+				if (keyPressed->code == sf::Keyboard::Key::Space)
 				{
 					isSpinning = true;
 					clock.restart();
@@ -91,7 +90,7 @@ int main()
 
 		// update card
 		const float scale{ 1.f + (0.5f * std::sin(spinAngle * 3.14159f / 360)) }; // smoothly move "out" when spinning
-		card.setScale(scale, scale);
+		card.setScale({ scale, scale });
 		if (spinVertically)
 			card.setPitch(spinAngle);
 		else

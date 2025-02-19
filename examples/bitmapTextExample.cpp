@@ -38,13 +38,13 @@ int main()
 		// standard setup for a font
 		font.setExternalTexture(fontSheetTexture);
 		font.setNumberOfTilesPerRow(16);
-		font.setDefaultTextureRect({ 0, 0, 8, 8 });
+		font.setDefaultTextureRect({ { 0, 0 }, { 8, 8 } });
 
 		// customisation for the specific font ("Selba Ward Bitmap Font 0001.png")
 
 		// customise texture rects for 'j' and 'z' as the glyph for j spills into z
-		font.setTextureRect({ 80, 48, 8, 9 }, 'j');
-		font.setTextureRect({ 80, 57, 8, 7 }, 'z');
+		font.setTextureRect({ { 80, 48 }, { 8, 9 } }, 'j');
+		font.setTextureRect({ { 80, 57 }, { 8, 7 } }, 'z');
 		font.setBaseline(-1, 'z');
 
 		// starting values
@@ -94,23 +94,22 @@ int main()
 	const std::string defaultString = "012 Str;:zingy! qu,ic(k)jumps 57";
 	const std::string xxxyyyString = "xxxyyyiijiizzJJIIvvvwwyyxxzzz";
 	text.setString(prefixString + defaultString);
-	text.setPosition(20, 50);
+	text.setPosition({ 20, 50 });
 	text.setScale(2); // scale so we can see the pixels (only accepts unsigned integers - single unsigned int, two unsigned ints, sf::Vector2u)
 	//text.Transformable::setScale(3.5f, 9.75f); // it's still possible to scale by fractional amounts by explicitly calling the Transformable method
 	//text.setTracking(2); // base spacing between characters. default is 1
 
-	sf::RenderWindow window(sf::VideoMode(550, 100), "Bitmap Text example", sf::Style::Default);
+	sf::RenderWindow window(sf::VideoMode({ 550, 100 }), "Bitmap Text example", sf::Style::Default);
 	window.setFramerateLimit(20);
 	while (window.isOpen())
 	{
-		sf::Event event;
-		while (window.pollEvent(event))
+		while (const std::optional event = window.pollEvent())
 		{
-			if (event.type == sf::Event::Closed)
+			if (event->is<sf::Event::Closed>())
 				window.close();
-			else if (event.type == sf::Event::KeyPressed)
+			else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
 			{
-				if (event.key.code == sf::Keyboard::Space)
+				if (keyPressed->code == sf::Keyboard::Key::Space)
 				{
 					if (text.getString() != prefixString + xxxyyyString)
 						text.setString(prefixString + xxxyyyString);

@@ -30,7 +30,7 @@ inline float ease(float start, float end, float alpha)
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(450, 250), "Sprite3d - Card Fan Animation", sf::Style::Default);
+	sf::RenderWindow window(sf::VideoMode({ 450, 250 }), "Sprite3d - Card Fan Animation", sf::Style::Default);
 	window.setFramerateLimit(60);
 
 	std::vector<sf::Texture> cardTextures(7); // 6 faces and 1 back
@@ -60,11 +60,11 @@ int main()
 		card.setDepth(30.f);
 		card.setColor(sf::Color::White);
 		card.setSubdivision(2);
-		card.setOrigin({ card.getLocalBounds().width, card.getLocalBounds().height / 2.f }); // centre-right (left of back, which you see first)
+		card.setOrigin({ card.getLocalBounds().size.x, card.getLocalBounds().size.y / 2.f }); // centre-right (left of back, which you see first)
 		card.setYaw(180.f);
 	}
 	for (unsigned int c{ 0 }; c < cards.size(); ++c)
-		cards[c].setPosition(150.f + 30.f * c, 125.f);
+		cards[c].setPosition({ 150.f + 30.f * c, 125.f });
 
 	// adjustable opacity
 	float opacity{ 1.f }; // opacity of cards (0 = fully transparent, 1 = fully opaque)
@@ -77,34 +77,33 @@ int main()
 
 	while (window.isOpen())
 	{
-		sf::Event event;
-		while (window.pollEvent(event))
+		while (const std::optional event = window.pollEvent())
 		{
-			if (event.type == sf::Event::Closed || event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)
+			if (event->is<sf::Event::Closed>() || event->is<sf::Event::KeyPressed>() && event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
 				window.close();
-			else if (event.type == sf::Event::KeyPressed)
+			else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
 			{
 				// pause/unpause
-				if (event.key.code == sf::Keyboard::Space)
+				if (keyPressed->code == sf::Keyboard::Key::Space)
 				{
 					isPaused = !isPaused;
 					clock.restart();
 				}
 
 				// reset time
-				else if (event.key.code == sf::Keyboard::BackSpace)
+				else if (keyPressed->code == sf::Keyboard::Key::Backspace)
 				{
 					time = 0.f;
 					clock.restart();
 				}
 
 				// adjust opacity
-				else if (event.key.code == sf::Keyboard::LBracket)
+				else if (keyPressed->code == sf::Keyboard::Key::LBracket)
 				{
 					opacity -= 0.05f;
 					hasOpacityChanged = true;
 				}
-				else if (event.key.code == sf::Keyboard::RBracket)
+				else if (keyPressed->code == sf::Keyboard::Key::RBracket)
 				{
 					opacity += 0.05f;
 					hasOpacityChanged = true;

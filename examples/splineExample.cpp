@@ -29,7 +29,7 @@
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(800, 600), "Selba Ward - Spline example", sf::Style::Default);
+	sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "Selba Ward - Spline example", sf::Style::Default);
 	window.setFramerateLimit(15);
 
 	const unsigned int numberOfVertices{ 50u }; // number of (control) vertices in spline (one vertex per frame)
@@ -40,28 +40,27 @@ int main()
 
 	while (window.isOpen())
 	{
-		sf::Event event;
-		while (window.pollEvent(event))
+		while (const std::optional event = window.pollEvent())
 		{
-			if (event.type == sf::Event::Closed || event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)
+			if (event->is<sf::Event::Closed>() || event->is<sf::Event::KeyPressed>() && event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
 				window.close();
-			else if (event.type == sf::Event::KeyPressed)
+			else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
 			{
-				if (event.key.code == sf::Keyboard::F1) // toggle pause
+				if (keyPressed->code == sf::Keyboard::Key::F1) // toggle pause
 					isPaused = !isPaused;
-				else if (event.key.code == sf::Keyboard::Space) // toggle bezier/linear curve mode
+				else if (keyPressed->code == sf::Keyboard::Key::Space) // toggle bezier/linear curve mode
 					spline.setBezierInterpolation(!spline.getBezierInterpolation());
-				else if (event.key.code == sf::Keyboard::Tab) // toggle primitive type
+				else if (keyPressed->code == sf::Keyboard::Key::Tab) // toggle primitive type
 				{
-					if (spline.getPrimitiveType() == sf::PrimitiveType::LinesStrip)
+					if (spline.getPrimitiveType() == sf::PrimitiveType::LineStrip)
 						spline.setPrimitiveType(sf::PrimitiveType::Points);
 					else
-						spline.setPrimitiveType(sf::PrimitiveType::LinesStrip);
+						spline.setPrimitiveType(sf::PrimitiveType::LineStrip);
 				}
 			}
-			else if (event.type == sf::Event::MouseWheelScrolled)
+			else if (const auto* mouseWheel = event->getIf<sf::Event::MouseWheelScrolled>())
 			{
-				const float thickness{ spline.getThickness() + event.mouseWheelScroll.delta };
+				const float thickness{ spline.getThickness() + mouseWheel->delta };
 				spline.setThickness((thickness < 0) ? 0.f : thickness);
 			}
 		}
