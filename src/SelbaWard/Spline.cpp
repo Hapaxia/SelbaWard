@@ -1021,7 +1021,10 @@ void Spline::priv_updateOutputVertices()
 			sf::Vector2f tangentUnit{ *(m_interpolatedVerticesUnitTangents.begin() + (it - begin)) };
 			if (m_isClosed || it != last)
 			{
-				const sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
+				sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
+				const float length{ vectorLength(forwardLine) };
+				if (length == 0.f)
+					forwardLine = { 1.f, 0.f };
 				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
 				float dotUnits{ dot(forwardUnit , tangentUnit) };
 				tangentUnit = tangentUnit / (isConsideredZero(dotUnits) ? zeroEpsilon : dotUnits);
@@ -1125,7 +1128,10 @@ void Spline::priv_updateOutputVertices()
 			bool useInsidePoint{ false };
 			if (m_isClosed || it != last)
 			{
-				const sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
+				sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (begin + 1)->position - begin->position) };
+				const float length{ vectorLength(forwardLine) };
+				if (length == 0.f)
+					forwardLine = { 1.f, 0.f };
 				const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
 				dotUnits = dot(forwardUnit, pointTransformedTangentUnit);
 				pointTransformedTangentUnit = pointTransformedTangentUnit / (isConsideredZero(dotUnits) ? zeroEpsilon : dotUnits);
@@ -1157,9 +1163,15 @@ void Spline::priv_updateOutputVertices()
 					capOffset = tangentUnit * halfWidth;
 			}
 
-			const sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (m_isClosed ? (begin + 1)->position - begin->position : it->position - (it - 1)->position)) };
+			sf::Vector2f forwardLine{ ((it != last) ? (it + 1)->position - it->position : (m_isClosed ? (begin + 1)->position - begin->position : it->position - (it - 1)->position)) };
+			const float forwardLength{ vectorLength(forwardLine) };
+			if (forwardLength == 0.f)
+				forwardLine = { 1.f, 0.f };
 			const sf::Vector2f forwardUnit{ forwardLine / vectorLength(forwardLine) };
-			const sf::Vector2f backwardLine{ ((it != begin) ? it->position - (it - 1)->position : (m_isClosed ? it->position - (last)->position : (it + 1)->position - it->position)) };
+			sf::Vector2f backwardLine{ ((it != begin) ? it->position - (it - 1)->position : (m_isClosed ? it->position - (last)->position : (it + 1)->position - it->position)) };
+			const float backwardLength{ vectorLength(backwardLine) };
+			if (backwardLength == 0.f)
+				backwardLine = { 1.f, 0.f };
 			const sf::Vector2f backwardUnit{ backwardLine / vectorLength(backwardLine) };
 
 			const sf::Vector2f forwardNormalUnit{ vectorNormal(forwardUnit) };
