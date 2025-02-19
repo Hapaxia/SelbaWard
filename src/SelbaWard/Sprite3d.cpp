@@ -188,11 +188,22 @@ void Sprite3d::setTexture(const sf::Texture& texture, const bool resetRect, cons
 	m_pTexture = &texture;
 }
 
+void Sprite3d::setTexture()
+{
+	m_pTexture = nullptr;
+}
+
 void Sprite3d::setBackTexture(const sf::Texture& texture, const bool resetOffset)
 {
 	m_pBackTexture = &texture;
 	if (m_pBackTexture == nullptr || resetOffset)
 		m_backTextureOffset = sf::Vector2i(0, 0);
+}
+
+void Sprite3d::setBackTexture()
+{
+	//
+	m_pBackTexture = nullptr;
 }
 
 void Sprite3d::setFlipBack(const bool flipBack)
@@ -475,19 +486,16 @@ float Sprite3d::getDepth() const
 
 void Sprite3d::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	if (m_pTexture != nullptr)
-	{
-		updateTransformedPoints();
-		updateVertices();
-		states.transform *= getTransform();
+	updateTransformedPoints();
+	updateVertices();
+	states.transform *= getTransform();
 
-		if (m_isBackFacing && (m_pBackTexture != nullptr))
-			states.texture = m_pBackTexture;
-		else
-			states.texture = m_pTexture;
+	if (m_isBackFacing && (m_pBackTexture != nullptr))
+		states.texture = m_pBackTexture;
+	else
+		states.texture = m_pTexture;
 
-		target.draw(m_vertices.data(), m_vertices.size(), sf::PrimitiveType::TriangleStrip, states);
-	}
+	target.draw(m_vertices.data(), m_vertices.size(), sf::PrimitiveType::TriangleStrip, states);
 }
 
 void Sprite3d::updateTransformedPoints() const

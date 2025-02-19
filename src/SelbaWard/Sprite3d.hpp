@@ -44,7 +44,7 @@
 namespace selbaward
 {
 
-// Sprite3d version 1.2.3
+// Sprite3d version 1.3.0
 class Sprite3d : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -71,6 +71,7 @@ public:
 	sf::FloatRect getGlobalBounds() const;
 
 	void setTexture(const sf::Texture& texture, bool resetRect = false, bool resetBackOffset = false);
+	void setTexture();
 	void setTextureRect(const sf::IntRect& rectangle);
 	void setColor(const sf::Color& color);
 
@@ -83,6 +84,7 @@ public:
 	sf::Vector2i getBackTextureOffset() const;
 
 	void setBackTexture(const sf::Texture& texture, bool resetOffset = false);
+	void setBackTexture();
 	void setFlipBack(bool flipBack = true);
 	void setTextureOffset(sf::Vector2i textureOffset = { 0, 0 });
 	void setBackTextureOffset(sf::Vector2i backTextureOffset = { 0, 0 });
