@@ -186,8 +186,8 @@ int main()
 					}
 					else
 					{
-						sprite3d.setTexture(sf::Texture());
-						sprite3d.setBackTexture(sf::Texture());
+						sprite3d.setTexture();
+						sprite3d.setBackTexture();
 					}
 				}
 			}
