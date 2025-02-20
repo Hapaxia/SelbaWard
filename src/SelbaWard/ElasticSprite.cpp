@@ -111,9 +111,9 @@ void loadShader()
 		areShadersLoaded = true;
 }
 
-inline bool isValidVertexIndex(const unsigned int vertexIndex)
+inline bool isValidVertexIndex(const std::size_t vertexIndex)
 {
-	return (vertexIndex < 4);
+	return (vertexIndex < 4u);
 }
 
 inline sf::Vector2f linesIntersection(const sf::Vector2f aStart, const sf::Vector2f aEnd, const sf::Vector2f bStart, const sf::Vector2f bEnd)
