@@ -44,13 +44,13 @@ namespace selbaward
 BitmapFont::BitmapFont()
 	: m_throwExceptions{ true }
 	, m_useExternalTexture{ false }
-	, m_texture()
+	, m_texture{}
 	, m_mExternalTexture{ nullptr }
 	, m_numberOfTilesPerRow{ 1u }
-	, m_tileSize({ 0, 0 })
-	, m_defaultTextureRect()
-	, m_kernings()
-	, m_glyphs(256) // create 256 glyphs to cover the base ascii set
+	//, m_tileSize({ 0u, 0u })
+	, m_defaultTextureRect{}
+	, m_kernings{}
+	, m_glyphs(256u) // create 256 glyphs to cover the base ascii set
 {
 	setAllGlyphsToDefault();
 }

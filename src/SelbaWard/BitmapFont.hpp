@@ -114,7 +114,7 @@ private:
 	sf::Texture m_texture;
 	const sf::Texture* m_mExternalTexture;
 	std::size_t m_numberOfTilesPerRow;
-	sf::Vector2u m_tileSize;
+	//sf::Vector2u m_tileSize;
 	sf::IntRect m_defaultTextureRect;
 	mutable std::map<std::string, int> m_kernings;
 	std::vector<Glyph> m_glyphs;
