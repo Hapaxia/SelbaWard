@@ -50,7 +50,7 @@ const sf::Texture sfmlEmptyTexture{};
 namespace selbaward
 {
 
-// Sprite Batch v1.0.1
+// Sprite Batch v1.1.0
 class SpriteBatch : public sf::Drawable
 {
 public:
@@ -102,14 +102,14 @@ public:
 
 	// setters - relative
 	void move(std::size_t index, sf::Vector2f offset);
-	void rotate(std::size_t index, float angle);
+	void rotate(std::size_t index, sf::Angle angle);
 	void scale(std::size_t index, sf::Vector2f factor);
 	void scale(std::size_t index, float factor); // scales both x and y by the same factor
 
 	// getters (that match the setters)
 	sf::Vector2f getPosition(std::size_t index) const;
 	sf::Vector2f getOrigin(std::size_t index) const;
-	float getRotation(std::size_t index) const;
+	sf::Angle getRotation(std::size_t index) const;
 	sf::Vector2f getScale(std::size_t index) const;
 	sf::IntRect getTextureRect(std::size_t index) const;
 	sf::Color getColor(std::size_t index) const;
@@ -124,7 +124,7 @@ public:
 
 	// global sprite methods (affects all sprites) - relative
 	void move(sf::Vector2f offset);
-	void rotate(float angle);
+	void rotate(sf::Angle angle);
 	void scale(sf::Vector2f factor);
 	void scale(float factor); // scales both x and y by the same factor
 

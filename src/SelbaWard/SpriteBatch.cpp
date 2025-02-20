@@ -245,10 +245,10 @@ void SpriteBatch::move(const std::size_t index, const sf::Vector2f offset)
 	m_sprites[index].isUpdateRequired = true;
 }
 
-void SpriteBatch::rotate(const std::size_t index, const float angle)
+void SpriteBatch::rotate(const std::size_t index, const sf::Angle angle)
 {
 	priv_testIsIndexValid(index);
-	m_sprites[index].sprite.rotate(sf::degrees(angle));
+	m_sprites[index].sprite.rotate(angle);
 	m_sprites[index].isUpdateRequired = true;
 }
 
@@ -276,10 +276,10 @@ sf::Vector2f SpriteBatch::getOrigin(const std::size_t index) const
 	return m_sprites[index].sprite.getOrigin();
 }
 
-float SpriteBatch::getRotation(const std::size_t index) const
+sf::Angle SpriteBatch::getRotation(const std::size_t index) const
 {
 	priv_testIsIndexValid(index);
-	return m_sprites[index].sprite.getRotation().asDegrees();
+	return m_sprites[index].sprite.getRotation();
 }
 
 sf::Vector2f SpriteBatch::getScale(const std::size_t index) const
@@ -331,10 +331,10 @@ void SpriteBatch::move(const sf::Vector2f offset)
 	m_isGlobalUpdateRequired = true;
 }
 
-void SpriteBatch::rotate(const float angle)
+void SpriteBatch::rotate(const sf::Angle angle)
 {
 	for (auto& sprite : m_sprites)
-		sprite.sprite.rotate(sf::degrees(angle));
+		sprite.sprite.rotate(angle);
 	m_isGlobalUpdateRequired = true;
 }
 
