@@ -37,7 +37,7 @@
 namespace
 {
 
-inline float radiansFromDegrees(float degrees)
+inline float radiansFromDegrees(const float degrees)
 {
 	return degrees * 0.0174532925f; // pi/180
 }
@@ -51,15 +51,14 @@ PieChart::Slice::Slice()
 	: size{ 0.1f }
 	, scale{ 1.f }
 	, explode{ 0.f }
-	, color(sf::Color::White)
+	, color{ sf::Color::White }
 {
 }
 
 PieChart::PieChart()
-	: slices()
-	, m_primitive{ sf::PrimitiveType::Triangles }
-	, m_vertices()
-	, m_size({ 32.f, 32.f })
+	: slices{}
+	, m_vertices{}
+	, m_size{ 32.f, 32.f }
 {
 }
 
@@ -67,37 +66,37 @@ void PieChart::update()
 {
 	const sf::Vector2f halfSize{ m_size / 2.f };
 	unsigned int totalNumberOfTrianglesRequired{ 0u };
-	std::vector<unsigned int> numberOfTrianglesRequiredPerSlice;
+	std::vector<std::size_t> numberOfTrianglesRequiredPerSlice;
 	for (auto& slice : slices)
 	{
-		numberOfTrianglesRequiredPerSlice.emplace_back(static_cast<unsigned int>(std::floor(1.f + slice.size * 50.f)));
+		numberOfTrianglesRequiredPerSlice.emplace_back(static_cast<std::size_t>(std::floor(1.f + slice.size * 50.f)));
 		totalNumberOfTrianglesRequired += numberOfTrianglesRequiredPerSlice.back();
 	}
-	m_vertices.resize(totalNumberOfTrianglesRequired * 3);
-	unsigned int currentVertex{ 0u };
+	m_vertices.resize(totalNumberOfTrianglesRequired * 3u);
+	std::size_t currentVertex{ 0u };
 	float currentAngle{ 0.f };
-	for (unsigned int slice{ 0u }; slice < slices.size(); ++slice)
+	for (std::size_t slice{ 0u }; slice < slices.size(); ++slice)
 	{
 		const float startAngle{ currentAngle };
 		const float halfAngleDifference{ 180.f * slices[slice].size };
 		const sf::Vector2f offset{ sf::Vector2f(std::sin(radiansFromDegrees(startAngle + halfAngleDifference)), -std::cos(radiansFromDegrees(startAngle + halfAngleDifference))) * slices[slice].explode };
-		for (unsigned int triangle{ 0u }; triangle < numberOfTrianglesRequiredPerSlice[slice]; ++triangle)
+		for (std::size_t triangle{ 0u }; triangle < numberOfTrianglesRequiredPerSlice[slice]; ++triangle)
 		{
-			m_vertices[currentVertex + 0].position = halfSize + sf::Vector2f(offset.x * halfSize.x, offset.y * halfSize.y);
-			m_vertices[currentVertex + 1].position = halfSize + sf::Vector2f((offset.x + std::sin(radiansFromDegrees(currentAngle))) * halfSize.x, (offset.y - std::cos(radiansFromDegrees(currentAngle))) * halfSize.y) * slices[slice].scale;
+			m_vertices[currentVertex + 0u].position = halfSize + sf::Vector2f(offset.x * halfSize.x, offset.y * halfSize.y);
+			m_vertices[currentVertex + 1u].position = halfSize + sf::Vector2f((offset.x + std::sin(radiansFromDegrees(currentAngle))) * halfSize.x, (offset.y - std::cos(radiansFromDegrees(currentAngle))) * halfSize.y) * slices[slice].scale;
 			currentAngle += halfAngleDifference * 2.f / numberOfTrianglesRequiredPerSlice[slice];
-			m_vertices[currentVertex + 2].position = halfSize + sf::Vector2f((offset.x + std::sin(radiansFromDegrees(currentAngle))) * halfSize.x, (offset.y - std::cos(radiansFromDegrees(currentAngle))) * halfSize.y) * slices[slice].scale;
-			m_vertices[currentVertex + 0].color = slices[slice].color;
-			m_vertices[currentVertex + 1].color = slices[slice].color;
-			m_vertices[currentVertex + 2].color = slices[slice].color;
-			currentVertex += 3;
+			m_vertices[currentVertex + 2u].position = halfSize + sf::Vector2f((offset.x + std::sin(radiansFromDegrees(currentAngle))) * halfSize.x, (offset.y - std::cos(radiansFromDegrees(currentAngle))) * halfSize.y) * slices[slice].scale;
+			m_vertices[currentVertex + 0u].color = slices[slice].color;
+			m_vertices[currentVertex + 1u].color = slices[slice].color;
+			m_vertices[currentVertex + 2u].color = slices[slice].color;
+			currentVertex += 3u;
 		}
 	}
 }
 
 sf::FloatRect PieChart::getLocalBounds() const
 {
-	sf::Vector2f topLeft{ m_vertices[0].position };
+	sf::Vector2f topLeft{ m_vertices[0u].position };
 	sf::Vector2f bottomRight{ topLeft };
 	for (auto& vertex : m_vertices)
 	{
@@ -116,7 +115,7 @@ sf::FloatRect PieChart::getLocalBounds() const
 sf::FloatRect PieChart::getGlobalBounds() const
 {
 	const sf::Transform transform{ getTransform() };
-	sf::Vector2f topLeft{ transform.transformPoint(m_vertices[0].position) };
+	sf::Vector2f topLeft{ transform.transformPoint(m_vertices[0u].position) };
 	sf::Vector2f bottomRight{ topLeft };
 	sf::Vector2f current;
 	for (auto& vertex : m_vertices)
@@ -142,8 +141,8 @@ void PieChart::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.transform *= getTransform();
 
-	if (m_vertices.size() > 0)
-		target.draw(&m_vertices.front(), m_vertices.size(), m_primitive, states);
+	if (!m_vertices.empty())
+		target.draw(m_vertices.data(), m_vertices.size(), sf::PrimitiveType::Triangles, states);
 }
 
 } // namespace selbaward

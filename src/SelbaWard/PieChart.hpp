@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Pie Chart v1.0.4
+// SW Pie Chart v1.0.5
 class PieChart : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -63,7 +63,6 @@ public:
 	sf::FloatRect getGlobalBounds() const;
 
 private:
-	sf::PrimitiveType m_primitive;
 	std::vector<sf::Vertex> m_vertices;
 	sf::Vector2f m_size;
 
