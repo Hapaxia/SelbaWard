@@ -38,28 +38,23 @@
 namespace
 {
 
-const float pi{ 3.14159265358979f };
+constexpr float pi{ 3.14159265358979f };
 
 } // namespace
 
 namespace selbaward
 {
 
-Ring::Ring(const float radius, const float hole, const unsigned int numberOfSides)
+Ring::Ring(const float radius, const float hole, const std::size_t numberOfSides)
 	: m_radius{ radius }
 	, m_hole{ hole }
 	, m_sectorSize{ 1.f }
 	, m_sectorOffset{ 0.f }
 	, m_numberOfSides{ numberOfSides }
-	, m_color(sf::Color::White)
-#ifdef USE_SFML_PRE_2_4
-	, m_primitiveType{ sf::PrimitiveType::TrianglesStrip }
-#else // USE_SFML_PRE_2_4
-	, m_primitiveType{ sf::PrimitiveType::TriangleStrip }
-#endif // USE_SFML_PRE_2_4
-	, m_vertices((m_numberOfSides + 1) * 2)
+	, m_color{ sf::Color::White }
+	, m_vertices((m_numberOfSides + 1u) * 2u)
 	, m_texture{ nullptr }
-	, m_textureRect()
+	, m_textureRect{}
 {
 	priv_updateVertices();
 }
@@ -86,13 +81,13 @@ float Ring::getHole() const
 	return m_hole;
 }
 
-void Ring::setNumberOfSides(const unsigned int numberOfSides)
+void Ring::setNumberOfSides(const std::size_t numberOfSides)
 {
 	m_numberOfSides = numberOfSides;
 	priv_updateVertices();
 }
 
-unsigned int Ring::getNumberOfSides() const
+std::size_t Ring::getNumberOfSides() const
 {
 	return m_numberOfSides;
 }
@@ -111,7 +106,7 @@ sf::Color Ring::getColor() const
 
 void Ring::setTexture(const sf::Texture& texture, const bool resetRect)
 {
-	const bool textureWasNull{ (m_texture == nullptr) };
+	const bool textureWasNull{ m_texture == nullptr };
 	m_texture = &texture;
 	if (textureWasNull || resetRect)
 		setTextureRect({ { 0, 0 }, sf::Vector2i(texture.getSize()) });
@@ -130,10 +125,10 @@ void Ring::setTextureRect(const sf::IntRect& textureRect)
 
 sf::FloatRect Ring::getLocalBounds() const
 {
-	if (m_vertices.size() == 0)
+	if (m_vertices.empty())
 		return{ { 0.f, 0.f }, { 0.f, 0.f } };
 
-	sf::Vector2f topLeft{ m_vertices[0].position };
+	sf::Vector2f topLeft{ m_vertices[0u].position };
 	sf::Vector2f bottomRight{ topLeft };
 	for (auto& vertex : m_vertices)
 	{
@@ -151,7 +146,7 @@ sf::FloatRect Ring::getLocalBounds() const
 
 sf::FloatRect Ring::getGlobalBounds() const
 {
-	if (m_vertices.size() == 0)
+	if (m_vertices.empty())
 		return{ { 0.f, 0.f }, { 0.f, 0.f } };
 
 	const sf::Transform transform{ getTransform() };
@@ -210,21 +205,21 @@ void Ring::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	states.texture = m_texture;
 	states.transform *= getTransform();
 
-	if (m_vertices.size() > 0)
-		target.draw(&m_vertices.front(), m_vertices.size(), m_primitiveType, states);
+	if (!m_vertices.empty())
+		target.draw(m_vertices.data(), m_vertices.size(), sf::PrimitiveType::TriangleStrip, states);
 }
 
 void Ring::priv_updateVertices()
 {
 	const float sectorOffset{ 2.f * pi * m_sectorOffset };
 	const float sectorSize{ 2.f * pi * m_sectorSize };
-	m_vertices.resize((m_numberOfSides + 1) * 2);
+	m_vertices.resize((m_numberOfSides + 1u) * 2u);
 	for (std::vector<sf::Vertex>::iterator begin{ m_vertices.begin() }, end{ m_vertices.end() }, it{ begin }; it != end; ++it)
 	{
-		const unsigned int index{ static_cast<unsigned int>(it - begin) };
-		const unsigned int point{ index / 2u };
+		const std::size_t index{ static_cast<std::size_t>(it - begin) };
+		const std::size_t point{ index / 2u };
 		const float angle{ sectorOffset + sectorSize * point / m_numberOfSides };
-		const bool isInnerPoint{ (index % 2 != 0) };
+		const bool isInnerPoint{ (index % 2u != 0u) };
 		it->position = { m_radius + std::sin(angle) * m_radius * (isInnerPoint ? m_hole : 1.f), m_radius - std::cos(angle) * m_radius * (isInnerPoint ? m_hole : 1.f), };
 		it->color = m_color;
 		const sf::Vector2f scaledPosition{ it->position / (m_radius * 2.f) };
