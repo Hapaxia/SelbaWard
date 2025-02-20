@@ -35,12 +35,8 @@
 namespace
 {
 
-#ifdef USE_SFML_PRE_2_4
-const sf::PrimitiveType primitiveType{ sf::PrimitiveType::TrianglesStrip };
-#else // USE_SFML_PRE_2_4
-const sf::PrimitiveType primitiveType{ sf::PrimitiveType::TriangleStrip };
-#endif // USE_SFML_PRE_2_4
-const unsigned int numberOfVertices{ 4u };
+constexpr sf::PrimitiveType primitiveType{ sf::PrimitiveType::TriangleStrip };
+constexpr std::size_t numberOfVertices{ 4u };
 
 } // namespace
 
@@ -49,9 +45,9 @@ namespace selbaward
 	
 GallerySprite::GallerySprite()
 	: m_pTexture{ nullptr }
-	, m_vertices(4)
+	, m_vertices(4u)
 	, m_currentExhibit{ 0u }
-	, m_exhibits()
+	, m_exhibits{}
 {
 	priv_updateVertices();
 }
@@ -96,7 +92,7 @@ sf::Vector2f GallerySprite::getSize() const
 	return getSize(m_currentExhibit);
 }
 
-sf::Vector2f GallerySprite::getSize(const unsigned int exhibitNumber) const
+sf::Vector2f GallerySprite::getSize(const std::size_t exhibitNumber) const
 {
 	const sf::FloatRect& exhibitRectangle{ priv_getExhibit(exhibitNumber).rectangle };
 	return{ exhibitRectangle.size.x, exhibitRectangle.size.y };
@@ -107,42 +103,42 @@ void GallerySprite::setScaleFromTargetSize(const sf::Vector2f& targetSize)
 	setScaleFromTargetSize(targetSize, m_currentExhibit);
 }
 
-void GallerySprite::setScaleFromTargetSize(const sf::Vector2f& targetSize, const unsigned int exhibitNumber)
+void GallerySprite::setScaleFromTargetSize(const sf::Vector2f& targetSize, const std::size_t exhibitNumber)
 {
 	const sf::Vector2f exhibitSize{ getSize(exhibitNumber) };
 	this->setScale({ targetSize.x / exhibitSize.x, targetSize.y / exhibitSize.y });
 }
 
-unsigned int GallerySprite::getNumberOfExhibits() const
+std::size_t GallerySprite::getNumberOfExhibits() const
 {
-	return static_cast<unsigned int>(m_exhibits.size());
+	return m_exhibits.size();
 }
 
-void GallerySprite::set(const unsigned int exhibitNumber)
+void GallerySprite::set(const std::size_t exhibitNumber)
 {
 	m_currentExhibit = exhibitNumber;
 	priv_updateVertices();
 }
 
-unsigned int GallerySprite::get() const
+std::size_t GallerySprite::get() const
 {
 	return m_currentExhibit;
 }
 
-unsigned int GallerySprite::addExhibit(const Exhibit& exhibit)
+std::size_t GallerySprite::addExhibit(const Exhibit& exhibit)
 {
 	m_exhibits.emplace_back(exhibit);
-	return static_cast<unsigned int>(m_exhibits.size());
+	return m_exhibits.size();
 }
 
-void GallerySprite::setExhibit(const unsigned int exhibitNumber, const Exhibit& exhibit)
+void GallerySprite::setExhibit(const std::size_t exhibitNumber, const Exhibit& exhibit)
 {
-	m_exhibits[exhibitNumber - 1] = exhibit;
+	m_exhibits[exhibitNumber - 1u] = exhibit;
 	if (exhibitNumber == m_currentExhibit)
 		priv_updateVertices();
 }
 
-GallerySprite::Exhibit GallerySprite::getExhibit(const unsigned int exhibitNumber) const
+GallerySprite::Exhibit GallerySprite::getExhibit(const std::size_t exhibitNumber) const
 {
 	return priv_getExhibit(exhibitNumber);
 }
@@ -152,14 +148,14 @@ GallerySprite::Exhibit GallerySprite::getExhibit() const
 	return priv_getCurrentExhibit();
 }
 
-void GallerySprite::setRect(const unsigned int exhibitNumber, const sf::FloatRect& textureRectangle)
+void GallerySprite::setRect(const std::size_t exhibitNumber, const sf::FloatRect& textureRectangle)
 {
-	m_exhibits[exhibitNumber - 1].rectangle = textureRectangle;
+	m_exhibits[exhibitNumber - 1u].rectangle = textureRectangle;
 	if (exhibitNumber == m_currentExhibit)
 		priv_updateVertices();
 }
 
-sf::FloatRect GallerySprite::getRect(const unsigned int exhibitNumber) const
+sf::FloatRect GallerySprite::getRect(const std::size_t exhibitNumber) const
 {
 	return priv_getExhibit(exhibitNumber).rectangle;
 }
@@ -169,14 +165,14 @@ sf::FloatRect GallerySprite::getRect() const
 	return priv_getCurrentExhibit().rectangle;
 }
 
-void GallerySprite::setAnchor(const unsigned int exhibitNumber, const sf::Vector2f& anchor)
+void GallerySprite::setAnchor(const std::size_t exhibitNumber, const sf::Vector2f& anchor)
 {
-	m_exhibits[exhibitNumber - 1].anchor = anchor;
+	m_exhibits[exhibitNumber - 1u].anchor = anchor;
 	if (exhibitNumber == m_currentExhibit)
 		priv_updateVertices();
 }
 
-sf::Vector2f GallerySprite::getAnchor(const unsigned int exhibitNumber) const
+sf::Vector2f GallerySprite::getAnchor(const std::size_t exhibitNumber) const
 {
 	return priv_getExhibit(exhibitNumber).anchor;
 }
@@ -213,7 +209,7 @@ GallerySprite& GallerySprite::operator++()
 // prefix only
 GallerySprite& GallerySprite::operator--()
 {
-	if (m_currentExhibit > 0)
+	if (m_currentExhibit > 0u)
 	{
 		--m_currentExhibit;
 		priv_updateVertices();
@@ -222,7 +218,7 @@ GallerySprite& GallerySprite::operator--()
 	return *this;
 }
 
-void GallerySprite::operator+=(const unsigned int exhibits)
+void GallerySprite::operator+=(const std::size_t exhibits)
 {
 	if (exhibits == 0u)
 		return;
@@ -231,7 +227,7 @@ void GallerySprite::operator+=(const unsigned int exhibits)
 	priv_updateVertices();
 }
 
-void GallerySprite::operator-=(const unsigned int exhibits)
+void GallerySprite::operator-=(const std::size_t exhibits)
 {
 	if (exhibits == 0u || m_currentExhibit == 0u)
 		return;
@@ -276,7 +272,7 @@ GallerySprite::Exhibit GallerySprite::priv_getCurrentExhibit() const
 	return priv_getExhibit(m_currentExhibit);
 }
 
-GallerySprite::Exhibit GallerySprite::priv_getExhibit(unsigned int exhibitNumber) const
+GallerySprite::Exhibit GallerySprite::priv_getExhibit(const std::size_t exhibitNumber) const
 {
 	if (m_pTexture == nullptr || exhibitNumber > m_exhibits.size())
 		return Exhibit();
@@ -284,7 +280,7 @@ GallerySprite::Exhibit GallerySprite::priv_getExhibit(unsigned int exhibitNumber
 	if (exhibitNumber == 0u)
 		return{ { { 0.f, 0.f }, { static_cast<float>(m_pTexture->getSize().x), static_cast<float>(m_pTexture->getSize().y) } }, { 0.f, 0.f } };
 
-	return m_exhibits[exhibitNumber - 1];
+	return m_exhibits[exhibitNumber - 1u];
 }
 
 sf::FloatRect GallerySprite::priv_getAdjustedLocalRectangleFromCurrentExhibit() const
@@ -292,7 +288,7 @@ sf::FloatRect GallerySprite::priv_getAdjustedLocalRectangleFromCurrentExhibit() 
 	return priv_getAdjustedLocalRectangleFromExhibit(m_currentExhibit);
 }
 
-sf::FloatRect GallerySprite::priv_getAdjustedLocalRectangleFromExhibit(unsigned int exhibitNumber) const
+sf::FloatRect GallerySprite::priv_getAdjustedLocalRectangleFromExhibit(const std::size_t exhibitNumber) const
 {
 	return{ -priv_getExhibit(exhibitNumber).anchor, getSize(exhibitNumber) };
 }

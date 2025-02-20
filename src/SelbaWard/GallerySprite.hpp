@@ -59,22 +59,22 @@ public:
 	void setTexture();
 	const sf::Texture& getTexture() const;
 	sf::Vector2f getSize() const; // size of current exhibit
-	sf::Vector2f getSize(unsigned int exhibitNumber) const; // size of selected exhibit
+	sf::Vector2f getSize(std::size_t exhibitNumber) const; // size of selected exhibit
 	void setScaleFromTargetSize(const sf::Vector2f& targetSize); // note: this is based on the current exhibit. scale value will remain even if exhibit changes unless fixed by again calling this method
-	void setScaleFromTargetSize(const sf::Vector2f& targetSize, unsigned int exhibitNumber); // uses a specific exhibit rather than the current exhibit. sets the scale so that the exhibit specified would be the target size provided
-	unsigned int getNumberOfExhibits() const;
-	void set(unsigned int exhibitNumber);
-	unsigned int get() const;
+	void setScaleFromTargetSize(const sf::Vector2f& targetSize, std::size_t exhibitNumber); // uses a specific exhibit rather than the current exhibit. sets the scale so that the exhibit specified would be the target size provided
+	std::size_t getNumberOfExhibits() const;
+	void set(std::size_t exhibitNumber);
+	std::size_t get() const;
 
-	unsigned int addExhibit(const Exhibit& exhibit);
-	void setExhibit(unsigned int exhibitNumber, const Exhibit& exhibit);
-	Exhibit getExhibit(unsigned int exhibitNumber) const;
+	std::size_t addExhibit(const Exhibit& exhibit);
+	void setExhibit(std::size_t exhibitNumber, const Exhibit& exhibit);
+	Exhibit getExhibit(std::size_t exhibitNumber) const;
 	Exhibit getExhibit() const;
-	void setRect(unsigned int exhibitNumber, const sf::FloatRect& rect);
-	sf::FloatRect getRect(unsigned int exhibitNumber) const;
+	void setRect(std::size_t exhibitNumber, const sf::FloatRect& rect);
+	sf::FloatRect getRect(std::size_t exhibitNumber) const;
 	sf::FloatRect getRect() const;
-	void setAnchor(unsigned int exhibitNumber, const sf::Vector2f& anchor);
-	sf::Vector2f getAnchor(unsigned int exhibitNumber) const;
+	void setAnchor(std::size_t exhibitNumber, const sf::Vector2f& anchor);
+	sf::Vector2f getAnchor(std::size_t exhibitNumber) const;
 	sf::Vector2f getAnchor() const;
 
 	bool contains(const sf::Vector2f& point) const;
@@ -85,21 +85,21 @@ public:
 	GallerySprite& operator++(); // prefix only
 	GallerySprite& operator--(); // prefix only
 
-	void operator+=(unsigned int numberOfExhibits);
-	void operator-=(unsigned int numberOfExhibits);
+	void operator+=(std::size_t numberOfExhibits);
+	void operator-=(std::size_t numberOfExhibits);
 
 private:
 	const sf::Texture* m_pTexture;
 	std::vector<sf::Vertex> m_vertices;
-	unsigned int m_currentExhibit;
+	std::size_t m_currentExhibit;
 	std::vector<Exhibit> m_exhibits;
 
 	void draw(sf::RenderTarget&, sf::RenderStates) const override;
 	void priv_updateVertices();
 	Exhibit priv_getCurrentExhibit() const;
-	Exhibit priv_getExhibit(unsigned int exhibitNumber) const;
+	Exhibit priv_getExhibit(const std::size_t exhibitNumber) const;
 	sf::FloatRect priv_getAdjustedLocalRectangleFromCurrentExhibit() const;
-	sf::FloatRect priv_getAdjustedLocalRectangleFromExhibit(unsigned int exhibitNumber) const;
+	sf::FloatRect priv_getAdjustedLocalRectangleFromExhibit(const std::size_t exhibitNumber) const;
 };
 
 } // namespace selbaward
