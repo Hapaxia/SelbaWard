@@ -39,14 +39,14 @@ ProgressBar::ProgressBar(const sf::Vector2f size)
 	: m_amount{ 0.f }
 	, m_showBar{ true }
 	, m_showBackground{ false }
-	, m_size(size)
-	, m_color(sf::Color::White)
+	, m_size{ size }
+	, m_color{ sf::Color::White }
 	, m_bar(4u)
 	, m_backgroundAndFrame(size)
 	, m_texture{ nullptr }
 	, m_backgroundTexture{ nullptr }
-	, m_textureRectangle()
-	, m_backgroundTextureRectangle()
+	, m_textureRectangle{}
+	, m_backgroundTextureRectangle{}
 {
 	m_backgroundAndFrame.setFillColor(sf::Color::Black);
 	m_backgroundAndFrame.setOutlineColor(sf::Color::White);
@@ -110,8 +110,8 @@ void ProgressBar::setTexture(const sf::Texture& texture, const bool resetRect)
 	m_texture = &texture;
 	if (resetRect)
 	{
-		m_textureRectangle.size.x = m_texture->getSize().x;
-		m_textureRectangle.size.y = m_texture->getSize().y;
+		m_textureRectangle.size.x = static_cast<int>(m_texture->getSize().x);
+		m_textureRectangle.size.y = static_cast<int>(m_texture->getSize().y);
 	}
 	priv_updateGraphics();
 }
@@ -133,8 +133,8 @@ void ProgressBar::setBackgroundTexture(const sf::Texture& backgroundTexture, con
 	m_backgroundTexture = &backgroundTexture;
 	if (resetRect)
 	{
-		m_backgroundTextureRectangle.size.x = m_backgroundTexture->getSize().x;
-		m_backgroundTextureRectangle.size.y = m_backgroundTexture->getSize().y;
+		m_backgroundTextureRectangle.size.x = static_cast<int>(m_backgroundTexture->getSize().x);
+		m_backgroundTextureRectangle.size.y = static_cast<int>(m_backgroundTexture->getSize().y);
 	}
 	priv_updateGraphics();
 }
@@ -163,10 +163,10 @@ const sf::Texture& ProgressBar::getBackgroundTexture() const
 
 sf::FloatRect ProgressBar::getLocalBounds() const
 {
-	if (m_showBackground && m_backgroundAndFrame.getOutlineThickness() > 0.f)
+	if (m_showBackground && (m_backgroundAndFrame.getOutlineThickness() > 0.f))
 	{
 		const float outlineThickness{ m_backgroundAndFrame.getOutlineThickness() };
-		return{ { 0.f - outlineThickness, 0.f - outlineThickness }, { m_size.x + outlineThickness * 2, m_size.y + outlineThickness * 2 } };
+		return{ { 0.f - outlineThickness, 0.f - outlineThickness }, { m_size.x + outlineThickness * 2.f, m_size.y + outlineThickness * 2f } };
 	}
 	else
 		return{ { 0.f, 0.f }, m_size };
@@ -203,7 +203,7 @@ void ProgressBar::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	if (m_showBar)
 	{
 		states.texture = m_texture;
-		target.draw(&m_bar.front(), 4u, sf::PrimitiveType::TriangleStrip, states);
+		target.draw(m_bar.data(), 4u, sf::PrimitiveType::TriangleStrip, states);
 	}
 }
 
