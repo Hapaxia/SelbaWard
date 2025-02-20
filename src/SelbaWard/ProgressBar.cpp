@@ -166,10 +166,10 @@ sf::FloatRect ProgressBar::getLocalBounds() const
 	if (m_showBackground && (m_backgroundAndFrame.getOutlineThickness() > 0.f))
 	{
 		const float outlineThickness{ m_backgroundAndFrame.getOutlineThickness() };
-		return{ { 0.f - outlineThickness, 0.f - outlineThickness }, { m_size.x + outlineThickness * 2.f, m_size.y + outlineThickness * 2f } };
+		return{ sf::Vector2f{ 0.f - outlineThickness, 0.f - outlineThickness }, sf::Vector2f{ m_size.x + outlineThickness * 2.f, m_size.y + outlineThickness * 2.f } };
 	}
 	else
-		return{ { 0.f, 0.f }, m_size };
+		return{ sf::Vector2f{ 0.f, 0.f }, m_size };
 }
 
 sf::FloatRect ProgressBar::getGlobalBounds() const
