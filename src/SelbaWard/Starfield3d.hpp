@@ -5,7 +5,7 @@
 //
 // Starfield 3D
 //
-// Copyright(c) 2023-2024 M.J.Silk
+// Copyright(c) 2023-2025 M.J.Silk
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Starfield3d v1.0.1
+// SW Starfield3d v1.0.2
 class Starfield3d : public sf::Drawable, public sf::Transformable
 {
 public:
