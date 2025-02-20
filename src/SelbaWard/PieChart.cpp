@@ -65,7 +65,7 @@ PieChart::PieChart()
 void PieChart::update()
 {
 	const sf::Vector2f halfSize{ m_size / 2.f };
-	unsigned int totalNumberOfTrianglesRequired{ 0u };
+	std::size_t totalNumberOfTrianglesRequired{ 0u };
 	std::vector<std::size_t> numberOfTrianglesRequiredPerSlice;
 	for (auto& slice : slices)
 	{
