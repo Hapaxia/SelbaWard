@@ -44,87 +44,87 @@ class PixelDisplay : public sf::Drawable, public sf::Transformable
 public:
 	PixelDisplay();
 
-	unsigned int getIndex(sf::Vector2u location) const { return m_resolution.x * location.y + location.x; }
+	std::size_t getIndex(sf::Vector2<std::size_t> location) const { return m_resolution.x * location.y + location.x; }
 
 	void setSize(sf::Vector2f size);
-	void setResolution(sf::Vector2u resolution);
-	sf::Vector2u getResolution() const { return m_resolution; }
+	void setResolution(sf::Vector2<std::size_t> resolution);
+	sf::Vector2<std::size_t> getResolution() const { return m_resolution; }
 	sf::Vector2f getSize() const { return m_size; }
 
-	void setPixel(unsigned int index, unsigned int color);
+	void setPixel(std::size_t index, std::size_t color);
 	template <class T>
-	void setPixels(const T* colors, unsigned int numberOfColors, unsigned int startIndex);
-	void setPixels(const char* colors, unsigned int numberOfColors, unsigned int startIndex);
+	void setPixels(const T* colors, std::size_t numberOfColors, std::size_t startIndex);
+	void setPixels(const char* colors, std::size_t numberOfColors, std::size_t startIndex);
 	template <class T>
-	void getPixels(T* colors, unsigned int numberOfColors, unsigned int startIndex) const;
-	void getPixels(char* colors, unsigned int numberOfColors, unsigned int startIndex) const;
+	void getPixels(T* colors, std::size_t numberOfColors, std::size_t startIndex) const;
+	void getPixels(char* colors, std::size_t numberOfColors, std::size_t startIndex) const;
 
-	void fill(unsigned int color);
+	void fill(std::size_t color);
 	void clear();
 	void randomize();
 
 	// manual shifting/scrolling
-	void shiftLeft(unsigned int amount = 1u, unsigned int startIndex = 0u, unsigned int numberOfPixels = 0u);
-	void shiftRight(unsigned int amount = 1u, unsigned int startIndex = 0u, unsigned int numberOfPixels = 0u);
-	void scrollUp(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
-	void scrollDown(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
-	void scrollLeft(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
-	void scrollRight(unsigned int color = 0u, unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
-	void scrollWrapUp(unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
-	void scrollWrapDown(unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
-	void scrollWrapLeft(unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
-	void scrollWrapRight(unsigned int amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void shiftLeft(std::size_t amount = 1u, std::size_t startIndex = 0u, std::size_t numberOfPixels = 0u);
+	void shiftRight(std::size_t amount = 1u, std::size_t startIndex = 0u, std::size_t numberOfPixels = 0u);
+	void scrollUp(std::size_t color = 0u, std::size_t amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollDown(std::size_t color = 0u, std::size_t amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollLeft(std::size_t color = 0u, std::size_t amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollRight(std::size_t color = 0u, std::size_t amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollWrapUp(std::size_t amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollWrapDown(std::size_t amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollWrapLeft(std::size_t amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
+	void scrollWrapRight(std::size_t amount = 1u, sf::IntRect selectionRectangle = { { 0, 0 }, { 0, 0 } });
 
 	// palette
 	void setPalette(const std::vector<sf::Color>& palette);
-	void setPaletteSize(unsigned int numberOfColors);
-	void setColor(unsigned int color, sf::Color rgb);
-	void removeColor(unsigned int color);
+	void setPaletteSize(std::size_t numberOfColors);
+	void setColor(std::size_t color, sf::Color rgb);
+	void removeColor(std::size_t color);
 	void addRgb(sf::Color rgb);
-	void cyclePaletteDown(unsigned int amount = 1u, unsigned int firstColor = 0u, unsigned int numberOfColors = 0u); // first colour and last colour of range to cycle
-	void cyclePaletteUp(unsigned int amount = 1u, unsigned int firstColor = 0u, unsigned int numberOfColors = 0u); // first colour and last colour of range to cycle
+	void cyclePaletteDown(std::size_t amount = 1u, std::size_t firstColor = 0u, std::size_t numberOfColors = 0u); // first colour and last colour of range to cycle
+	void cyclePaletteUp(std::size_t amount = 1u, std::size_t firstColor = 0u, std::size_t numberOfColors = 0u); // first colour and last colour of range to cycle
 	std::size_t getPaletteSize() const { return m_palette.size(); };
-	sf::Color getRgb(unsigned int color) const { return m_palette[color]; }
+	sf::Color getRgb(std::size_t color) const { return m_palette[color]; }
 
 	// buffers (clipboards/"screenshots"/captures)
-	unsigned int copy(); // returns index of buffer
-	unsigned int copy(sf::IntRect selectionRectangle); // returns index of buffer
+	std::size_t copy(); // returns index of buffer
+	std::size_t copy(sf::IntRect selectionRectangle); // returns index of buffer
 	void paste(sf::Vector2i offset = { 0, 0 }); // replace with last saved buffer
 	void removeBuffer(); // removes last saved buffer
-	void copy(unsigned int index); // copies over (replaces) an existing buffer
-	void copy(unsigned int index, sf::IntRect selectionRectangle);
-	void paste(unsigned int index, sf::Vector2i offset = { 0, 0 }); // replace with saved buffer
-	void removeBuffer(unsigned int index); // as usual, when one buffer is removed, the indices of all following buffers are decreased
+	void copy(std::size_t index); // copies over (replaces) an existing buffer
+	void copy(std::size_t index, sf::IntRect selectionRectangle);
+	void paste(std::size_t index, sf::Vector2i offset = { 0, 0 }); // replace with saved buffer
+	void removeBuffer(std::size_t index); // as usual, when one buffer is removed, the indices of all following buffers are decreased
 	void removeAllBuffers() { m_buffers.clear(); }
-	unsigned int addBuffer(sf::Vector2u size = { 1u, 1u }); // returns index of new buffer
-	void resizeBuffer(unsigned int index, sf::Vector2u size);
-	unsigned int getNumberOfBuffers() const { return static_cast<unsigned int>(m_buffers.size()); }
-	sf::Vector2u getSizeOfBuffer(unsigned int index) const;
+	std::size_t addBuffer(sf::Vector2<std::size_t> size = { 1u, 1u }); // returns index of new buffer
+	void resizeBuffer(std::size_t index, sf::Vector2<std::size_t> size);
+	std::size_t getNumberOfBuffers() const { return m_buffers.size(); }
+	sf::Vector2<std::size_t> getSizeOfBuffer(std::size_t index) const;
 
 
 private:
-	sf::Vector2u m_resolution;
+	sf::Vector2<std::size_t> m_resolution;
 	sf::Vector2f m_size;
-	std::vector<unsigned int> m_pixels;
+	std::vector<std::size_t> m_pixels;
 	std::vector<sf::Color> m_palette;
 	std::vector<sf::Vertex> m_vertices;
 
 	// buffers
 	struct Buffer
 	{
-		unsigned int width;
-		std::vector<unsigned int> pixels;
+		std::size_t width{};
+		std::vector<std::size_t> pixels{};
 	};
 	std::vector<Buffer> m_buffers;
 
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_updateVertices();
 	void priv_updatePixels();
-	void priv_updatePixel(const unsigned int index);
-	unsigned int priv_getRandomColor() const;
+	void priv_updatePixel(const std::size_t index);
+	std::size_t priv_getRandomColor() const;
 	void priv_copyToBufferFromSelectionRectangle(Buffer& buffer, const sf::IntRect& selectionRectangle);
 	void priv_pasteOffsetBuffer(const Buffer& buffer, const sf::Vector2i& offset);
-	bool priv_isSelectionRectangleFullyContained(const sf::IntRect& selectionRectangle);
+	bool priv_isSelectionRectangleFullyContained(const sf::IntRect& selectionRectangle) const;
 };
 
 
@@ -134,17 +134,17 @@ private:
 
 
 template <class T>
-void PixelDisplay::setPixels(const T* colors, const unsigned int numberOfColors, const unsigned int startIndex)
+void PixelDisplay::setPixels(const T* colors, const std::size_t numberOfColors, const std::size_t startIndex)
 {
-	for (unsigned int i{ 0u }; i < numberOfColors; ++i)
-		m_pixels[startIndex + i] = static_cast<unsigned int>(colors[i]);
+	for (std::size_t i{ 0u }; i < numberOfColors; ++i)
+		m_pixels[startIndex + i] = static_cast<std::size_t>(colors[i]);
 	priv_updatePixels();
 }
 
 template <class T>
-void PixelDisplay::getPixels(T* colors, const unsigned int numberOfColors, const unsigned int startIndex) const
+void PixelDisplay::getPixels(T* colors, const std::size_t numberOfColors, const std::size_t startIndex) const
 {
-	for (unsigned int i{ 0u }; i < numberOfColors; ++i)
+	for (std::size_t i{ 0u }; i < numberOfColors; ++i)
 		colors[i] = static_cast<T>(m_pixels[startIndex + i]);
 }
 

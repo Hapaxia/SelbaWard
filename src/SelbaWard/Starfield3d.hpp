@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Starfield3d v1.0.2
+// SW Starfield3d v1.0.3
 class Starfield3d : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -93,7 +93,7 @@ private:
 		Back,
 	};
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 	void priv_updateVertices() const;
 	sf::Vector2f priv_projectPoint(sf::Vector3f point) const;

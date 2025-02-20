@@ -244,7 +244,7 @@ void Starfield3d::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 	states.transform *= getTransform();
 	const std::size_t size{ m_vertices.size() };
-	if (size > 0)
+	if (size > 0u)
 		target.draw(m_vertices.data(), size, m_primitiveType, states);
 }
 

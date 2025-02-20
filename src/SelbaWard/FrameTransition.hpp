@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Frame Transition v1.0.1
+// SW Frame Transition v1.0.2
 class FrameTransition : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -278,7 +278,7 @@ private:
 	mutable bool m_isUpdateRequired;
 	mutable std::vector<sf::Vertex> m_vertices;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_update() const;
 	void priv_updateFromTexCrop() const;
 	void priv_updateFromZoom() const;
