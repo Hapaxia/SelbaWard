@@ -43,7 +43,7 @@
 namespace
 {
 
-const sf::PrimitiveType primitiveType{ sf::PrimitiveType::TriangleFan };
+constexpr sf::PrimitiveType primitiveType{ sf::PrimitiveType::TriangleFan };
 bool areShadersLoaded{ false };
 sf::Shader bilinearShader;
 sf::Shader perspectiveShader;
@@ -153,9 +153,9 @@ ElasticSprite::ElasticSprite()
 	, m_weights(0u)
 	, m_offsets(4u)
 	, m_pTexture{ nullptr }
-	, m_baseTextureRect()
-	, m_actualTextureRect()
-	, m_useShader(sf::Shader::isAvailable())
+	, m_baseTextureRect{}
+	, m_actualTextureRect{}
+	, m_useShader{ sf::Shader::isAvailable() }
 	, m_usePerspectiveInterpolation{ false }
 	, m_textureFlipX{ false }
 	, m_textureFlipY{ false }
@@ -266,7 +266,7 @@ bool ElasticSprite::isActivePerspectiveInterpolation() const
 	return m_usePerspectiveInterpolation;
 }
 
-void ElasticSprite::setVertexOffset(const unsigned int vertexIndex, const sf::Vector2f offset)
+void ElasticSprite::setVertexOffset(const std::size_t vertexIndex, const sf::Vector2f offset)
 {
 	// must be valid vertex index
 	assert(isValidVertexIndex(vertexIndex));
@@ -275,7 +275,7 @@ void ElasticSprite::setVertexOffset(const unsigned int vertexIndex, const sf::Ve
 	m_requiresVerticesUpdate = true;
 }
 
-sf::Vector2f ElasticSprite::getVertexOffset(const unsigned int vertexIndex) const
+sf::Vector2f ElasticSprite::getVertexOffset(const std::size_t vertexIndex) const
 {
 	// must be valid vertex index
 	assert(isValidVertexIndex(vertexIndex));
@@ -290,7 +290,7 @@ void ElasticSprite::setColor(const sf::Color color)
 	m_requiresVerticesUpdate = true;
 }
 
-void ElasticSprite::setVertexColor(const unsigned int vertexIndex, const sf::Color color)
+void ElasticSprite::setVertexColor(const std::size_t vertexIndex, const sf::Color color)
 {
 	// must be valid vertex index
 	assert(isValidVertexIndex(vertexIndex));
@@ -308,7 +308,7 @@ sf::Color ElasticSprite::getColor() const
 	return{ static_cast<uint8_t>(totalR / 4), static_cast<uint8_t>(totalG / 4), static_cast<uint8_t>(totalB / 4), static_cast<uint8_t>(totalA / 4) };
 }
 
-sf::Color ElasticSprite::getVertexColor(const unsigned int vertexIndex) const
+sf::Color ElasticSprite::getVertexColor(const std::size_t vertexIndex) const
 {
 	// must be valid vertex index
 	assert(isValidVertexIndex(vertexIndex));
@@ -324,7 +324,7 @@ void ElasticSprite::resetVertexOffsets()
 	setVertexOffset(3, { 0.f, 0.f });
 }
 
-sf::Vector2f ElasticSprite::getVertexLocalPosition(const unsigned int vertexIndex) const
+sf::Vector2f ElasticSprite::getVertexLocalPosition(const std::size_t vertexIndex) const
 {
 	// must be valid vertex index
 	assert(isValidVertexIndex(vertexIndex));
@@ -332,7 +332,7 @@ sf::Vector2f ElasticSprite::getVertexLocalPosition(const unsigned int vertexInde
 	return getTransform().transformPoint(priv_getVertexBasePosition(vertexIndex) + m_offsets[vertexIndex]);
 }
 
-sf::Vector2f ElasticSprite::getVertexBaseLocalPosition(const unsigned int vertexIndex) const
+sf::Vector2f ElasticSprite::getVertexBaseLocalPosition(const std::size_t vertexIndex) const
 {
 	// must be valid vertex index
 	assert(isValidVertexIndex(vertexIndex));
@@ -340,7 +340,7 @@ sf::Vector2f ElasticSprite::getVertexBaseLocalPosition(const unsigned int vertex
 	return getTransform().transformPoint(priv_getVertexBasePosition(vertexIndex));
 }
 
-sf::Vector2f ElasticSprite::getVertexGlobalPosition(const unsigned int vertexIndex) const
+sf::Vector2f ElasticSprite::getVertexGlobalPosition(const std::size_t vertexIndex) const
 {
 	// must be valid vertex index
 	assert(isValidVertexIndex(vertexIndex));
@@ -348,7 +348,7 @@ sf::Vector2f ElasticSprite::getVertexGlobalPosition(const unsigned int vertexInd
 	return getTransform().transformPoint(priv_getVertexBasePosition(vertexIndex) + m_offsets[vertexIndex]);
 }
 
-sf::Vector2f ElasticSprite::getVertexBaseGlobalPosition(const unsigned int vertexIndex) const
+sf::Vector2f ElasticSprite::getVertexBaseGlobalPosition(const std::size_t vertexIndex) const
 {
 	// must be valid vertex index
 	assert(isValidVertexIndex(vertexIndex));
@@ -528,7 +528,7 @@ void ElasticSprite::priv_updateVertices(sf::Transform transform) const
 	}
 }
 
-sf::Vector2f ElasticSprite::priv_getVertexBasePosition(const unsigned int vertexIndex) const
+sf::Vector2f ElasticSprite::priv_getVertexBasePosition(const std::size_t vertexIndex) const
 {
 	// must be valid vertex index
 	assert(isValidVertexIndex(vertexIndex));
@@ -536,11 +536,11 @@ sf::Vector2f ElasticSprite::priv_getVertexBasePosition(const unsigned int vertex
 	switch (vertexIndex)
 	{
 	case 1u:
-		return sf::Vector2f(0.f, m_baseTextureRect.size.y);
+		return { 0.f, m_baseTextureRect.size.y };
 	case 2u:
-		return sf::Vector2f(m_baseTextureRect.size.x, m_baseTextureRect.size.y);
+		return { m_baseTextureRect.size.x, m_baseTextureRect.size.y };
 	case 3u:
-		return sf::Vector2f(m_baseTextureRect.size.x, 0.f);
+		return { m_baseTextureRect.size.x, 0.f };
 	case 0u:
 	default:
 		return { 0.f, 0.f };

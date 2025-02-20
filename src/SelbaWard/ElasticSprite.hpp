@@ -77,18 +77,18 @@ public:
 	bool isActivePerspectiveInterpolation() const;
 
 	void setColor(sf::Color color);
-	void setVertexColor(unsigned int vertexIndex, sf::Color color);
+	void setVertexColor(std::size_t vertexIndex, sf::Color color);
 	sf::Color getColor() const; // returns the average of all four vertices' colours
-	sf::Color getVertexColor(unsigned int vertexIndex) const;
+	sf::Color getVertexColor(std::size_t vertexIndex) const;
 
 	void resetVertexOffsets();
-	void setVertexOffset(unsigned int vertexIndex, sf::Vector2f offset);
-	sf::Vector2f getVertexOffset(unsigned int vertexIndex) const;
+	void setVertexOffset(std::size_t vertexIndex, sf::Vector2f offset);
+	sf::Vector2f getVertexOffset(std::size_t vertexIndex) const;
 
-	sf::Vector2f getVertexLocalPosition(unsigned int vertexIndex) const;
-	sf::Vector2f getVertexBaseLocalPosition(unsigned int vertexIndex) const;
-	sf::Vector2f getVertexGlobalPosition(unsigned int vertexIndex) const;
-	sf::Vector2f getVertexBaseGlobalPosition(unsigned int vertexIndex) const;
+	sf::Vector2f getVertexLocalPosition(std::size_t vertexIndex) const;
+	sf::Vector2f getVertexBaseLocalPosition(std::size_t vertexIndex) const;
+	sf::Vector2f getVertexGlobalPosition(std::size_t vertexIndex) const;
+	sf::Vector2f getVertexBaseGlobalPosition(std::size_t vertexIndex) const;
 
 	sf::FloatRect getLocalBounds() const;
 	sf::FloatRect getBaseLocalBounds() const;
@@ -112,7 +112,7 @@ private:
 
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_updateVertices(sf::Transform Transform)  const;
-	sf::Vector2f priv_getVertexBasePosition(const unsigned int vertexIndex) const;
+	sf::Vector2f priv_getVertexBasePosition(const std::size_t vertexIndex) const;
 };
 
 } // namespace selbaward
