@@ -41,27 +41,21 @@
 namespace selbaward
 {
 
-// SW Line v1.2.4
+// SW Line v1.3.0
 class Line : public sf::Drawable, public sf::Transformable
 {
 public:
-	enum PointIndex
-	{
-		Start = 0,
-		End = 1
-	};
-
 	Line();
 	Line(sf::Vector2f startPosition, sf::Vector2f endPosition);
 	template <class T>
 	Line(sf::Vector2f startPosition, sf::Vector2f endPosition, T thickness, const sf::Color& color = sf::Color::White);
-	void setPoint(unsigned int index, sf::Vector2f position);
+	void setPoint(std::size_t index, sf::Vector2f position);
 	void setPoints(sf::Vector2f startPosition, sf::Vector2f endPosition);
-	sf::Vector2f getPoint(unsigned int index) const;
+	sf::Vector2f getPoint(std::size_t index) const;
 	sf::FloatRect getLocalBounds() const;
 	sf::FloatRect getGlobalBounds() const;
-	PointIndex getStartIndex() const;
-	PointIndex getEndIndex() const;
+	std::size_t getStartIndex() const { return 0u; };
+	std::size_t getEndIndex() const { return 1u; }
 	sf::Color getColor() const;
 	template <class T>
 	void setThickness(T thickness);
@@ -108,5 +102,5 @@ inline void Line::setThickness(const T thickness)
 		updateQuad();
 }
 
-} // selbaward
+} // namespace selbaward
 #endif // SELBAWARD_LINE_HPP
