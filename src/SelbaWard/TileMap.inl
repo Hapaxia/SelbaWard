@@ -38,27 +38,26 @@ namespace selbaward
 
 template <class T>
 TileMap<T>::TileMap()
-	: m_do()
-	, m_is()
-	, m_levelContainerType(LevelContainerType::None)
-	, m_levelWidth(0u)
-	, m_levelSize(0u)
-	, m_pLevel(nullptr)
-	, m_gridSize({ 1u, 1u })
-	, m_grid(1u)
-	, m_outOfBoundsTile(0u)
-	, m_camera({ 0.f, 0.f })
-	, m_cameraTarget({ 0.f, 0.f })
-	, m_color(sf::Color::White)
-	, m_primitiveType(sf::PrimitiveType::Triangles)
-	, m_size()
-	, m_texture(nullptr)
-	, m_numberOfTextureTilesPerRow(16u)
-	, m_textureOffset({ 0u, 0u })
-	, m_textureTileSize({ 16u, 16u })
-	, m_vertices()
-	, m_redrawRequired(true)
-	, m_renderTexture()
+	: m_do{}
+	, m_is{}
+	, m_levelContainerType{ LevelContainerType::None }
+	, m_levelWidth{ 0u }
+	, m_levelSize{ 0u }
+	, m_pLevel{ nullptr }
+	, m_gridSize{ 1u, 1u }
+	, m_grid{ 1u }
+	, m_outOfBoundsTile{ 0u }
+	, m_camera{ 0.f, 0.f }
+	, m_cameraTarget{ 0.f, 0.f }
+	, m_color{ sf::Color::White }
+	, m_size{}
+	, m_texture{ nullptr }
+	, m_numberOfTextureTilesPerRow{ 16u }
+	, m_textureOffset{ 0u, 0u }
+	, m_textureTileSize{ 16u, 16u }
+	, m_vertices{}
+	, m_redrawRequired{ true }
+	, m_renderTexture{}
 	, m_render(4u)
 {
 	priv_recreateRenderTexture();
@@ -71,21 +70,21 @@ void TileMap<T>::update()
 		m_levelWidth = m_levelSize;
 
 	// if width is zero, rather than not display anything, choose width automatically to create an approximate square shape from the level data (if level size is zero, width will still be zero)
-	if (m_levelWidth == 0)
-		m_levelWidth = static_cast<unsigned int>(std::sqrt(m_levelSize));
+	if (m_levelWidth == 0u)
+		m_levelWidth = static_cast<std::size_t>(std::sqrt(m_levelSize));
 
 	const sf::Vector2f actualCamera{ priv_getActualCamera() };
 	const sf::Vector2i levelOffset{ static_cast<int>(std::floor(actualCamera.x)), static_cast<int>(std::floor(actualCamera.y)) };
-	const std::size_t height{ m_levelWidth > 0u ? m_levelSize / m_levelWidth : 0u };
+	const std::size_t height{ (m_levelWidth > 0u) ? (m_levelSize / m_levelWidth) : 0u };
 
-	for (std::size_t y{ 0 }; y < m_gridSize.y; ++y)
+	for (std::size_t y{ 0u }; y < m_gridSize.y; ++y)
 	{
-		for (std::size_t x{ 0 }; x < m_gridSize.x; ++x)
+		for (std::size_t x{ 0u }; x < m_gridSize.x; ++x)
 		{
-			const std::size_t gridIndex{ y * m_gridSize.x + x };
-			const std::size_t levelIndex{ (levelOffset.y + y) * m_levelWidth + levelOffset.x + x };
-			if (levelOffset.x + x >= 0 && levelOffset.x + x < m_levelWidth &&
-				levelOffset.y + y >= 0 && levelOffset.y + y < height)
+			const std::size_t gridIndex{ (y * m_gridSize.x) + x };
+			const std::size_t levelIndex{ ((levelOffset.y + y) * m_levelWidth) + levelOffset.x + x };
+			if ((levelOffset.x + x >= 0u) && (levelOffset.x + x < m_levelWidth) &&
+				(levelOffset.y + y >= 0u) && (levelOffset.y + y < height))
 			{
 				switch (m_levelContainerType)
 				{
@@ -100,11 +99,11 @@ void TileMap<T>::update()
 					break;
 				case LevelContainerType::None:
 				default:
-					m_grid[gridIndex] = m_outOfBoundsTile;;
+					m_grid[gridIndex] = static_cast<T>(m_outOfBoundsTile);
 				}
 			}
 			else
-				m_grid[gridIndex] = m_outOfBoundsTile;
+				m_grid[gridIndex] = static_cast<T>(m_outOfBoundsTile);
 		}
 	}
 
@@ -137,7 +136,7 @@ void TileMap<T>::setLevel(const std::deque<T>& level)
 }
 
 template <class T>
-void TileMap<T>::setLevel(const T* level, const unsigned long int size)
+void TileMap<T>::setLevel(const T* level, const std::size_t size)
 {
 	m_pLevel = level;
 	m_levelSize = size;
@@ -146,27 +145,27 @@ void TileMap<T>::setLevel(const T* level, const unsigned long int size)
 
 template <class T>
 template <class U>
-void TileMap<T>::setLevel(const U& level, const unsigned long int width)
+void TileMap<T>::setLevel(const U& level, const std::size_t width)
 {
 	m_levelWidth = width;
 	setLevel(level);
 }
 
 template <class T>
-void TileMap<T>::setLevel(const T* level, const unsigned long int size, const unsigned long int width)
+void TileMap<T>::setLevel(const T* level, const std::size_t size, const std::size_t width)
 {
 	m_levelWidth = width;
 	setLevel(level, size);
 }
 
 template <class T>
-void TileMap<T>::setLevelWidth(const unsigned long int width)
+void TileMap<T>::setLevelWidth(const std::size_t width)
 {
 	m_levelWidth = width;
 }
 
 template <class T>
-unsigned int TileMap<T>::getLevelWidth() const
+std::size_t TileMap<T>::getLevelWidth() const
 {
 	return m_levelWidth;
 }
@@ -186,28 +185,28 @@ sf::Vector2f TileMap<T>::getSize() const
 }
 
 template <class T>
-void TileMap<T>::setGridSize(const sf::Vector2u gridSize)
+void TileMap<T>::setGridSize(const sf::Vector2<std::size_t> gridSize)
 {
-	m_gridSize = { gridSize.x + 1, gridSize.y + 1 };
-	m_grid.resize(static_cast<std::size_t>(m_gridSize.x) * m_gridSize.y);
+	m_gridSize = { gridSize.x + 1u, gridSize.y + 1u };
+	m_grid.resize(m_gridSize.x * m_gridSize.y);
 
 	priv_recreateRenderTexture();
 }
 
 template <class T>
-sf::Vector2u TileMap<T>::getGridSize() const
+sf::Vector2<std::size_t> TileMap<T>::getGridSize() const
 {
-	return{ m_gridSize.x - 1, m_gridSize.y - 1 };
+	return{ m_gridSize.x - 1u, m_gridSize.y - 1u };
 }
 
 template <class T>
-unsigned int TileMap<T>::getTotalGridSize() const
+std::size_t TileMap<T>::getTotalGridSize() const
 {
 	return priv_getTotalSizeFromSizeVector(getGridSize());
 }
 
 template <class T>
-void TileMap<T>::setOutOfBoundsTile(const unsigned long int textureTileIndex)
+void TileMap<T>::setOutOfBoundsTile(const std::size_t textureTileIndex)
 {
 	m_outOfBoundsTile = textureTileIndex;
 
@@ -231,7 +230,7 @@ void TileMap<T>::setTexture()
 }
 
 template <class T>
-void TileMap<T>::setNumberOfTextureTilesPerRow(const unsigned int numberOfTextureTilesPerRow)
+void TileMap<T>::setNumberOfTextureTilesPerRow(const std::size_t numberOfTextureTilesPerRow)
 {
 	m_numberOfTextureTilesPerRow = numberOfTextureTilesPerRow;
 
@@ -239,7 +238,7 @@ void TileMap<T>::setNumberOfTextureTilesPerRow(const unsigned int numberOfTextur
 }
 
 template <class T>
-void TileMap<T>::setTextureOffset(const sf::Vector2u textureOffset)
+void TileMap<T>::setTextureOffset(const sf::Vector2<std::size_t> textureOffset)
 {
 	m_textureOffset = textureOffset;
 
@@ -247,7 +246,7 @@ void TileMap<T>::setTextureOffset(const sf::Vector2u textureOffset)
 }
 
 template <class T>
-void TileMap<T>::setTextureTileSize(const sf::Vector2u textureTileSize)
+void TileMap<T>::setTextureTileSize(const sf::Vector2<std::size_t> textureTileSize)
 {
 	m_textureTileSize = textureTileSize;
 
@@ -255,7 +254,7 @@ void TileMap<T>::setTextureTileSize(const sf::Vector2u textureTileSize)
 }
 
 template <class T>
-sf::Vector2u TileMap<T>::getTextureTileSize() const
+sf::Vector2<std::size_t> TileMap<T>::getTextureTileSize() const
 {
 	return m_textureTileSize;
 }
@@ -335,11 +334,11 @@ sf::Vector2i TileMap<T>::getLevelPositionAtCoord(sf::Vector2f coord) const
 {
 	coord = getInverseTransform().transformPoint(coord);
 	const sf::Vector2f actualCamera{ priv_getActualCamera() };
-	return{ static_cast<int>(std::floor(coord.x * (m_gridSize.x - 1) / m_size.x + actualCamera.x)), static_cast<int>(std::floor(coord.y * (m_gridSize.y - 1) / m_size.y + actualCamera.y)) };
+	return{ static_cast<int>(std::floor(((coord.x * (m_gridSize.x - 1u)) / m_size.x) + actualCamera.x)), static_cast<int>(std::floor(((coord.y * (m_gridSize.y - 1u)) / m_size.y) + actualCamera.y)) };
 }
 
 template <class T>
-unsigned long int TileMap<T>::getTileAtCoord(const sf::Vector2f coord) const
+std::size_t TileMap<T>::getTileAtCoord(const sf::Vector2f coord) const
 {
 	return priv_getTileAtGridPosition(priv_getGridPositionAtCoord(coord));
 }
@@ -348,14 +347,14 @@ template <class T>
 sf::Vector2f TileMap<T>::getCoordAtLevelGridPosition(sf::Vector2f levelGridPosition) const
 {
 	const sf::Vector2f actualCamera{ priv_getActualCamera() };
-	const sf::Vector2f local{ (levelGridPosition.x - actualCamera.x) * m_size.x / (m_gridSize.x - 1), (levelGridPosition.y - actualCamera.y) * m_size.y / (m_gridSize.y - 1) };
+	const sf::Vector2f local{ ((levelGridPosition.x - actualCamera.x) * m_size.x) / (m_gridSize.x - 1u), ((levelGridPosition.y - actualCamera.y) * m_size.y) / (m_gridSize.y - 1u) };
 	return getTransform().transformPoint(local);
 }
 
 template <class T>
 sf::Vector2f TileMap<T>::getTileSize() const
 {
-	return{ m_size.x / (m_gridSize.x - 1), m_size.y / (m_gridSize.y - 1) };
+	return{ m_size.x / (m_gridSize.x - 1u), m_size.y / (m_gridSize.y - 1u) };
 }
 
 
@@ -391,16 +390,16 @@ template <class T>
 void TileMap<T>::priv_updateVertices() const
 {
 	m_vertices.resize(static_cast<std::size_t>(m_gridSize.x) * m_gridSize.y * 6u);
-	if (m_gridSize.x == 0 || m_gridSize.y == 0)
+	if (m_gridSize.x == 0u || m_gridSize.y == 0u)
 		return;
 
-	for (unsigned int y{ 0 }; y < m_gridSize.y; ++y)
+	for (std::size_t y{ 0u }; y < m_gridSize.y; ++y)
 	{
-		for (unsigned int x{ 0 }; x < m_gridSize.x; ++x)
+		for (std::size_t x{ 0u }; x < m_gridSize.x; ++x)
 		{
-			const unsigned int tileIndex{ y * m_gridSize.x + x };
-			const unsigned long int tileValue{ m_grid[tileIndex] };
-			const sf::Vector2u textureTilePosition{ static_cast<unsigned int>(tileValue % m_numberOfTextureTilesPerRow * m_textureTileSize.x), static_cast<unsigned int>(tileValue / m_numberOfTextureTilesPerRow * m_textureTileSize.y) };
+			const std::size_t tileIndex{ (y * m_gridSize.x) + x };
+			const std::size_t tileValue{ m_grid[tileIndex] };
+			const sf::Vector2<std::size_t> textureTilePosition{ (tileValue % m_numberOfTextureTilesPerRow) * m_textureTileSize.x, (tileValue / m_numberOfTextureTilesPerRow) * m_textureTileSize.y };
 			sf::Vertex* pVertex{ &m_vertices[tileIndex * 6u] };
 
 			// top-left
@@ -409,17 +408,17 @@ void TileMap<T>::priv_updateVertices() const
 			pVertex++->color = m_color;
 
 			// bottom-left
-			pVertex->position = { static_cast<float>(m_textureTileSize.x * x), static_cast<float>(m_textureTileSize.y * (y + 1)) };
+			pVertex->position = { static_cast<float>(m_textureTileSize.x * x), static_cast<float>(m_textureTileSize.y * (y + 1u)) };
 			pVertex->texCoords = { static_cast<float>(m_textureOffset.x + textureTilePosition.x), static_cast<float>(m_textureOffset.y + textureTilePosition.y + m_textureTileSize.y) };
 			pVertex++->color = m_color;
 
 			// top-right
-			pVertex->position = { static_cast<float>(m_textureTileSize.x * (x + 1)), static_cast<float>(m_textureTileSize.y * y) };
+			pVertex->position = { static_cast<float>(m_textureTileSize.x * (x + 1u)), static_cast<float>(m_textureTileSize.y * y) };
 			pVertex->texCoords = { static_cast<float>(m_textureOffset.x + textureTilePosition.x + m_textureTileSize.x), static_cast<float>(m_textureOffset.y + textureTilePosition.y) };
 			pVertex++->color = m_color;
 
 			// bottom-right
-			pVertex->position = { static_cast<float>(m_textureTileSize.x * (x + 1)), static_cast<float>(m_textureTileSize.y * (y + 1)) };
+			pVertex->position = { static_cast<float>(m_textureTileSize.x * (x + 1u)), static_cast<float>(m_textureTileSize.y * (y + 1u)) };
 			pVertex->texCoords = sf::Vector2f(m_textureOffset + textureTilePosition + m_textureTileSize);
 			pVertex++->color = m_color;
 
@@ -462,9 +461,9 @@ void TileMap<T>::priv_updateRender() const
 	}
 
 	m_renderTexture.clear(sf::Color::Transparent);
-	const unsigned int numberOfVertices{ static_cast<unsigned int>(m_vertices.size()) };
-	if (numberOfVertices > 0)
-		m_renderTexture.draw(m_vertices.data(), numberOfVertices, m_primitiveType, m_texture);
+	const std::size_t numberOfVertices{ m_vertices.size() };
+	if (numberOfVertices > 0u)
+		m_renderTexture.draw(m_vertices.data(), numberOfVertices, sf::PrimitiveType::Triangles, m_texture);
 	m_renderTexture.display();
 
 	m_renderTexture.setSmooth(m_is.smooth);
@@ -474,10 +473,10 @@ template <class T>
 void TileMap<T>::priv_recreateRenderTexture()
 {
 	bool createSucceeded{ false };
-	if (m_gridSize.x < 2 || m_gridSize.y < 2)
+	if ((m_gridSize.x < 2u) || (m_gridSize.y < 2u))
 		createSucceeded = m_renderTexture.resize({ 1u, 1u });
 	else
-		createSucceeded = m_renderTexture.resize({ (m_gridSize.x - 1) * m_textureTileSize.x, (m_gridSize.y - 1) * m_textureTileSize.y });
+		createSucceeded = m_renderTexture.resize({ static_cast<unsigned int>((m_gridSize.x - 1u) * m_textureTileSize.x), static_cast<unsigned int>((m_gridSize.y - 1u) * m_textureTileSize.y) });
 
 	m_redrawRequired = true;
 }
@@ -488,19 +487,19 @@ sf::Vector2i TileMap<T>::priv_getGridPositionAtCoord(sf::Vector2f coord) const
 	coord = getInverseTransform().transformPoint(coord);
 	const sf::Vector2f actualCamera{ priv_getActualCamera() };
 	const sf::Vector2f fraction{ actualCamera.x - std::floor(actualCamera.x), actualCamera.y - std::floor(actualCamera.y) };
-	return{ static_cast<int>(std::floor(coord.x * (m_gridSize.x - 1) / m_size.x + fraction.x)), static_cast<int>(std::floor(coord.y * (m_gridSize.y - 1) / m_size.y + fraction.y)) };
+	return{ static_cast<int>(std::floor(((coord.x * (m_gridSize.x - 1u)) / m_size.x) + fraction.x)), static_cast<int>(std::floor(((coord.y * (m_gridSize.y - 1u)) / m_size.y) + fraction.y)) };
 }
 
 template <class T>
-unsigned int TileMap<T>::priv_getTileAtGridPosition(const sf::Vector2i gridPosition) const
+std::size_t TileMap<T>::priv_getTileAtGridPosition(const sf::Vector2i gridPosition) const
 {
 	if (gridPosition.x < 0 ||
 		gridPosition.y < 0 ||
-		static_cast<unsigned int>(gridPosition.x) >= m_gridSize.x ||
-		static_cast<unsigned int>(gridPosition.y) >= m_gridSize.y)
+		static_cast<std::size_t>(gridPosition.x) >= m_gridSize.x ||
+		static_cast<std::size_t>(gridPosition.y) >= m_gridSize.y)
 		return 0u;
 
-	return m_grid[static_cast<std::size_t>(gridPosition.y) * m_gridSize.x + gridPosition.x];
+	return m_grid[(static_cast<std::size_t>(gridPosition.y) * m_gridSize.x) + gridPosition.x];
 }
 
 template <class T>
@@ -514,8 +513,8 @@ sf::Vector2f TileMap<T>::priv_getTileOffsetFromVector(const sf::Vector2f vector)
 {
 	return
 	{
-		vector.x * (m_gridSize.x - 1) / m_size.x,
-		vector.y * (m_gridSize.y - 1) / m_size.y,
+		(vector.x * (m_gridSize.x - 1u)) / m_size.x,
+		(vector.y * (m_gridSize.y - 1u)) / m_size.y,
 	};
 }
 
@@ -524,8 +523,8 @@ sf::Vector2f TileMap<T>::priv_getVectorFromTileOffset(const sf::Vector2f offset)
 {
 	return
 	{
-		offset.x * m_size.x / (m_gridSize.x - 1),
-		offset.y * m_size.y / (m_gridSize.y - 1)
+		(offset.x * m_size.x) / (m_gridSize.x - 1u),
+		(offset.y * m_size.y) / (m_gridSize.y - 1u)
 	};
 }
 

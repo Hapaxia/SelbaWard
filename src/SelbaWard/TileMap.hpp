@@ -55,24 +55,24 @@ public:
 	void setLevel();
 	void setLevel(const std::vector<T>& level);
 	void setLevel(const std::deque<T>& level);
-	void setLevel(const T* level, unsigned long int size);
+	void setLevel(const T* level, std::size_t size);
 	template <class U>
-	void setLevel(const U& level, unsigned long int width);
-	void setLevel(const T* level, unsigned long int size, unsigned long int width);
-	void setLevelWidth(unsigned long int width);
-	unsigned int getLevelWidth() const;
+	void setLevel(const U& level, std::size_t width);
+	void setLevel(const T* level, std::size_t size, std::size_t width);
+	void setLevelWidth(std::size_t width);
+	std::size_t getLevelWidth() const;
 	void setSize(sf::Vector2f size);
 	sf::Vector2f getSize() const;
-	void setGridSize(sf::Vector2u gridSize);
-	sf::Vector2u getGridSize() const;
-	unsigned int getTotalGridSize() const;
-	void setOutOfBoundsTile(unsigned long int textureTileIndex);
+	void setGridSize(sf::Vector2<std::size_t> gridSize);
+	sf::Vector2<std::size_t> getGridSize() const;
+	std::size_t getTotalGridSize() const;
+	void setOutOfBoundsTile(std::size_t textureTileIndex);
 	void setTexture(const sf::Texture& texture);
 	void setTexture();
-	void setNumberOfTextureTilesPerRow(unsigned int numberOfTextureTilesPerRow);
-	void setTextureOffset(sf::Vector2u textureOffset);
-	void setTextureTileSize(sf::Vector2u textureTileSize);
-	sf::Vector2u getTextureTileSize() const;
+	void setNumberOfTextureTilesPerRow(std::size_t numberOfTextureTilesPerRow);
+	void setTextureOffset(sf::Vector2<std::size_t> textureOffset);
+	void setTextureTileSize(sf::Vector2<std::size_t> textureTileSize);
+	sf::Vector2<std::size_t> getTextureTileSize() const;
 	void setSmooth(bool smooth);
 	bool getSmooth() const;
 	void setSmoothScroll(bool smoothScroll);
@@ -84,7 +84,7 @@ public:
 	void setColor(sf::Color color);
 	sf::Color getColor() const;
 	sf::Vector2i getLevelPositionAtCoord(sf::Vector2f coord) const;
-	unsigned long int getTileAtCoord(sf::Vector2f coord) const;
+	std::size_t getTileAtCoord(sf::Vector2f coord) const;
 	sf::Vector2f getCoordAtLevelGridPosition(sf::Vector2f levelGridPosition) const; // takes a float vector so the parameter can specify different parts of that tile e.g. (2.5, 1.5) = centre of tile (2, 1)
 	sf::Vector2f getTileSize() const; // display size of a tile before any transformations
 
@@ -126,9 +126,9 @@ private:
 	const void* m_pLevel;
 
 	// data
-	sf::Vector2u m_gridSize;
+	sf::Vector2<std::size_t> m_gridSize;
 	std::vector<unsigned long int> m_grid;
-	unsigned long int m_outOfBoundsTile;
+	std::size_t m_outOfBoundsTile;
 
 	// camera (in tiles)
 	sf::Vector2f m_camera;
@@ -138,12 +138,11 @@ private:
 	sf::Color m_color;
 
 	// tiles
-	sf::PrimitiveType m_primitiveType;
 	sf::Vector2f m_size;
 	const sf::Texture* m_texture;
-	unsigned int m_numberOfTextureTilesPerRow;
-	sf::Vector2u m_textureOffset;
-	sf::Vector2u m_textureTileSize;
+	std::size_t m_numberOfTextureTilesPerRow;
+	sf::Vector2<std::size_t> m_textureOffset;
+	sf::Vector2<std::size_t> m_textureTileSize;
 	mutable std::vector<sf::Vertex> m_vertices;
 
 	// render
@@ -156,7 +155,7 @@ private:
 	void priv_updateRender() const;
 	void priv_recreateRenderTexture();
 	sf::Vector2i priv_getGridPositionAtCoord(sf::Vector2f coord) const;
-	unsigned int priv_getTileAtGridPosition(sf::Vector2i gridPosition) const;
+	std::size_t priv_getTileAtGridPosition(sf::Vector2i gridPosition) const;
 	sf::Vector2f priv_getActualCamera() const;
 	sf::Vector2f priv_getTileOffsetFromVector(sf::Vector2f vector) const;
 	sf::Vector2f priv_getVectorFromTileOffset(sf::Vector2f offset) const;
