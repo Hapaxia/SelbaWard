@@ -53,7 +53,7 @@ public:
 	Sprite3d(const sf::Texture& texture); // create from texture
 	Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect); // create from texture and texture rectangle
 	Sprite3d(const sf::Texture& texture, const sf::Texture& backTexture); // create from (front) texture and back texture
-	Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect, const sf::Texture& backTexture, sf::Vector2i backTextureOffset = sf::Vector2i()); // create from (front) texture, texture rectangle, back texture, and back texture offset
+	Sprite3d(const sf::Texture& texture, const sf::IntRect& textureRect, const sf::Texture& backTexture, sf::Vector2i backTextureOffset = sf::Vector2i{}); // create from (front) texture, texture rectangle, back texture, and back texture offset
 	Sprite3d(const sf::Sprite& sprite); // create from standard sprite (copies texture, texture rectangle and all transformations)
 
 
@@ -113,18 +113,18 @@ public:
 
 
 	// mesh setup
-	unsigned int getMeshDensity() const;
-	unsigned int getSubdividedMeshDensity() const;
-	unsigned int getSubdivision() const;
+	std::size_t getMeshDensity() const;
+	std::size_t getSubdividedMeshDensity() const;
+	std::size_t getSubdivision() const;
 	bool getDynamicSubdivision() const;
 
-	void reserveMeshDensity(unsigned int meshDensity); // allow an expected maximum mesh density to be reserved in advance
-	void setMeshDensity(unsigned int meshDensity);
+	void reserveMeshDensity(std::size_t meshDensity); // allow an expected maximum mesh density to be reserved in advance
+	void setMeshDensity(std::size_t meshDensity);
 	void setDynamicSubdivision(bool enabled = true);
-	void setDynamicSubdivisionRange(unsigned int maximum, unsigned int minimum = 0u);
-	void setSubdivision(const unsigned int subdivision) const; // required to be const to allow dynamic subdivision
-	void setNumberOfPoints(unsigned int numberOfPoints); // provided for convenience (sets number of points before any subdivision)
-	void setNumberOfQuads(unsigned int numberOfPoints); // provided for convenience (sets number of apparent quads before any subdivision)
+	void setDynamicSubdivisionRange(std::size_t maximum, std::size_t minimum = 0u);
+	void setSubdivision(std::size_t subdivision) const; // required to be const to allow dynamic subdivision
+	void setNumberOfPoints(std::size_t numberOfPoints); // provided for convenience (sets number of points before any subdivision)
+	void setNumberOfQuads(std::size_t numberOfPoints); // provided for convenience (sets number of apparent quads before any subdivision)
 	void minimalMesh();
 
 
@@ -146,7 +146,7 @@ private:
 	float m_yaw;
 	float m_depth; // even though m_shallowness is the one that actually gets used internally, this is stored as a form of cache to return through getDepth() to avoid the unnecessary division in a getter
 	float m_shallowness;
-	unsigned int m_meshDensity;
+	std::size_t m_meshDensity;
 	bool m_flipBack; // flips the back's texture coordinates so that it shows the right way around
 
 	// texture
@@ -158,12 +158,12 @@ private:
 
 	// for dynamic subdivision based on angle
 	bool m_useDynamicSubdivision;
-	unsigned int m_minSubdivision;
-	unsigned int m_maxSubdivision;
+	std::size_t m_minSubdivision;
+	std::size_t m_maxSubdivision;
 
 	// need to be mutable to allow dynamic subdivision
-	mutable unsigned int m_subdivision;
-	mutable unsigned int m_subdividedMeshDensity; // stored as a cache to avoid unnecessary power calculations
+	mutable std::size_t m_subdivision;
+	mutable std::size_t m_subdividedMeshDensity; // stored as a cache to avoid unnecessary power calculations
 	mutable std::vector<sf::Vector3f> m_points;
 
 	// need to be mutable to allow modification through draw call
@@ -188,8 +188,8 @@ private:
 	void updateVertices() const;
 	void updateGlobalCorners() const;
 
-	unsigned int getPointIndexForVertexIndex(unsigned int vertexIndex, bool invertPointX = false) const;
-	unsigned int getNumberOfVerticesNeededForCurrentSubdividedMeshDensity() const;
+	std::size_t getPointIndexForVertexIndex(std::size_t vertexIndex, bool invertPointX = false) const;
+	std::size_t getNumberOfVerticesNeededForCurrentSubdividedMeshDensity() const;
 };
 
 } // namespace selbaward

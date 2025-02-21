@@ -89,24 +89,24 @@ Sprite3d::Sprite3d()
 	, m_flipBack{ false }
 	, m_pTexture{ nullptr }
 	, m_pBackTexture{ nullptr }
-	, m_size()
-	, m_textureOffset()
-	, m_backTextureOffset()
+	, m_size{}
+	, m_textureOffset{}
+	, m_backTextureOffset{}
 	, m_useDynamicSubdivision{ false }
 	, m_minSubdivision{ 1u }
 	, m_maxSubdivision{ 4u }
 	, m_subdivision{ 0u }
 	, m_subdividedMeshDensity{ 0u }
-	, m_points(4)
-	, m_transformedPoints(4)
-	, m_origin()
-	, m_vertices(4)
-	, m_compactTransformMatrix(8, 0.f) // was 5. is now 8 to take into account z (for origin's z)
+	, m_points(4u)
+	, m_transformedPoints(4u)
+	, m_origin{}
+	, m_vertices(4u)
+	, m_compactTransformMatrix(8u, 0.f) // was 5. is now 8 to take into account z (for origin's z)
 	, m_isBackFacing{ false }
-	, m_topLeft()
-	, m_topRight()
-	, m_bottomLeft()
-	, m_bottomRight()
+	, m_topLeft{}
+	, m_topRight{}
+	, m_bottomLeft{}
+	, m_bottomRight{}
 {
 }
 
@@ -153,6 +153,8 @@ Sprite3d::Sprite3d(const sf::Sprite& sprite)
 
 const sf::Sprite Sprite3d::getSprite() const
 {
+	assert(m_pTexture != nullptr); // texture must have been assigned to Sprite 3D before getting an sf::Sprite is possible.
+
 	sf::IntRect textureRect(m_textureOffset, m_size);
 	sf::Sprite sprite(*m_pTexture, textureRect);
 	sprite.setColor(this->getColor());
@@ -165,9 +167,9 @@ const sf::Sprite Sprite3d::getSprite() const
 
 void Sprite3d::setTextureRect(const sf::IntRect& textureRectangle)
 {
-	m_textureOffset = sf::Vector2i(textureRectangle.position.x, textureRectangle.position.y);
+	m_textureOffset = textureRectangle.position;
 	m_backTextureOffset = m_textureOffset;
-	m_size = sf::Vector2i(textureRectangle.size.x, textureRectangle.size.y);
+	m_size = textureRectangle.size;
 	createPointGrid();
 	updateTransformedPoints();
 	updateVertices();
@@ -178,13 +180,13 @@ void Sprite3d::setTexture(const sf::Texture& texture, const bool resetRect, cons
 {
 	if (m_pTexture == nullptr || resetRect)
 	{
-		m_textureOffset = sf::Vector2i(0, 0);
+		m_textureOffset = { 0, 0 };
 		m_size = sf::Vector2i(texture.getSize());
 		createPointGrid();
 		m_vertices.resize(getNumberOfVerticesNeededForCurrentSubdividedMeshDensity());
 	}
 	if (resetBackOffset)
-		m_backTextureOffset = sf::Vector2i(0, 0);
+		m_backTextureOffset = { 0, 0 };
 	m_pTexture = &texture;
 }
 
@@ -197,12 +199,11 @@ void Sprite3d::setBackTexture(const sf::Texture& texture, const bool resetOffset
 {
 	m_pBackTexture = &texture;
 	if (m_pBackTexture == nullptr || resetOffset)
-		m_backTextureOffset = sf::Vector2i(0, 0);
+		m_backTextureOffset = { 0, 0 };
 }
 
 void Sprite3d::setBackTexture()
 {
-	//
 	m_pBackTexture = nullptr;
 }
 
@@ -346,7 +347,7 @@ void Sprite3d::setOrigin(const sf::Vector3f origin)
 
 void Sprite3d::setOrigin3d(const sf::Vector3f origin)
 {
-	setOrigin(sf::Vector2f(origin.x, origin.y));
+	setOrigin({ origin.x, origin.y });
 	setOriginZ(origin.z);
 }
 
@@ -361,30 +362,30 @@ float Sprite3d::getMostExtremeAngle() const
 	return max(pitch, yaw);
 }
 
-void Sprite3d::setMeshDensity(const unsigned int meshDensity)
+void Sprite3d::setMeshDensity(const std::size_t meshDensity)
 {
 	m_meshDensity = meshDensity;
 
 	setSubdivision(m_subdivision);
 }
 
-unsigned int Sprite3d::getMeshDensity() const
+std::size_t Sprite3d::getMeshDensity() const
 {
 	return m_meshDensity;
 }
 
-unsigned int Sprite3d::getSubdividedMeshDensity() const
+std::size_t Sprite3d::getSubdividedMeshDensity() const
 {
 	return m_subdividedMeshDensity;
 }
 
-void Sprite3d::reserveMeshDensity(const unsigned int meshDensity)
+void Sprite3d::reserveMeshDensity(const std::size_t meshDensity)
 {
-	const unsigned int numberOfPointsPerDimension{ meshDensity + 2u };
+	const std::size_t numberOfPointsPerDimension{ meshDensity + 2u };
 	m_points.reserve(numberOfPointsPerDimension * numberOfPointsPerDimension);
 	m_transformedPoints.reserve(m_points.size());
 
-	const unsigned int currentSubdividedMeshDensity{ m_subdividedMeshDensity };
+	const std::size_t currentSubdividedMeshDensity{ m_subdividedMeshDensity };
 	m_subdividedMeshDensity = meshDensity;
 	m_vertices.reserve(getNumberOfVerticesNeededForCurrentSubdividedMeshDensity());
 	m_subdividedMeshDensity = currentSubdividedMeshDensity;
@@ -395,11 +396,11 @@ void Sprite3d::setDynamicSubdivision(const bool dynamicSubdivision)
 	m_useDynamicSubdivision = dynamicSubdivision;
 }
 
-void Sprite3d::setDynamicSubdivisionRange(unsigned int maximum, unsigned int minimum)
+void Sprite3d::setDynamicSubdivisionRange(std::size_t maximum, std::size_t minimum)
 {
 	if (maximum < minimum)
 	{
-		const unsigned int temp{ maximum };
+		const std::size_t temp{ maximum };
 		maximum = minimum;
 		minimum = temp;
 	}
@@ -413,46 +414,46 @@ bool Sprite3d::getDynamicSubdivision() const
 	return m_useDynamicSubdivision;
 }
 
-void Sprite3d::setSubdivision(const unsigned int subdivision) const
+void Sprite3d::setSubdivision(const std::size_t subdivision) const
 {
 	m_subdivision = subdivision;
 
 	m_subdividedMeshDensity = m_meshDensity;
 
-	for (unsigned int i{ 0u }; i < m_subdivision; ++i)
-		m_subdividedMeshDensity = m_subdividedMeshDensity * 2 + 1;
+	for (std::size_t i{ 0u }; i < m_subdivision; ++i)
+		m_subdividedMeshDensity = (m_subdividedMeshDensity * 2u) + 1u;
 
 	createPointGrid();
 	m_vertices.resize(getNumberOfVerticesNeededForCurrentSubdividedMeshDensity());
 }
 
-unsigned int Sprite3d::getSubdivision() const
+std::size_t Sprite3d::getSubdivision() const
 {
 	return m_subdivision;
 }
 
-void Sprite3d::setNumberOfPoints(const unsigned int numberOfPoints)
+void Sprite3d::setNumberOfPoints(const std::size_t numberOfPoints)
 {
-	const unsigned int root{ static_cast<unsigned int>(std::sqrt(numberOfPoints)) };
-	if (root > 2)
-		setMeshDensity(root - 2);
+	const std::size_t root{ static_cast<std::size_t>(std::sqrt(numberOfPoints)) };
+	if (root > 2u)
+		setMeshDensity(root - 2u);
 	else
-		setMeshDensity(0);
+		setMeshDensity(0u);
 }
 
-void Sprite3d::setNumberOfQuads(const unsigned int numberOfQuads)
+void Sprite3d::setNumberOfQuads(const std::size_t numberOfQuads)
 {
-	const unsigned int root{ static_cast<unsigned int>(std::sqrt(numberOfQuads)) };
-	if (root > 1)
-		setMeshDensity(root - 1);
+	const std::size_t root{ static_cast<std::size_t>(std::sqrt(numberOfQuads)) };
+	if (root > 1u)
+		setMeshDensity(root - 1u);
 	else
-		setMeshDensity(0);
+		setMeshDensity(0u);
 }
 
 void Sprite3d::minimalMesh()
 {
-	m_meshDensity = 0;
-	setSubdivision(0);
+	m_meshDensity = 0u;
+	setSubdivision(0u);
 }
 
 sf::FloatRect Sprite3d::getLocalBounds() const
@@ -525,7 +526,7 @@ void Sprite3d::updateTransformedPoints() const
 	//m_compactTransformMatrix = { cosYaw, sinYaw, sinPitch * sinYaw, cosPitch, -sinPitch * cosYaw }; // only the five used elements
 	m_compactTransformMatrix = { cosYaw, sinYaw, sinPitch * sinYaw, cosPitch, -sinPitch * cosYaw, -cosPitch * sinYaw, sinPitch, cosPitch * cosYaw }; // all eight used elements
 
-	for (unsigned int v{ 0u }; v < m_points.size(); ++v)
+	for (std::size_t v{ 0u }; v < m_points.size(); ++v)
 	{
 		sf::Vector3f point{ m_points[v] };
 
@@ -533,13 +534,13 @@ void Sprite3d::updateTransformedPoints() const
 		point =
 		{
 			/*
-			m_compactTransformMatrix[0] * point.x + m_compactTransformMatrix[2] * point.y,
-			                                        m_compactTransformMatrix[3] * point.y,
-			m_compactTransformMatrix[1] * point.x + m_compactTransformMatrix[4] * point.y
+			m_compactTransformMatrix[0u] * point.x + m_compactTransformMatrix[2u] * point.y,
+			                                         m_compactTransformMatrix[3u] * point.y,
+			m_compactTransformMatrix[1u] * point.x + m_compactTransformMatrix[4u] * point.y
 			*/
-			m_compactTransformMatrix[0] * point.x + m_compactTransformMatrix[2] * point.y + m_compactTransformMatrix[5] * point.z,
-			                                        m_compactTransformMatrix[3] * point.y + m_compactTransformMatrix[6] * point.z,
-			m_compactTransformMatrix[1] * point.x + m_compactTransformMatrix[4] * point.y + m_compactTransformMatrix[7] * point.z
+			m_compactTransformMatrix[0u] * point.x + m_compactTransformMatrix[2u] * point.y + m_compactTransformMatrix[5u] * point.z,
+			                                         m_compactTransformMatrix[3u] * point.y + m_compactTransformMatrix[6u] * point.z,
+			m_compactTransformMatrix[1u] * point.x + m_compactTransformMatrix[4u] * point.y + m_compactTransformMatrix[7u] * point.z
 		}; // apply rotations
 		point *= m_shallowness / (m_shallowness + point.z); // apply depth
 		point += m_origin;
@@ -563,10 +564,10 @@ void Sprite3d::updateVertices() const
 		currentTextureOffset = m_backTextureOffset;
 
 	// create a mesh (triangle strip) from the points
-	for (unsigned int v{ 0u }; v < m_vertices.size(); ++v)
+	for (std::size_t v{ 0u }; v < m_vertices.size(); ++v)
 	{
-		const unsigned int pointIndex{ getPointIndexForVertexIndex(v) };
-		const unsigned int texturePointIndex{ getPointIndexForVertexIndex(v, m_isBackFacing && m_flipBack) };
+		const std::size_t pointIndex{ getPointIndexForVertexIndex(v) };
+		const std::size_t texturePointIndex{ getPointIndexForVertexIndex(v, m_isBackFacing && m_flipBack) };
 
 		// update vertex
 		m_vertices[v].position = m_transformedPoints[pointIndex];
@@ -578,27 +579,27 @@ void Sprite3d::updateVertices() const
 void Sprite3d::updateGlobalCorners() const
 {
 	m_topLeft = getTransform().transformPoint(m_transformedPoints.front());
-	m_topRight = getTransform().transformPoint(*(m_transformedPoints.begin() + m_subdividedMeshDensity + 1));
-	m_bottomLeft = getTransform().transformPoint(*(m_transformedPoints.end() - m_subdividedMeshDensity - 2)); // end() - (m_subdividedMeshDensity + 1) - 1
+	m_topRight = getTransform().transformPoint(*(m_transformedPoints.begin() + m_subdividedMeshDensity + 1u));
+	m_bottomLeft = getTransform().transformPoint(*(m_transformedPoints.end() - m_subdividedMeshDensity - 2u)); // end() - (m_subdividedMeshDensity + 1u) - 1u
 	m_bottomRight = getTransform().transformPoint(m_transformedPoints.back());
 
 }
 
 void Sprite3d::createPointGrid() const
 {
-	sf::Vector2f leftTop(0.f, 0.f);
+	sf::Vector2f leftTop{ 0.f, 0.f };
 	sf::Vector2f rightBottom(abs(m_size));
 
-	const unsigned int numberOfPointsPerDimension{ m_subdividedMeshDensity + 2u };
+	const std::size_t numberOfPointsPerDimension{ m_subdividedMeshDensity + 2u };
 
 	// create a grid of points
 	m_points.resize(numberOfPointsPerDimension * numberOfPointsPerDimension);
-	for (unsigned int y{ 0u }; y < numberOfPointsPerDimension; ++y)
+	for (std::size_t y{ 0u }; y < numberOfPointsPerDimension; ++y)
 	{
-		for (unsigned int x{ 0u }; x < numberOfPointsPerDimension; ++x)
+		for (std::size_t x{ 0u }; x < numberOfPointsPerDimension; ++x)
 		{
-			m_points[y * numberOfPointsPerDimension + x].x = linearInterpolation(leftTop.x, rightBottom.x, static_cast<float>(x) / (numberOfPointsPerDimension - 1));
-			m_points[y * numberOfPointsPerDimension + x].y = linearInterpolation(leftTop.y, rightBottom.y, static_cast<float>(y) / (numberOfPointsPerDimension - 1));
+			m_points[y * numberOfPointsPerDimension + x].x = linearInterpolation(leftTop.x, rightBottom.x, static_cast<float>(x) / (numberOfPointsPerDimension - 1u));
+			m_points[y * numberOfPointsPerDimension + x].y = linearInterpolation(leftTop.y, rightBottom.y, static_cast<float>(y) / (numberOfPointsPerDimension - 1u));
 			m_points[y * numberOfPointsPerDimension + x].z = 0.f;
 		}
 	}
@@ -606,27 +607,27 @@ void Sprite3d::createPointGrid() const
 	m_transformedPoints.resize(m_points.size());
 }
 
-unsigned int Sprite3d::getPointIndexForVertexIndex(const unsigned int vertexIndex, const bool invertPointX) const
+std::size_t Sprite3d::getPointIndexForVertexIndex(const std::size_t vertexIndex, const bool invertPointX) const
 {
-	const unsigned int numberOfPointsPerDimension{ m_subdividedMeshDensity + 2u };
-	const unsigned int numberOfVerticesPerRow{ numberOfPointsPerDimension * 2u - 1u };
+	const std::size_t numberOfPointsPerDimension{ m_subdividedMeshDensity + 2u };
+	const std::size_t numberOfVerticesPerRow{ (numberOfPointsPerDimension * 2u) - 1u };
 
-	const bool isOddRow{ ((vertexIndex / numberOfVerticesPerRow) % 2) == 1 };
-	unsigned int pointX{ (vertexIndex % numberOfVerticesPerRow) / 2 };
+	const bool isOddRow{ ((vertexIndex / numberOfVerticesPerRow) % 2u) == 1u };
+	std::size_t pointX{ (vertexIndex % numberOfVerticesPerRow) / 2u };
 	if (isOddRow)
-		pointX = numberOfPointsPerDimension - pointX - 1;
+		pointX = numberOfPointsPerDimension - pointX - 1u;
 	if (invertPointX)
-		pointX = numberOfPointsPerDimension - pointX - 1;
-	unsigned int pointY{ (vertexIndex / numberOfVerticesPerRow) + ((vertexIndex % numberOfVerticesPerRow) % 2) };
+		pointX = numberOfPointsPerDimension - pointX - 1u;
+	std::size_t pointY{ (vertexIndex / numberOfVerticesPerRow) + ((vertexIndex % numberOfVerticesPerRow) % 2u) };
 
 	return pointY * numberOfPointsPerDimension + pointX;
 }
 
-unsigned int Sprite3d::getNumberOfVerticesNeededForCurrentSubdividedMeshDensity() const
+std::size_t Sprite3d::getNumberOfVerticesNeededForCurrentSubdividedMeshDensity() const
 {
-	//const unsigned int numberOfPointsPerDimension = m_meshDensity + 2;
-	//const unsigned int numberOfVerticesPerRow = numberOfPointsPerDimension * 2 - 1;
-	//return numberOfVerticesPerRow * (numberOfPointsPerDimension - 1) + 1;
+	//const std::size_t numberOfPointsPerDimension = m_meshDensity + 2u;
+	//const std::size_t numberOfVerticesPerRow = numberOfPointsPerDimension * 2u - 1u;
+	//return numberOfVerticesPerRow * (numberOfPointsPerDimension - 1u) + 1u;
 	/*
 	= v * (p - 1) + 1
 
@@ -650,7 +651,7 @@ unsigned int Sprite3d::getNumberOfVerticesNeededForCurrentSubdividedMeshDensity(
 
 	= m(2m + 5) + 4
 	*/
-	return (m_subdividedMeshDensity * 2 + 5) * m_subdividedMeshDensity + 4;
+	return (((m_subdividedMeshDensity * 2u) + 5u) * m_subdividedMeshDensity) + 4u;
 }
 
 } // namespace selbaward
