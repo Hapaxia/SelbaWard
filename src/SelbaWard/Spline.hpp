@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW Spline v1.7.1
+// SW Spline v1.7.2
 class Spline : public sf::Drawable
 {
 public:
@@ -64,8 +64,8 @@ public:
 		float thickness;
 		sf::Color color;
 		float randomNormalOffsetRange;
-		Vertex() : thickness(1.f), color(sf::Color::White), randomNormalOffsetRange(1.f) {}
-		Vertex(sf::Vector2f newPosition) : position(newPosition), thickness(1.f), color(sf::Color::White), randomNormalOffsetRange(1.f) {}
+		Vertex() : thickness{ 1.f }, color{ sf::Color::White }, randomNormalOffsetRange{ 1.f } {}
+		Vertex(sf::Vector2f newPosition) : position{ newPosition }, thickness{ 1.f }, color{ sf::Color::White }, randomNormalOffsetRange{ 1.f } {}
 	};
 
 	Spline(std::size_t vertexCount = 0u, sf::Vector2f initialPosition = { 0.f, 0.f });
