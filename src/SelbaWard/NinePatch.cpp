@@ -146,16 +146,15 @@ namespace selbaward
 {
 
 NinePatch::NinePatch()
-	: m_primitiveType{ sf::PrimitiveType::TriangleStrip }
-	, m_vertices(22u, sf::Vertex{{ 0.f, 0.f }})
+	: m_vertices(22u, sf::Vertex{})
 	, m_texture{ nullptr }
-	, m_trimmedSize({ 0.f, 0.f })
-	, m_size({ 0.f, 0.f })
-	, m_scaleTopLeft({ 0.f, 0.f })
-	, m_scaleBottomRight({ 0.f, 0.f })
-	, m_contentTopLeft({ 0.f, 0.f })
-	, m_contentBottomRight({ 0.f, 0.f })
-	, m_textureRectangle({ { 0, 0 }, { 3, 3 } })
+	, m_trimmedSize{ 0.f, 0.f }
+	, m_size{ 0.f, 0.f }
+	, m_scaleTopLeft{ 0.f, 0.f }
+	, m_scaleBottomRight{ 0.f, 0.f }
+	, m_contentTopLeft{ 0.f, 0.f }
+	, m_contentBottomRight{ 0.f, 0.f }
+	, m_textureRectangle{ { 0, 0 }, { 3, 3 } }
 {
 }
 
@@ -164,8 +163,7 @@ void NinePatch::setTexture(const sf::Texture& texture, const bool resetSize, con
 	m_texture = &texture;
 	if (resetRect)
 		m_textureRectangle = { { 0, 0 }, sf::Vector2i(m_texture->getSize()) };
-	//m_trimmedSize = sf::Vector2f(m_texture->getSize()) - trimAmount * 2.f;
-	m_trimmedSize = sf::Vector2f{ static_cast<float>(m_textureRectangle.size.x), static_cast<float>(m_textureRectangle.size.y) } -trimAmount * 2.f;
+	m_trimmedSize = sf::Vector2f{ static_cast<float>(m_textureRectangle.size.x), static_cast<float>(m_textureRectangle.size.y) } - trimAmount * 2.f;
 	if (resetSize)
 		m_size = m_trimmedSize;
 	extractScalePositionsAndContentAreaFromTexture(m_texture, m_textureRectangle, m_scaleTopLeft, m_scaleBottomRight, m_contentTopLeft, m_contentBottomRight);
@@ -191,7 +189,7 @@ void NinePatch::resetSize()
 void NinePatch::setTextureRect(const sf::IntRect textureRectangle, const bool resetSize)
 {
 	m_textureRectangle = textureRectangle;
-	m_trimmedSize = sf::Vector2f{ static_cast<float>(m_textureRectangle.size.x), static_cast<float>(m_textureRectangle.size.y) } -trimAmount * 2.f;
+	m_trimmedSize = sf::Vector2f{ static_cast<float>(m_textureRectangle.size.x), static_cast<float>(m_textureRectangle.size.y) } - trimAmount * 2.f;
 	if (resetSize)
 		m_size = m_trimmedSize;
 	if (m_texture != nullptr)
@@ -225,7 +223,7 @@ sf::FloatRect NinePatch::getGlobalBounds() const
 sf::FloatRect NinePatch::getLocalContentArea() const
 {
 	const sf::Vector2f topLeft{ priv_getResultingPositionOfTextureCoord(m_contentTopLeft) };
-	return{ topLeft, priv_getResultingPositionOfTextureCoord(m_contentBottomRight) - topLeft + sf::Vector2f(1.f, 1.f) };
+	return{ topLeft, priv_getResultingPositionOfTextureCoord(m_contentBottomRight) - topLeft + sf::Vector2f{ 1.f, 1.f } };
 }
 
 sf::FloatRect NinePatch::getGlobalContentArea() const
@@ -246,7 +244,7 @@ void NinePatch::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.texture = m_texture;
 	states.transform *= getTransform();
-	target.draw(m_vertices.data(), 22u, m_primitiveType, states);
+	target.draw(m_vertices.data(), 22u, sf::PrimitiveType::TriangleStrip, states);
 }
 
 void NinePatch::priv_updateVertices()
