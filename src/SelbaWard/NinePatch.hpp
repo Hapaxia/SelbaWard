@@ -60,7 +60,6 @@ public:
 	bool isPointInsideTransformedContentArea(sf::Vector2f point) const;
 
 private:
-	const sf::PrimitiveType m_primitiveType;
 	std::vector<sf::Vertex> m_vertices;
 	const sf::Texture* m_texture;
 	sf::Vector2f m_trimmedSize;
