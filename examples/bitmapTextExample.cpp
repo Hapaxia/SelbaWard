@@ -10,8 +10,6 @@
 //  Escape          Quit
 //  Space           Swap text string
 //
-//  Please note that this example makes use of C++11 features
-//
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <SFML/Graphics.hpp>
@@ -23,21 +21,21 @@
 
 int main()
 {
-	sf::Texture fontSheetTexture;
+	sf::Texture fontSheetTexture{};
 	if (!fontSheetTexture.loadFromFile("resources/Selba Ward Bitmap Font 0001.png"))
 	{
 		std::cerr << "Could not load font sheet texture." << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	sw::BitmapFont font;
-	sw::BitmapText text;
+	sw::BitmapFont font{};
+	sw::BitmapText text{};
 
 	try
 	{
 		// standard setup for a font
 		font.setExternalTexture(fontSheetTexture);
-		font.setNumberOfTilesPerRow(16);
+		font.setNumberOfTilesPerRow(16u);
 		font.setDefaultTextureRect({ { 0, 0 }, { 8, 8 } });
 
 		// customisation for the specific font ("Selba Ward Bitmap Font 0001.png")
@@ -49,8 +47,8 @@ int main()
 
 		// starting values
 		//font.setBaselines(-1, 256); // this is the default (for all default texture rects)
-		font.setWidths(4, 256);
-		font.setStartXs(2, 256);
+		font.setWidths(4, 256u);
+		font.setStartXs(2, 256u);
 
 		// alpha numeric
 		font.setBaseline(-4, "gypq");
@@ -94,20 +92,20 @@ int main()
 	const std::string defaultString = "012 Str;:zingy! qu,ic(k)jumps 57";
 	const std::string xxxyyyString = "xxxyyyiijiizzJJIIvvvwwyyxxzzz";
 	text.setString(prefixString + defaultString);
-	text.setPosition({ 20, 50 });
-	text.setScale(2); // scale so we can see the pixels (only accepts unsigned integers - single unsigned int, two unsigned ints, sf::Vector2u)
+	text.setPosition({ 20.f, 50.f });
+	text.setScale(2u); // scale so we can see the pixels (only accepts "std::size_t" - single std::size_t, two std::size_t, sf::Vector2<std::size_t>)
 	//text.Transformable::setScale(3.5f, 9.75f); // it's still possible to scale by fractional amounts by explicitly calling the Transformable method
 	//text.setTracking(2); // base spacing between characters. default is 1
 
-	sf::RenderWindow window(sf::VideoMode({ 550, 100 }), "Bitmap Text example", sf::Style::Default);
-	window.setFramerateLimit(20);
+	sf::RenderWindow window(sf::VideoMode({ 550u, 100u }), "Bitmap Text example", sf::Style::Default);
+	window.setFramerateLimit(20u);
 	while (window.isOpen())
 	{
-		while (const std::optional event = window.pollEvent())
+		while (const std::optional event{ window.pollEvent() })
 		{
 			if (event->is<sf::Event::Closed>())
 				window.close();
-			else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+			else if (const auto keyPressed{ event->getIf<sf::Event::KeyPressed>() })
 			{
 				if (keyPressed->code == sf::Keyboard::Key::Space)
 				{
@@ -118,10 +116,8 @@ int main()
 				}
 			}
 		}
-		window.clear(sf::Color(0, 64, 32));
+		window.clear(sf::Color(0u, 64u, 32u));
 		window.draw(text);
 		window.display();
 	}
-
-	return EXIT_SUCCESS;
 }

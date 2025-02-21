@@ -11,8 +11,6 @@
 //  - + (numpad)    Adjust progress
 //  , . (< >)       Adjust rotation
 //
-//  Please note that this example makes use of C++11 features
-//
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <SFML/Graphics.hpp>
@@ -21,7 +19,7 @@
 
 int main()
 {
-	sf::Texture texture, backgroundTexture;
+	sf::Texture texture{}, backgroundTexture{};
 	if (!texture.loadFromFile("resources/uv map.jpg") ||
 		!backgroundTexture.loadFromFile("resources/BlueYellowGradient.png"))
 	{
@@ -29,7 +27,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "Progress Bar example");
+	sf::RenderWindow window(sf::VideoMode({ 800u, 600u }), "Progress Bar example");
 
 	sw::ProgressBar progressBar({ 300.f, 40.f });
 
@@ -39,14 +37,15 @@ int main()
 
 	// customise visual representation
 	progressBar.setShowBackgroundAndFrame(true);
-	progressBar.setBackgroundColor(sf::Color(128, 128, 128));
-	progressBar.setFrameColor(sf::Color(128, 128, 255, 192));
+	progressBar.setBackgroundColor(sf::Color(128u, 128u, 128u));
+	progressBar.setFrameColor(sf::Color(128u, 128u, 255u, 192u));
 	progressBar.setFrameThickness(2.f);
-	progressBar.setRotation(sf::degrees(-30));
+	progressBar.setRotation(sf::degrees(-30.f));
+	progressBar.setScale({ 2.f, 2.f });
 
 	// set textures
 	progressBar.setTexture(texture);
-	progressBar.setTextureRect({ sf::Vector2i(0, texture.getSize().y / 10), sf::Vector2i(texture.getSize().x, texture.getSize().y / 10 + 1) });
+	progressBar.setTextureRect({ sf::Vector2i(0, texture.getSize().y / 10), sf::Vector2i(texture.getSize().x, (texture.getSize().y / 10) + 1) });
 	progressBar.setBackgroundTexture(backgroundTexture);
 	progressBar.setBackgroundTextureRect({ { 0, 0 }, { 1, static_cast<int>(backgroundTexture.getSize().y) } });
 
@@ -57,27 +56,27 @@ int main()
 	std::vector<sf::CircleShape> markers(3, sf::CircleShape(3.f));
 	for (auto& marker : markers)
 		marker.setOrigin({ marker.getRadius(), marker.getRadius() });
-	markers[0].setFillColor(sf::Color::Red);
-	markers[1].setFillColor(sf::Color::Yellow);
-	markers[2].setFillColor(sf::Color::Green);
+	markers[0u].setFillColor(sf::Color::Red);
+	markers[1u].setFillColor(sf::Color::Yellow);
+	markers[2u].setFillColor(sf::Color::Green);
 
 	sf::Clock clock;
 
 	while (window.isOpen())
 	{
-		while (const std::optional event = window.pollEvent())
+		while (const std::optional event{ window.pollEvent() })
 		{
-			if (event->is<sf::Event::Closed>() || event->is<sf::Event::KeyPressed>() && event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
+			if (event->is<sf::Event::Closed>() || (event->is<sf::Event::KeyPressed>() && (event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)))
 				window.close();
 		}
 
-		markers[0].setPosition(progressBar.getAnchorProgressTop());
-		markers[1].setPosition(progressBar.getAnchorProgressCenter());
-		markers[2].setPosition(progressBar.getAnchorProgressBottom());
+		markers[0u].setPosition(progressBar.getAnchorProgressTop());
+		markers[1u].setPosition(progressBar.getAnchorProgressCenter());
+		markers[2u].setPosition(progressBar.getAnchorProgressBottom());
 
 		float frameTime{ clock.restart().asSeconds() };
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Add))				        // [+] (number pad)     increase progress
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Add))				         // [+] (number pad)     increase progress
 			progressBar.setRatio(progressBar.getRatio() + frameTime * 0.3f);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Subtract))                 // [-] (number pad)     decrease progress
 			progressBar.setRatio(progressBar.getRatio() - frameTime * 0.3f);
@@ -92,7 +91,4 @@ int main()
 			window.draw(marker);
 		window.display();
 	}
-
-
-	return EXIT_SUCCESS;
 }

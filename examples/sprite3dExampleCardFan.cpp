@@ -13,8 +13,6 @@
 //  [               Reduce opacity
 //  ]               Increase opacity
 //
-//  Please note that this example makes use of C++11 features
-//
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <SFML/Graphics.hpp>
@@ -22,48 +20,53 @@
 #include <iostream>
 #include <cmath>
 
-inline float ease(float start, float end, float alpha)
+namespace
 {
-	const float easedAlpha{ alpha * alpha * (3 - 2 * alpha) };
-	return (start * (1 - easedAlpha) + end * easedAlpha);
+
+inline float ease(const float start, const float end, const float alpha)
+{
+	const float easedAlpha{ alpha * alpha * (3.f - 2.f * alpha) };
+	return (start * (1.f - easedAlpha) + end * easedAlpha);
 }
+
+} // namespace
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode({ 450, 250 }), "Sprite3d - Card Fan Animation", sf::Style::Default);
-	window.setFramerateLimit(60);
+	sf::RenderWindow window(sf::VideoMode({ 450u, 250u }), "Sprite3d - Card Fan Animation");
+	window.setFramerateLimit(60u);
 
-	std::vector<sf::Texture> cardTextures(7); // 6 faces and 1 back
-	if (!cardTextures[0].loadFromFile("resources/Card Back - SFML.png") ||
-		!cardTextures[1].loadFromFile("resources/Card Face - Hearts H.png") ||
-		!cardTextures[2].loadFromFile("resources/Card Face - Spades A.png") ||
-		!cardTextures[3].loadFromFile("resources/Card Face - Diamonds P.png") ||
-		!cardTextures[4].loadFromFile("resources/Card Face - Hearts A.png") ||
-		!cardTextures[5].loadFromFile("resources/Card Face - Clubs X.png") ||
-		!cardTextures[6].loadFromFile("resources/Card Face - SFML.png"))
+	std::vector<sf::Texture> cardTextures(7u); // 6 faces and 1 back
+	if (!cardTextures[0u].loadFromFile("resources/Card Back - SFML.png") ||
+		!cardTextures[1u].loadFromFile("resources/Card Face - Hearts H.png") ||
+		!cardTextures[2u].loadFromFile("resources/Card Face - Spades A.png") ||
+		!cardTextures[3u].loadFromFile("resources/Card Face - Diamonds P.png") ||
+		!cardTextures[4u].loadFromFile("resources/Card Face - Hearts A.png") ||
+		!cardTextures[5u].loadFromFile("resources/Card Face - Clubs X.png") ||
+		!cardTextures[6u].loadFromFile("resources/Card Face - SFML.png"))
 	{
 		std::cerr << "Failed to load textures." << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	std::vector<sw::Sprite3d> cards;
-	cards.push_back(sw::Sprite3d(cardTextures[1], cardTextures[0]));
-	cards.push_back(sw::Sprite3d(cardTextures[2], cardTextures[0]));
-	cards.push_back(sw::Sprite3d(cardTextures[3], cardTextures[0]));
-	cards.push_back(sw::Sprite3d(cardTextures[4], cardTextures[0]));
-	cards.push_back(sw::Sprite3d(cardTextures[5], cardTextures[0]));
-	cards.push_back(sw::Sprite3d(cardTextures[6], cardTextures[0]));
+	std::vector<sw::Sprite3d> cards{};
+	cards.push_back(sw::Sprite3d(cardTextures[1u], cardTextures[0u]));
+	cards.push_back(sw::Sprite3d(cardTextures[2u], cardTextures[0u]));
+	cards.push_back(sw::Sprite3d(cardTextures[3u], cardTextures[0u]));
+	cards.push_back(sw::Sprite3d(cardTextures[4u], cardTextures[0u]));
+	cards.push_back(sw::Sprite3d(cardTextures[5u], cardTextures[0u]));
+	cards.push_back(sw::Sprite3d(cardTextures[6u], cardTextures[0u]));
 
 	for (auto& card : cards)
 	{
 		card.setFlipBack();
 		card.setDepth(30.f);
 		card.setColor(sf::Color::White);
-		card.setSubdivision(2);
+		card.setSubdivision(2u);
 		card.setOrigin({ card.getLocalBounds().size.x, card.getLocalBounds().size.y / 2.f }); // centre-right (left of back, which you see first)
 		card.setYaw(180.f);
 	}
-	for (unsigned int c{ 0 }; c < cards.size(); ++c)
+	for (std::size_t c{ 0u }; c < cards.size(); ++c)
 		cards[c].setPosition({ 150.f + 30.f * c, 125.f });
 
 	// adjustable opacity
@@ -71,18 +74,48 @@ int main()
 	bool hasOpacityChanged{ true };
 
 	// clock and pause
-	sf::Clock clock;
+	sf::Clock clock{};
 	bool isPaused{ true };
 	float time{ 0.f };
 
 	while (window.isOpen())
 	{
-		while (const std::optional event = window.pollEvent())
+		while (const std::optional event{ window.pollEvent() })
 		{
-			if (event->is<sf::Event::Closed>() || event->is<sf::Event::KeyPressed>() && event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
+			if (event->is<sf::Event::Closed>())
 				window.close();
-			else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+			else if (const auto keyPressed{ event->getIf<sf::Event::KeyPressed>() })
 			{
+				switch (keyPressed->code)
+				{
+				case sf::Keyboard::Key::Escape:
+					window.close();
+					break;
+
+				// pause/unpause
+				case sf::Keyboard::Key::Space:
+					isPaused = !isPaused;
+					clock.restart();
+					break;
+
+				// reset time
+				case sf::Keyboard::Key::Backspace:
+					time = 0.f;
+					clock.restart();
+					break;
+
+				// adjust opacity
+				case sf::Keyboard::Key::LBracket:
+					opacity -= 0.05f;
+					hasOpacityChanged = true;
+					break;
+				case sf::Keyboard::Key::RBracket:
+					opacity += 0.05f;
+					hasOpacityChanged = true;
+					break;
+				}
+
+				/*
 				// pause/unpause
 				if (keyPressed->code == sf::Keyboard::Key::Space)
 				{
@@ -108,6 +141,7 @@ int main()
 					opacity += 0.05f;
 					hasOpacityChanged = true;
 				}
+				*/
 			}
 		}
 
@@ -121,13 +155,13 @@ int main()
 		if (hasOpacityChanged)
 		{
 			for (auto& card : cards)
-				card.setColor(sf::Color(255, 255, 255, static_cast<unsigned char>(opacity * 255)));
-			std::cout << "Opacity is: " << std::round(opacity * 100) << "%" << std::endl;
+				card.setColor(sf::Color(255u, 255u, 255u, static_cast<unsigned char>(opacity * 255u)));
+			std::cout << "Opacity is: " << std::round(opacity * 100.f) << "%" << std::endl;
 			hasOpacityChanged = false;
 		}
 
 		// update time
-		float frameTime = 1.f;
+		float frameTime{ 1.f };
 		if (!isPaused)
 		{
 			frameTime = clock.restart().asSeconds();
@@ -136,7 +170,7 @@ int main()
 
 		// update cards' angles
 		const float controlAngle{ time * 100.f };
-		for (unsigned int c{ 0 }; c < cards.size(); ++c)
+		for (std::size_t c{ 0 }; c < cards.size(); ++c)
 		{
 			const float angleDifference{ 7.1f }; // angle difference between each pair of cards. this value was chosen to make the cards' edges touch
 			float currentAngle{ 270.f - controlAngle - (angleDifference * c) };
@@ -150,13 +184,13 @@ int main()
 
 		// update display
 		window.clear();
-		for (std::vector<sw::Sprite3d>::iterator begin = cards.begin(), end = cards.end(), it = begin; it != end; ++it)
+		for (std::vector<sw::Sprite3d>::iterator begin{ cards.begin() }, end{ cards.end() }, it{ begin }; it != end; ++it)
 		{
 			// forwards iteration for cards face up
 			if (it->getYaw() < 90.f)
 				window.draw(*it);
 		}
-		for (std::vector<sw::Sprite3d>::reverse_iterator begin = cards.rbegin(), end = cards.rend(), it = begin; it != end; ++it)
+		for (std::vector<sw::Sprite3d>::reverse_iterator begin{ cards.rbegin() }, end{ cards.rend() }, it{ begin }; it != end; ++it)
 		{
 			// backwards iteration for cards face down
 			if (it->getYaw() > 90.f)
@@ -164,6 +198,4 @@ int main()
 		}
 		window.display();
 	}
-
-	return EXIT_SUCCESS;
 }

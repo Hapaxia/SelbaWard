@@ -16,10 +16,6 @@
 //  Down                Assigns "down" direction to all TexCrop transitions
 //  Up                  Assigns "up" direction to all TexCrop transitions
 //
-//
-//  Please note that this example makes use of C++17 features
-//    and also requires the SFML library (http://www.sfml-dev.org)
-//
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <SFML/Graphics.hpp>

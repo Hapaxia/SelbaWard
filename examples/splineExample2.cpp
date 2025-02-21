@@ -20,7 +20,7 @@
 //  Slash key (/)       Toggle random normal offsets (lightning effect)
 //  [ key               Cycle start cap types
 //  ] key               Cycle end cap types
-//  Return key          Cycle corner types
+//  Enter/Return key    Cycle corner types
 //
 //
 //  Points primitive is only used when the Spline is not thick.
@@ -29,9 +29,6 @@
 //  Low frame rate is intentional so that fewer points are added to show how bezier interpolation can create curves from very few points
 //  The majority of this code is just processing the key controls.
 //
-//  Please note that this example makes use of C++11 features
-//    and also requires the SFML library (http://www.sfml-dev.org)
-//
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <SFML/Graphics.hpp>
@@ -39,8 +36,8 @@
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "Selba Ward - Spline example 2", sf::Style::Default);
-	window.setFramerateLimit(15);
+	sf::RenderWindow window(sf::VideoMode({ 800u, 600u }), "Selba Ward - Spline example 2");
+	window.setFramerateLimit(15u);
 
 	const unsigned int numberOfVertices{ 50u }; // number of (control) vertices in spline (one vertex per frame)
 	sw::Spline spline(numberOfVertices);
@@ -50,11 +47,11 @@ int main()
 
 	while (window.isOpen())
 	{
-		while (const std::optional event = window.pollEvent())
+		while (const std::optional event{ window.pollEvent() })
 		{
 			if (event->is<sf::Event::Closed>())
 				window.close();
-			else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+			else if (const auto keyPressed{ event->getIf<sf::Event::KeyPressed>() })
 				switch (keyPressed->code)
 				{
 				case sf::Keyboard::Key::Escape:
@@ -81,8 +78,9 @@ int main()
 					spline.setClosed(!spline.getClosed());
 					break;
 				case sf::Keyboard::Key::Slash:
-					// toggle random normal offsets (lightning effect)
+					// toggle random normal offsets (lightning effect) - activates when in use
 					spline.setRandomNormalOffsetRange(20.f - spline.getRandomNormalOffsetRange());
+					spline.setRandomNormalOffsetsActivated(spline.getRandomNormalOffsetRange() > 10.f);
 					break;
 				case sf::Keyboard::Key::LBracket:
 					// cycle start cap type
@@ -130,18 +128,18 @@ int main()
 					}
 					break;
 				}
-			else if (const auto* mouseWheel = event->getIf<sf::Event::MouseWheelScrolled>())
+			else if (const auto mouseWheel{ event->getIf<sf::Event::MouseWheelScrolled>() })
 			{
 				// mouse wheel changes thickness
 				const float thickness{ spline.getThickness() + mouseWheel->delta };
-				spline.setThickness((thickness < 0) ? 0.f : thickness);
+				spline.setThickness((thickness < 0.f) ? 0.f : thickness);
 			}
 		}
 
 		if (!isPaused)
 		{
 			const sf::Vector2f mousePosition{ window.mapPixelToCoords(sf::Mouse::getPosition(window)) };
-			spline.removeVertex(0);
+			spline.removeVertex(0u);
 			spline.addVertex(mousePosition);
 		}
 
@@ -152,6 +150,4 @@ int main()
 		window.draw(spline);
 		window.display();
 	}
-
-	return EXIT_SUCCESS;
 }

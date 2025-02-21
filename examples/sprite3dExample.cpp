@@ -16,13 +16,11 @@
 //  Tab             Toggle textures
 //  Return          Toggle Dynamic Subdivision (default range is 1 to 3)
 //  B               Toggle back face correction (flip)
-//  F8              Resets mesh to minimal (two triangles) and turns off Dynamic Subdivision
-//  F9              Toggle visibility of Sprite3d's bounds
-//  F10             Toggle visibility of standard sprite's bounds
-//  F11             Toggle visibility of Sprite3d
-//  F12             Toggle visibility of standard sprite
-//
-//  Please note that this example makes use of C++11 features
+//  F4              Resets mesh to minimal (two triangles) and turns off Dynamic Subdivision
+//  F5              Toggle visibility of Sprite3d's bounds
+//  F6              Toggle visibility of standard sprite's bounds
+//  F7              Toggle visibility of Sprite3d
+//  F8              Toggle visibility of standard sprite
 //
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -35,11 +33,11 @@
 int main()
 {
 	// set up window
-	sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "Sprite3d", sf::Style::Default);
+	sf::RenderWindow window(sf::VideoMode({ 800u, 600u }), "Sprite3d");
 	//window.setVerticalSyncEnabled(true);
 
 	// load resources (textures and font)
-	sf::Texture texture, frontTexture, backTexture;
+	sf::Texture texture{}, frontTexture{}, backTexture{};
 	if (!texture.loadFromFile("resources/uv map.jpg") ||
 		!frontTexture.loadFromFile("resources/uv map front.jpg") ||
 		!backTexture.loadFromFile("resources/uv map back.jpg"))
@@ -52,20 +50,20 @@ int main()
 		std::cerr << "Error loading textures." << std::endl;
 		return EXIT_FAILURE; // textures are required for this example. it's pointless carrying on without them
 	}
-	sf::Font font;
+	sf::Font font{};
 	if (!font.openFromFile("resources/arial.ttf"))
 		std::cerr << "Error loading font." << std::endl; // no need to exit if font fails; it will just not show any text
 
 	// text headers
-	sf::Text sprite3dText(font, "Sprite3d", 48);
-	sf::Text spriteText(font, "Sprite", 48);
+	sf::Text sprite3dText(font, "Sprite3d", 48u);
+	sf::Text spriteText(font, "Sprite", 48u);
 	sprite3dText.setOrigin({ sprite3dText.getLocalBounds().position.x + sprite3dText.getLocalBounds().size.x / 2.f, 0.f });
 	spriteText.setOrigin({ spriteText.getLocalBounds().position.x + spriteText.getLocalBounds().size.x / 2.f, 0.f });
 	sprite3dText.setPosition({ window.getSize().x * 0.25f, 0.f });
 	spriteText.setPosition({ window.getSize().x * 0.75f, 0.f });
 
 	// text feedback
-	sf::Text feedbackText(font, "FPS:\nVertices:\nSubdivision Level:\nSubdivided Mesh Density:\nMesh Density:\nDynamic Subdivision enabled:\nMost Extreme Angle:\nDepth:", 16);
+	sf::Text feedbackText(font, "FPS:\nVertices:\nSubdivision Level:\nSubdivided Mesh Density:\nMesh Density:\nDynamic Subdivision enabled:\nMost Extreme Angle:\nDepth:", 16u);
 	feedbackText.setOrigin({ feedbackText.getLocalBounds().position.x, feedbackText.getLocalBounds().position.y + feedbackText.getLocalBounds().size.y });
 	feedbackText.setPosition({ 2.f, window.getSize().y - 1.f });
 
@@ -74,10 +72,10 @@ int main()
 	sprite3d.setOrigin(sprite3d.getLocalBounds().size / 2.f);
 	sprite3d.setPosition({ window.getSize().x * 0.25f, window.getSize().y / 2.f });
 	//sprite3d.setFlipBack();
-	//sprite3d.setMeshDensity(3); // = 5x5 points = 4x4 quads
-	//sprite3d.setNumberOfPoints(25); // 5x5
-	//sprite3d.setNumberOfQuads(16); // 4x4
-	//sprite3d.setDynamicSubdivisionRange(3, 0); // max: 32x32 quads (4 subdivided 3 times is 32), min: 4x4 quads (zero subdivisions)
+	//sprite3d.setMeshDensity(3u); // = 5x5 points = 4x4 quads
+	//sprite3d.setNumberOfPoints(25u); // 5x5
+	//sprite3d.setNumberOfQuads(16u); // 4x4
+	//sprite3d.setDynamicSubdivisionRange(3u, 0u); // max: 32x32 quads (4 subdivided 3 times is 32), min: 4x4 quads (zero subdivisions)
 
 	// sprite
 	//sf::Sprite sprite(sprite3d.getSprite());
@@ -86,14 +84,14 @@ int main()
 	sprite.setPosition({ window.getSize().x * 0.75f, window.getSize().y / 2.f });
 
 	// bounds rectangles
-	sf::RectangleShape boundsSprite3d;
+	sf::RectangleShape boundsSprite3d{};
 	boundsSprite3d.setFillColor(sf::Color::Transparent);
 	boundsSprite3d.setOutlineColor(sf::Color::Red);
 	boundsSprite3d.setOutlineThickness(1.f);
-	sf::RectangleShape boundsSprite = boundsSprite3d;
+	sf::RectangleShape boundsSprite{ boundsSprite3d };
 
 	// clock and pause
-	sf::Clock clock;
+	sf::Clock clock{};
 	bool isPaused{ true };
 	float time{ 0.f };
 
@@ -105,80 +103,91 @@ int main()
 
 	while (window.isOpen())
 	{
-		while (const std::optional event = window.pollEvent())
+		while (const std::optional event{ window.pollEvent() })
 		{
-			if (event->is<sf::Event::Closed>() || event->is<sf::Event::KeyPressed>() && event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
+			//if (event->is<sf::Event::Closed>() || event->is<sf::Event::KeyPressed>() && event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
+			if (event->is<sf::Event::Closed>())
 				window.close();
-			else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+			else if (const auto keyPressed{ event->getIf<sf::Event::KeyPressed>() })
 			{
-				// pause/unpause
-				if (keyPressed->code == sf::Keyboard::Key::Space)
+				switch (keyPressed->code)
 				{
+				case sf::Keyboard::Key::Escape:
+					window.close();
+					break;
+
+				// pause/unpause
+				case sf::Keyboard::Key::Space:
 					isPaused = !isPaused;
 					clock.restart();
-				}
+					break;
 
 				// reset time
-				else if (keyPressed->code == sf::Keyboard::Key::Backspace)
-				{
+				case sf::Keyboard::Key::Backspace:
 					time = 0.f;
 					clock.restart();
-				}
+					break;
 
 				// control depth
-				else if (keyPressed->code == sf::Keyboard::Key::Equal)
+				case sf::Keyboard::Key::Equal:
 					sprite3d.setDepth(sprite3d.getDepth() + 1.f);
-				else if (keyPressed->code == sf::Keyboard::Key::Hyphen)
+					break;
+				case sf::Keyboard::Key::Hyphen:
 					sprite3d.setDepth(sprite3d.getDepth() - 1.f);
+					break;
 
 				// control mesh density
-				else if (keyPressed->code == sf::Keyboard::Key::RBracket)
-					sprite3d.setMeshDensity(sprite3d.getMeshDensity() + 1);
-				else if (keyPressed->code == sf::Keyboard::Key::LBracket)
-				{
-					if (sprite3d.getMeshDensity() > 0)
-						sprite3d.setMeshDensity(sprite3d.getMeshDensity() - 1);
-				}
+				case sf::Keyboard::Key::RBracket:
+					sprite3d.setMeshDensity(sprite3d.getMeshDensity() + 1u);
+					break;
+				case sf::Keyboard::Key::LBracket:
+					if (sprite3d.getMeshDensity() > 0u)
+						sprite3d.setMeshDensity(sprite3d.getMeshDensity() - 1u);
+					break;
 
 				// control subdivision level
-				else if (keyPressed->code == sf::Keyboard::Key::Period)
-					sprite3d.setSubdivision(sprite3d.getSubdivision() + 1);
-				else if (keyPressed->code == sf::Keyboard::Key::Comma)
-				{
-					if (sprite3d.getSubdivision() > 0)
-						sprite3d.setSubdivision(sprite3d.getSubdivision() - 1);
-				}
+				case sf::Keyboard::Key::Period:
+					sprite3d.setSubdivision(sprite3d.getSubdivision() + 1u);
+					break;
+				case sf::Keyboard::Key::Comma:
+					if (sprite3d.getSubdivision() > 0u)
+						sprite3d.setSubdivision(sprite3d.getSubdivision() - 1u);
+					break;
 
 				// toggle dynamic subdivision
-				else if (keyPressed->code == sf::Keyboard::Key::Enter)
+				case sf::Keyboard::Key::Enter:
 					sprite3d.setDynamicSubdivision(!sprite3d.getDynamicSubdivision());
+					break;
 
 				// toggle back face is flipped state
-				else if (keyPressed->code == sf::Keyboard::Key::B)
+				case sf::Keyboard::Key::B:
 					sprite3d.setFlipBack(!sprite3d.getFlipBack());
+					break;
 
 				// toggle bounds rectangles
-				else if (keyPressed->code == sf::Keyboard::Key::F9)
+				case sf::Keyboard::Key::F5:
 					isVisible.sprite3dBounds = !isVisible.sprite3dBounds;
-				else if (keyPressed->code == sf::Keyboard::Key::F10)
+					break;
+				case sf::Keyboard::Key::F6:
 					isVisible.spriteBounds = !isVisible.spriteBounds;
+					break;
 
 				// toggle whether or not to draw the sprites
-				else if (keyPressed->code == sf::Keyboard::Key::F11)
+				case sf::Keyboard::Key::F7:
 					isVisible.sprite3d = !isVisible.sprite3d;
-				else if (keyPressed->code == sf::Keyboard::Key::F12)
+					break;
+				case sf::Keyboard::Key::F8:
 					isVisible.sprite = !isVisible.sprite;
+					break;
 
 				// reset the mesh to minimal (also turns off dynamic subdivision)
-				else if (keyPressed->code == sf::Keyboard::Key::F8)
-				{
+				case sf::Keyboard::Key::F4:
 					sprite3d.setDynamicSubdivision(false);
 					sprite3d.minimalMesh();
-				}
+					break;
 
 				// toggle texture usage
-				else if (keyPressed->code == sf::Keyboard::Key::Tab)
-				{
+				case sf::Keyboard::Key::Tab:
 					if (sprite3d.getTexture() != &frontTexture)
 					{
 						sprite3d.setTexture(frontTexture);
@@ -189,12 +198,13 @@ int main()
 						sprite3d.setTexture();
 						sprite3d.setBackTexture();
 					}
+					break;
 				}
 			}
 		}
 
 		// update time
-		float frameTime = 1.f;
+		float frameTime{ 1.f };
 		if (!isPaused)
 		{
 			frameTime = clock.restart().asSeconds();
@@ -205,7 +215,7 @@ int main()
 		sprite3d.setRotation({ time * 97.f, time * 42.f, time * 51.f });
 
 		//sprite.setScale({ std::cos(time * 97.f * 3.141592653f / 180.f), std::cos(time * 42.f * 3.141592653f / 180.f) });
-		sprite.setScale({ std::cos(time * 42 * 3.141592653f / 180.f), std::cos(time * 97 * 3.141592653f / 180.f) });
+		sprite.setScale({ std::cos(time * 42.f * 3.141592653f / 180.f), std::cos(time * 97.f * 3.141592653f / 180.f) });
 		sprite.setRotation(sf::degrees(time * 51.f));
 		// other sprite3d rotations for testing
 		//sprite3d.setRotation(time * 60.f);
@@ -222,22 +232,27 @@ int main()
 		boundsSprite.setSize(sprite.getGlobalBounds().size);
 
 		// update depth text
-		unsigned int subdividedMeshDensity = sprite3d.getMeshDensity();
-		for (unsigned int i = 0; i < sprite3d.getSubdivision(); ++i)
-			subdividedMeshDensity = subdividedMeshDensity * 2 + 1;
-		unsigned int numberOfVerticesInSubdividedMesh = (subdividedMeshDensity * 2 + 5) * subdividedMeshDensity + 4;
+		std::size_t subdividedMeshDensity{ sprite3d.getMeshDensity() };
+		for (std::size_t i{ 0u }; i < sprite3d.getSubdivision(); ++i)
+			subdividedMeshDensity = (subdividedMeshDensity * 2u) + 1u;
+		std::size_t numberOfVerticesInSubdividedMesh{ (((subdividedMeshDensity * 2u) + 5u) * subdividedMeshDensity) + 4u };
 		feedbackText.setString(
 			"FPS: " + std::to_string(static_cast<unsigned int>(1.f / frameTime)) +
-			"\nVertices: " + std::to_string(numberOfVerticesInSubdividedMesh) + " (" + std::to_string(numberOfVerticesInSubdividedMesh - 2) + " triangles)" +
+			"\nVertices: " + std::to_string(numberOfVerticesInSubdividedMesh) +
+				" (" + std::to_string(numberOfVerticesInSubdividedMesh - 2u) + " triangles)" +
 			"\nSubdivision Level: " + std::to_string(sprite3d.getSubdivision()) +
-			"\nSubdivided Mesh Density: " + std::to_string(sprite3d.getSubdividedMeshDensity()) + " (" + std::to_string(sprite3d.getSubdividedMeshDensity() + 2) + "x" + std::to_string(sprite3d.getSubdividedMeshDensity() + 2) + " = " + std::to_string((sprite3d.getSubdividedMeshDensity() + 2) * (sprite3d.getSubdividedMeshDensity() + 2)) + " points)" +
-			"\nMesh Density: " + std::to_string(sprite3d.getMeshDensity()) + " (" + std::to_string(sprite3d.getMeshDensity() + 2) + "x" + std::to_string(sprite3d.getMeshDensity() + 2) + " = " + std::to_string((sprite3d.getMeshDensity() + 2) * (sprite3d.getMeshDensity() + 2)) + " points)" +
+			"\nSubdivided Mesh Density: " + std::to_string(sprite3d.getSubdividedMeshDensity()) +
+				" (" + std::to_string(sprite3d.getSubdividedMeshDensity() + 2u) + "x" + std::to_string(sprite3d.getSubdividedMeshDensity() + 2u) +
+				" = " + std::to_string((sprite3d.getSubdividedMeshDensity() + 2u) * (sprite3d.getSubdividedMeshDensity() + 2u)) + " points)" +
+			"\nMesh Density: " + std::to_string(sprite3d.getMeshDensity()) +
+				" (" + std::to_string(sprite3d.getMeshDensity() + 2u) + "x" + std::to_string(sprite3d.getMeshDensity() + 2u) +
+				" = " + std::to_string((sprite3d.getMeshDensity() + 2u) * (sprite3d.getMeshDensity() + 2u)) + " points)" +
 			"\nDynamic Subdivision enabled: " + (sprite3d.getDynamicSubdivision() ? "true" : "false") +
 			"\nMost Extreme Angle: " + std::to_string(sprite3d.getMostExtremeAngle()) +
 			"\nDepth: " + std::to_string(sprite3d.getDepth()));
 
 		// update display
-		window.clear(sf::Color(64, 64, 64));
+		window.clear(sf::Color(64u, 64u, 64u));
 		if (isVisible.sprite)
 			window.draw(sprite);
 		if (isVisible.sprite3d)
@@ -251,6 +266,4 @@ int main()
 		window.draw(feedbackText);
 		window.display();
 	}
-
-	return EXIT_SUCCESS;
 }
