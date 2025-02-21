@@ -48,28 +48,23 @@
 #include "Common.hpp"
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/System/Angle.hpp>
 
 namespace selbaward
 {
 
-// SpinningCard v1.2.4
+// SpinningCard v1.3.0
 class SpinningCard : public sf::Drawable, public sf::Transformable
 {
 public:
 	// pass the sprite that it mimics when constructing the card
 	SpinningCard(const sf::Sprite& sprite);
 
-	// rotate around the y axis (in degrees)
-	void spin(float angleInDegrees);
+	// rotate around the y axis
+	void spin(sf::Angle angle);
 
-	// rotate around the y axis (in radians)
-	void spinRadians(float angleInRadians);
-
-	// rotate around the x axis (in degrees)
-	void spinVertically(float angleInDegrees);
-
-	// rotate around the x axis (in radians)
-	void spinVerticallyRadians(float angleInRadians);
+	// rotate around the x axis
+	void spinVertically(sf::Angle angle);
 
 	// set depth of fake perspective
 	void setDepth(float depth);
@@ -79,7 +74,6 @@ private:
 	sf::VertexArray m_vertices;
 	const sf::Texture* m_pTexture;
 	sf::FloatRect m_initial;
-	const float m_pi;
 	float m_depth;
 };
 
