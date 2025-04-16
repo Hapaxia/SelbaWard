@@ -222,7 +222,7 @@ void Ring::priv_updateVertices()
 		const bool isInnerPoint{ (index % 2u != 0u) };
 		it->position = { m_radius + std::sin(angle) * m_radius * (isInnerPoint ? m_hole : 1.f), m_radius - std::cos(angle) * m_radius * (isInnerPoint ? m_hole : 1.f), };
 		it->color = m_color;
-		const sf::Vector2f scaledPosition{ it->position / (m_radius * 2.f) };
+		const sf::Vector2f scaledPosition{ (m_radius == 0.f) ? sf::Vector2f{} : it->position / (m_radius * 2.f) };
 		it->texCoords = { scaledPosition.x * m_textureRect.size.x + m_textureRect.position.x, scaledPosition.y * m_textureRect.size.y + m_textureRect.position.y };;
 	}
 }
