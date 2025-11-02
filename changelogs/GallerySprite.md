@@ -1,6 +1,17 @@
 # Gallery Sprite Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2025-11-02
+### Added
+- Ability to remove all exhibits
+- Ability to set number of exhibits
+
+## [1.1.3] - 2025-01-23
+### Changed
+- Updated to use SFML 3
+### Fixed
+- Updated code style
+
 ## [1.1.2] - 2018-11-07
 ### Fixed
 - Member initialisation updated and ordered
@@ -19,6 +30,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Full version
 
+[1.2.0]: https://github.com/Hapaxia/SelbaWard/commit/073a55aea9a27ee362552919e4fdde39b6ece0d5
+[1.1.3]: https://github.com/Hapaxia/SelbaWard/commit/d38279a0a5f060295de4456daf04fa12e8cf650e
 [1.1.2]: https://github.com/Hapaxia/SelbaWard/commit/abb44f6c8208394680670504d3a111201145b37a
 [1.1.1]: https://github.com/Hapaxia/SelbaWard/commit/24b8fe4a8ea286ac9b4423ddedf884371ea5ee4b
 [1.1.0]: https://github.com/Hapaxia/SelbaWard/commit/bd407af62d1f669cea4de9ffdcc2cbd1274d7423
