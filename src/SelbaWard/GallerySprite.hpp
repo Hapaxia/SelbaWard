@@ -39,7 +39,7 @@
 namespace selbaward
 {
 
-// Gallery Sprite v1.1.3
+// Gallery Sprite v1.2.0
 class GallerySprite : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -66,6 +66,8 @@ public:
 	void set(std::size_t exhibitNumber);
 	std::size_t get() const;
 
+	void removeExhibits(); // removes all exhibits
+	void setNumberOfExhibits(std::size_t numberOfExhibits);
 	std::size_t addExhibit(const Exhibit& exhibit);
 	void setExhibit(std::size_t exhibitNumber, const Exhibit& exhibit);
 	Exhibit getExhibit(std::size_t exhibitNumber) const;

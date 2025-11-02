@@ -125,6 +125,21 @@ std::size_t GallerySprite::get() const
 	return m_currentExhibit;
 }
 
+void GallerySprite::removeExhibits()
+{
+	m_exhibits.clear();
+	m_currentExhibit = 0u;
+	priv_updateVertices();
+}
+
+void GallerySprite::setNumberOfExhibits(const std::size_t numberOfExhibits)
+{
+	m_exhibits.resize(numberOfExhibits);
+	if (m_currentExhibit >= numberOfExhibits)
+		m_currentExhibit = numberOfExhibits;
+	priv_updateVertices();
+}
+
 std::size_t GallerySprite::addExhibit(const Exhibit& exhibit)
 {
 	m_exhibits.emplace_back(exhibit);
