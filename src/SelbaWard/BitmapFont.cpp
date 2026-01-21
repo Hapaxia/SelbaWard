@@ -45,9 +45,8 @@ BitmapFont::BitmapFont()
 	: m_throwExceptions{ true }
 	, m_useExternalTexture{ false }
 	, m_texture{}
-	, m_mExternalTexture{ nullptr }
+	, m_pExternalTexture{ nullptr }
 	, m_numberOfTilesPerRow{ 1u }
-	//, m_tileSize({ 0u, 0u })
 	, m_defaultTextureRect{}
 	, m_kernings{}
 	, m_glyphs(256u) // create 256 glyphs to cover the base ascii set
@@ -57,7 +56,7 @@ BitmapFont::BitmapFont()
 
 void BitmapFont::setExternalTexture(const sf::Texture& externalTexture)
 {
-	m_mExternalTexture = &externalTexture;
+	m_pExternalTexture = &externalTexture;
 	m_useExternalTexture = true;
 }
 
@@ -88,7 +87,7 @@ void BitmapFont::setThrowExceptions(const bool throwExceptions)
 	m_throwExceptions = throwExceptions;
 }
 
-const bool BitmapFont::getThrowExceptions() const
+bool BitmapFont::getThrowExceptions() const
 {
 	return m_throwExceptions;
 }
@@ -259,19 +258,19 @@ void BitmapFont::setStartXs(const std::vector<int>& startXs, const std::size_t i
 
 void BitmapFont::setBaseline(const int baseline, const std::string& glyphs)
 {
-	for (auto& glyph : glyphs)
+	for (const auto& glyph : glyphs)
 		setBaseline(baseline, glyph);
 }
 
 void BitmapFont::setWidth(const int width, const std::string& glyphs)
 {
-	for (auto& glyph : glyphs)
+	for (const auto& glyph : glyphs)
 		setWidth(width, glyph);
 }
 
 void BitmapFont::setStartX(const int startX, const std::string& glyphs)
 {
-	for (auto& glyph : glyphs)
+	for (const auto& glyph : glyphs)
 		setStartX(startX, glyph);
 }
 
@@ -286,7 +285,7 @@ void BitmapFont::setKerning(const int kerning, const std::string& glyphs)
 
 	for (std::size_t i{ 0u }; i < glyphs.size(); i += 2u)
 	{
-		std::string glyphPair{ glyphs.substr(i, 2u) };
+		const std::string glyphPair{ glyphs.substr(i, 2u) };
 		if (glyphPair.size() != 2u)
 		{
 			if (m_throwExceptions)
@@ -299,19 +298,19 @@ void BitmapFont::setKerning(const int kerning, const std::string& glyphs)
 
 void BitmapFont::setKerning(const int kerning, const std::vector<std::string>& glyphPairs)
 {
-	for (auto& glyphPair : glyphPairs)
+	for (const auto& glyphPair : glyphPairs)
 		priv_setKerning(kerning, glyphPair);
 }
 
 const sf::Texture* BitmapFont::getTexture() const
 {
 	if (m_useExternalTexture)
-		return m_mExternalTexture;
+		return m_pExternalTexture;
 	else
 		return &m_texture;
 }
 
-const BitmapFont::Glyph BitmapFont::getGlyph(const std::size_t glyphIndex) const
+BitmapFont::Glyph BitmapFont::getGlyph(const std::size_t glyphIndex) const
 {
 	if (!priv_isGlyphIndexValid(glyphIndex))
 	{
@@ -326,12 +325,12 @@ const BitmapFont::Glyph BitmapFont::getGlyph(const std::size_t glyphIndex) const
 		return m_glyphs[glyphIndex];
 }
 
-const std::size_t BitmapFont::getNumberOfGlyphs() const
+std::size_t BitmapFont::getNumberOfGlyphs() const
 {
 	return m_glyphs.size();
 }
 
-const int BitmapFont::getKerning(const std::string& glyphPair) const
+int BitmapFont::getKerning(const std::string& glyphPair) const
 {
 	if (glyphPair.size() != 2u)
 	{
@@ -340,12 +339,7 @@ const int BitmapFont::getKerning(const std::string& glyphPair) const
 		return 0;
 	}
 
-	std::map<std::string, int>::iterator it;
-	it = m_kernings.find(glyphPair);
-	if (it == m_kernings.end())
-		return 0;
-	
-	return m_kernings[glyphPair];
+	return (m_kernings.find(glyphPair) != m_kernings.end()) ? m_kernings[glyphPair] : 0;
 }
 
 
@@ -354,7 +348,7 @@ const int BitmapFont::getKerning(const std::string& glyphPair) const
 
 // PRIVATE
 
-const bool BitmapFont::priv_isGlyphIndexValid(const std::size_t glyphIndex) const
+bool BitmapFont::priv_isGlyphIndexValid(const std::size_t glyphIndex) const
 {
 	if (glyphIndex < m_glyphs.size())
 		return true;
@@ -364,7 +358,7 @@ const bool BitmapFont::priv_isGlyphIndexValid(const std::size_t glyphIndex) cons
 		return false;
 }
 
-const BitmapFont::Glyph BitmapFont::priv_getGlyphWithDefaultTextureRect(std::size_t glyphIndex) const
+BitmapFont::Glyph BitmapFont::priv_getGlyphWithDefaultTextureRect(std::size_t glyphIndex) const
 {
 	if (!priv_isGlyphIndexValid(glyphIndex))
 	{
@@ -376,7 +370,7 @@ const BitmapFont::Glyph BitmapFont::priv_getGlyphWithDefaultTextureRect(std::siz
 	if (m_glyphs.empty())
 		throw Exception(exceptionPrefix + "BUG - no glyphs available.");
 
-	Glyph defaultGlyph;
+	Glyph defaultGlyph{};
 	defaultGlyph.useDefaultTextureRect = false;
 	defaultGlyph.textureRect = m_defaultTextureRect;
 	defaultGlyph.textureRect.position.x = m_defaultTextureRect.size.x * static_cast<int>(glyphIndex % m_numberOfTilesPerRow);

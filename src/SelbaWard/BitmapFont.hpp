@@ -41,7 +41,7 @@
 namespace selbaward
 {
 
-// SW Bitmap Font v1.1.3
+// SW Bitmap Font v1.1.4
 class BitmapFont
 {
 public:
@@ -58,9 +58,9 @@ public:
 
 	// output
 	const sf::Texture* getTexture() const;
-	const Glyph getGlyph(std::size_t glyphIndex = 0u) const;
-	const std::size_t getNumberOfGlyphs() const;
-	const int getKerning(const std::string& glyphPair) const;
+	Glyph getGlyph(std::size_t glyphIndex = 0u) const;
+	std::size_t getNumberOfGlyphs() const;
+	int getKerning(const std::string& glyphPair) const;
 
 	// texture setup
 	void setExternalTexture(const sf::Texture& externalTexture);
@@ -100,7 +100,7 @@ public:
 
 	// general setup
 	void setThrowExceptions(bool throwExceptions = true);
-	const bool getThrowExceptions() const;
+	bool getThrowExceptions() const;
 
 
 
@@ -112,15 +112,14 @@ private:
 	bool m_throwExceptions;
 	bool m_useExternalTexture;
 	sf::Texture m_texture;
-	const sf::Texture* m_mExternalTexture;
+	const sf::Texture* m_pExternalTexture;
 	std::size_t m_numberOfTilesPerRow;
-	//sf::Vector2u m_tileSize;
 	sf::IntRect m_defaultTextureRect;
 	mutable std::map<std::string, int> m_kernings;
 	std::vector<Glyph> m_glyphs;
 
-	const bool priv_isGlyphIndexValid(std::size_t glyphIndex) const;
-	const Glyph priv_getGlyphWithDefaultTextureRect(std::size_t glyphIndex = 0u) const;
+	bool priv_isGlyphIndexValid(std::size_t glyphIndex) const;
+	Glyph priv_getGlyphWithDefaultTextureRect(std::size_t glyphIndex = 0u) const;
 	void priv_setKerning(int kerning, const std::string& glyphs); // string must have length of 2
 };
 
