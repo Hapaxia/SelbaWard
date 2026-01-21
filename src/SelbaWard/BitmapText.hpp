@@ -40,7 +40,7 @@
 namespace selbaward
 {
 
-// SW Bitmap Text v1.1.5
+// SW Bitmap Text v1.2.0
 class BitmapText : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -48,24 +48,31 @@ public:
 	void setBitmapFont(const BitmapFont& bitmapFont);
 	void setBitmapFont();
 	void setString(const std::string& string = "");
-	const std::string getString() const;
+	std::string getString() const;
 	void setTracking(int tracking);
-	const int getTracking() const;
+	int getTracking() const;
 	void setColor(const sf::Color& color);
-	const sf::Color getColor() const;
+	sf::Color getColor() const;
 	void setScale(std::size_t scale);
 	void setScale(std::size_t scaleX, std::size_t scaleY);
 	void setScale(sf::Vector2<std::size_t> scale);
 	sf::FloatRect getGlobalBounds() const;
 	sf::FloatRect getLocalBounds() const;
+	void setCharacterAndTextureTrim(sf::Vector2f characterAndTextureTrim);
+	void setCharacterTrim(sf::Vector2f characterTrim);
+	void setTextureTrim(sf::Vector2f textureTrim);
+	sf::Vector2f getCharacterTrim() const;
+	sf::Vector2f getTextureTrim() const;
 
 private:
 	const BitmapFont* m_pBitmapFont;
-	sf::VertexArray m_vertices;
+	std::vector<sf::Vertex> m_vertices;
 	std::string m_string;
 	sf::Color m_color;
 	int m_tracking;
 	sf::FloatRect m_bounds;
+	sf::Vector2f m_charTrim;
+	sf::Vector2f m_texTrim;
 
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	void priv_updateVertices();
