@@ -1,6 +1,15 @@
 # Bitmap Text Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-01-21
+### Added
+- Ability to specify a character tile trim amount (reduces actual drawn quads)
+- Ability to specify a texture tile trim amount (reduces the texture rectangle for each character)
+### Fixed
+- Added missing class member initialisation
+- Replaced sf::Vertex with std::vector<sf::Vertex>
+- Updated some code style, including an optimisation
+
 ## [1.1.5] - 2025-01-23
 ### Fixed
 - Basic code issues including missing variables
@@ -33,6 +42,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Full version
 
+[1.2.0]: https://github.com/Hapaxia/SelbaWard/commit/e1b2b305166a19f4d6a1e19df442141014e6aeb9
 [1.1.5]: https://github.com/Hapaxia/SelbaWard/commit/2d90ad6fa4e7940fbcf21ed508b5a560884a2635
 [1.1.4]: https://github.com/Hapaxia/SelbaWard/commit/d38279a0a5f060295de4456daf04fa12e8cf650e
 [1.1.3]: https://github.com/Hapaxia/SelbaWard/commit/b35a133a9d0a3a83b2957320ff049522ba6e9482
