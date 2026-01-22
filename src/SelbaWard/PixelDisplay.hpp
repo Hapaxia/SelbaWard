@@ -38,7 +38,7 @@
 namespace selbaward
 {
 
-// SW PixelDisplay v1.0.2
+// SW PixelDisplay v1.0.3
 class PixelDisplay : public sf::Drawable, public sf::Transformable
 {
 public:
@@ -105,8 +105,8 @@ public:
 private:
 	sf::Vector2<std::size_t> m_resolution;
 	sf::Vector2f m_size;
-	std::vector<std::size_t> m_pixels;
 	std::vector<sf::Color> m_palette;
+	std::vector<std::size_t> m_pixels;
 	std::vector<sf::Vertex> m_vertices;
 
 	// buffers

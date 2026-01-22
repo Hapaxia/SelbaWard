@@ -39,13 +39,13 @@
 namespace
 {
 
-std::mt19937 randomGenerator;
+std::mt19937 randomGenerator{};
 const std::uniform_int_distribution<unsigned short int> randomDistribution(0u, 255u);
-std::function <unsigned short int()> getRandomByteValue;
+std::function <unsigned short int()> getRandomByteValue{};
 
 inline void randomSeed()
 {
-	std::random_device rd;
+	std::random_device rd{};
 	randomGenerator.seed(rd());
 	getRandomByteValue = std::bind(randomDistribution, randomGenerator);
 }
@@ -58,30 +58,30 @@ inline unsigned char randomByte()
 template <class T>
 void shiftVectorDown(std::vector<T>& vector, const std::size_t amount, const std::size_t startIndex, std::size_t numberOfElements)
 {
-	if ((numberOfElements == 0u) || (startIndex + numberOfElements > vector.size()))
+	if ((numberOfElements == 0u) || ((startIndex + numberOfElements) > vector.size()))
 		numberOfElements = vector.size() - startIndex;
-	for (unsigned int i{ 0u }; i < numberOfElements - amount; ++i)
+	for (std::size_t i{ 0u }; i < (numberOfElements - amount); ++i)
 		vector[startIndex + i] = vector[startIndex + i + amount];
 }
 
 template <class T>
 void shiftVectorUp(std::vector<T>& vector, const std::size_t amount, const std::size_t startIndex, std::size_t numberOfElements)
 {
-	if ((numberOfElements == 0u) || (startIndex + numberOfElements > vector.size()))
+	if ((numberOfElements == 0u) || ((startIndex + numberOfElements) > vector.size()))
 		numberOfElements = vector.size() - startIndex;
-	for (unsigned int i{ 0u }; i < numberOfElements - amount; ++i)
+	for (std::size_t i{ 0u }; i < (numberOfElements - amount); ++i)
 		vector[startIndex + numberOfElements - i - 1u] = vector[startIndex + numberOfElements - (i + amount) - 1u];
 }
 
 template <class T>
 void shiftVectorWrapDown(std::vector<T>& vector, const std::size_t amount, const std::size_t startIndex, std::size_t numberOfElements)
 {
-	if ((numberOfElements == 0u) || (startIndex + numberOfElements > vector.size()))
+	if ((numberOfElements == 0u) || ((startIndex + numberOfElements) > vector.size()))
 		numberOfElements = vector.size() - startIndex;
 	std::vector<T> tempPixels(amount);
 	for (std::size_t i{ 0u }; i < amount; ++i)
 		tempPixels[i] = vector[startIndex + i];
-	for (std::size_t i{ 0u }; i < numberOfElements - amount; ++i)
+	for (std::size_t i{ 0u }; i < (numberOfElements - amount); ++i)
 		vector[startIndex + i] = vector[startIndex + i + amount];
 	for (std::size_t i{ 0u }; i < amount; ++i)
 		vector[startIndex + numberOfElements - amount + i] = tempPixels[i];
@@ -90,12 +90,12 @@ void shiftVectorWrapDown(std::vector<T>& vector, const std::size_t amount, const
 template <class T>
 void shiftVectorWrapUp(std::vector<T>& vector, const std::size_t amount, const std::size_t startIndex, std::size_t numberOfElements)
 {
-	if ((numberOfElements == 0u) || (startIndex + numberOfElements > vector.size()))
+	if ((numberOfElements == 0u) || ((startIndex + numberOfElements) > vector.size()))
 		numberOfElements = vector.size() - startIndex;
 	std::vector<T> tempPixels(amount);
 	for (std::size_t i{ 0u }; i < amount; ++i)
 		tempPixels[i] = vector[startIndex + numberOfElements - amount + i];
-	for (std::size_t i{ 0u }; i < numberOfElements - amount; ++i)
+	for (std::size_t i{ 0u }; i < (numberOfElements - amount); ++i)
 		vector[startIndex + numberOfElements - i - 1u] = vector[startIndex + numberOfElements - (i + amount) - 1u];
 	for (std::size_t i{ 0u }; i < amount; ++i)
 		vector[startIndex + i] = tempPixels[i];
@@ -107,11 +107,11 @@ namespace selbaward
 {
 
 PixelDisplay::PixelDisplay()
-	: m_vertices{}
-	, m_resolution{ 320u, 240u }
+	: m_resolution{ 320u, 240u }
 	, m_size{ 640.f, 480.f }
 	, m_palette(16u)
 	, m_pixels{}
+	, m_vertices{}
 	, m_buffers{}
 {
 	priv_updateVertices();
