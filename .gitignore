@@ -29,6 +29,7 @@ test/
 test-*/
 test_*/
 test-*/
+test */
 examples-SFML3/
 temp/
 temp_*/
