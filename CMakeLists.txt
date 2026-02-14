@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.16)
 project(SelbaWard LANGUAGES CXX)
 
 find_package(SFML 3 REQUIRED COMPONENTS Graphics)
